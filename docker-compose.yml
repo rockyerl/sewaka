@@ -1,0 +1,21 @@
+services:
+  postgres:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: sewaka
+      POSTGRES_PASSWORD: sewaka_dev_only
+      POSTGRES_DB: sewaka
+    ports:
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - sewaka-postgres:/var/lib/postgresql/data
+      - ./docker/postgres/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U sewaka -d sewaka"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  sewaka-postgres:

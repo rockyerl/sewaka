@@ -1,0 +1,118 @@
+{
+  "version": "7",
+  "dialect": "postgresql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1793780242494,
+      "tag": "0000_odd_nocturne",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1793781500000,
+      "tag": "0001_list_my_workspaces",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1793808001548,
+      "tag": "0002_add_new_features",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1793808001549,
+      "tag": "0003_fix_workspace_create_policy",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1793808001550,
+      "tag": "0004_fix_workspace_member_insert_policy",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1793808001551,
+      "tag": "0005_cleanup_orphaned_workspace",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1793808001552,
+      "tag": "0006_add_member_read_by_user_policy",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1793808001553,
+      "tag": "0007_disable_users_rls",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1793808001554,
+      "tag": "0008_cultural_features",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1793808001555,
+      "tag": "0009_update_list_my_workspaces",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1793808001556,
+      "tag": "0010_public_invitation_policies",
+      "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1793808001557,
+      "tag": "0011_invitation_slug_backfill",
+      "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1793808001558,
+      "tag": "0012_curated_vendors_and_seserahan",
+      "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1793808001559,
+      "tag": "0013_new_feature_tables",
+      "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "7",
+      "when": 1793808001560,
+      "tag": "0014_new_feature_tables",
+      "breakpoints": true
+    },
+    {
+      "idx": 15,
+      "version": "7",
+      "when": 1793808001561,
+      "tag": "0015_new_feature_tables",
+      "breakpoints": true
+    }
+  ]
+}

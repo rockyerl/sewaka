@@ -1,0 +1,174 @@
+import "server-only";
+
+import { randomUUID } from "node:crypto";
+import { auth } from "@/auth";
+import { eq, sql } from "drizzle-orm";
+import { z } from "zod";
+
+import { getDb } from "@/db";
+import {
+  culturalRundowns,
+  tasks,
+  weddingWorkspaces,
+  workspaceMembers,
+} from "@/db/schema";
+import {
+  CULTURAL_TRADITIONS,
+  type CulturalTradition,
+} from "@/lib/cultural-templates";
+import {
+  createWorkspaceSchema,
+  workspaceSummarySchema,
+  type WorkspaceSummary,
+} from "../schemas/workspace";
+
+export async function listMyWorkspaces(): Promise<WorkspaceSummary[]> {
+  const session = await auth();
+  const userId = z.string().uuid().safeParse(session?.user?.id);
+
+  if (!userId.success) {
+    return [];
+  }
+
+  return getDb().transaction(async (transaction) => {
+    await transaction.execute(sql`
+      select set_config('app.user_id', ${userId.data}, true)
+    `);
+
+    const result = await transaction.execute(sql`
+      select id, name, couple_one as "coupleOne", couple_two as "coupleTwo",
+        wedding_date as "weddingDate", location, total_budget as "totalBudget",
+        cultural_tradition as "culturalTradition", invitation_slug as "invitationSlug", role
+      from public.list_my_workspaces()
+    `);
+
+    return z.array(workspaceSummarySchema).parse(result.rows);
+  });
+}
+
+export async function createWorkspace(input: z.input<typeof createWorkspaceSchema>) {
+  const data = createWorkspaceSchema.parse(input);
+  const session = await auth();
+  const userId = z.string().uuid().parse(session?.user?.id);
+  const workspaceId = randomUUID();
+
+  // Generate unique URL friendly invitation slug
+  const baseName =
+    data.coupleOne && data.coupleTwo
+      ? `${data.coupleOne}-${data.coupleTwo}`
+      : data.name;
+  const cleanSlug =
+    baseName
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-+|-+$/g, "") || "pernikahan";
+  const invitationSlug = `${cleanSlug}-${workspaceId.slice(0, 6)}`;
+
+  const tradition = (data.culturalTradition ?? "JAWA") as CulturalTradition;
+  const traditionInfo = CULTURAL_TRADITIONS[tradition] ?? CULTURAL_TRADITIONS.JAWA;
+
+  return getDb().transaction(async (transaction) => {
+    await transaction.execute(sql`
+      select
+        set_config('app.workspace_id', ${workspaceId}, true),
+        set_config('app.user_id', ${userId}, true)
+    `);
+
+    try {
+      await transaction.insert(weddingWorkspaces).values({
+        id: workspaceId,
+        name: data.name,
+        coupleOne: data.coupleOne,
+        coupleTwo: data.coupleTwo,
+        weddingDate: data.weddingDate,
+        location: data.location,
+        totalBudget: data.totalBudget,
+        culturalTradition: tradition,
+        invitationSlug,
+        invitationQuote: traditionInfo.tagline,
+        dressCode: traditionInfo.primaryAttire,
+      });
+    } catch (err) {
+      const cause = (err as { cause?: unknown }).cause ?? err;
+      console.error("[createWorkspace] workspace insert failed:", JSON.stringify(cause, null, 2));
+      throw err;
+    }
+
+    try {
+      await transaction.insert(workspaceMembers).values({
+        workspaceId,
+        userId,
+        role: "OWNER",
+      });
+    } catch (err) {
+      const cause = (err as { cause?: unknown }).cause ?? err;
+      console.error("[createWorkspace] membership insert failed:", JSON.stringify(cause, null, 2));
+
+      // Check if user already has an OWNER membership
+      const [existing] = await transaction
+        .select({
+          workspaceId: workspaceMembers.workspaceId,
+          role: workspaceMembers.role,
+        })
+        .from(workspaceMembers)
+        .where(eq(workspaceMembers.userId, userId))
+        .limit(1);
+
+      if (existing) {
+        console.error(
+          `[createWorkspace] user ${userId} already has membership: workspaceId=${existing.workspaceId}, role=${existing.role}`,
+        );
+        // Delete the workspace we just created to avoid orphan
+        await transaction.delete(weddingWorkspaces).where(eq(weddingWorkspaces.id, workspaceId));
+        throw new Error(
+          `Anda sudah memiliki workspace sebagai ${existing.role}. Satu user hanya boleh OWNER di satu workspace.`,
+        );
+      }
+
+      throw err;
+    }
+
+    // Seed curated cultural milestone tasks
+    const targetDate = data.weddingDate ? new Date(data.weddingDate) : new Date(Date.now() + 180 * 24 * 60 * 60 * 1000);
+    for (const item of traditionInfo.checklistTemplate) {
+      const taskDueDate = new Date(targetDate.getTime() + item.offsetDays * 24 * 60 * 60 * 1000);
+      await transaction.insert(tasks).values({
+        workspaceId,
+        title: item.title,
+        description: item.description,
+        priority: item.priority,
+        status: "TODO",
+        dueDate: taskDueDate,
+      });
+    }
+
+    // Seed curated cultural rundown items
+    for (const item of traditionInfo.rundownTemplate) {
+      await transaction.insert(culturalRundowns).values({
+        workspaceId,
+        title: item.title,
+        ceremonyType: item.ceremonyType,
+        timeStart: item.timeStart,
+        timeEnd: item.timeEnd,
+        picName: item.picName,
+        location: item.location,
+        attire: item.attire,
+        rituals: item.rituals,
+        notes: item.notes,
+        sortOrder: item.sortOrder,
+      });
+    }
+
+    const [workspace] = await transaction
+      .select()
+      .from(weddingWorkspaces)
+      .where(eq(weddingWorkspaces.id, workspaceId))
+      .limit(1);
+
+    if (!workspace) {
+      throw new Error("Created workspace could not be read in its transaction");
+    }
+
+    return workspace;
+  });
+}

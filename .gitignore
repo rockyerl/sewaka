@@ -1,6 +1,11 @@
-# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+# ============================================================
+# SEWAKA - .gitignore
+# Files and folders that should NOT be committed to GitHub
+# ============================================================
 
-# dependencies
+# ============================================================
+# 1. DEPENDENCIES
+# ============================================================
 /node_modules
 /.pnp
 .pnp.*
@@ -10,32 +15,226 @@
 !.yarn/releases
 !.yarn/versions
 
-# testing
-/coverage
+# ============================================================
+# 2. BUILD & OUTPUT ARTIFACTS
+# ============================================================
 
-# next.js
+# Next.js build output
 /.next/
 /out/
 
-# production
+# Production build
 /build
 
-# misc
-.DS_Store
-*.pem
+# TypeScript build info
+*.tsbuildinfo
+next-env.d.ts
 
-# debug
+# ============================================================
+# 3. ENVIRONMENT & SECRETS (CRITICAL - NEVER COMMIT)
+# ============================================================
+
+# Environment files with secrets
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+.env.*.local
+
+# Keep .env.example as template
+!.env.example
+
+# Private keys and certificates
+*.pem
+*.key
+*.crt
+*.p12
+*.pfx
+
+# ============================================================
+# 4. IDE & EDITOR FILES
+# ============================================================
+
+# JetBrains IDEs (WebStorm, IntelliJ, etc.)
+.idea/
+*.iws
+*.iml
+*.ipr
+
+# VS Code
+.vscode/
+
+# Sublime Text
+*.sublime-project
+*.sublime-workspace
+
+# Vim
+*~
+*.swp
+*.swo
+*.swn
+
+# Emacs
+*~
+\#*\#
+/.emacs.desktop
+
+# Atom
+.atom/
+
+# TextMate
+*.tmbundle
+*.tmproj
+
+# ============================================================
+# 5. OS & SYSTEM FILES
+# ============================================================
+
+# macOS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Windows
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_v100.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# ============================================================
+# 6. LOGS & DEBUG
+# ============================================================
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
+*.log
+*.log.*
 
-# env files (can opt-in for committing if needed)
-.env*
+# Runtime data
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
 
-# vercel
+# ============================================================
+# 7. DATABASE & MIGRATION TOOLS
+# ============================================================
+
+# SQLite databases (if any local dev DB)
+*.sqlite
+*.sqlite3
+*.db
+
+# ============================================================
+# 8. TEST COVERAGE
+# ============================================================
+/coverage
+.nyc_output
+
+# ============================================================
+# 9. DEPLOYMENT & CLOUD
+# ============================================================
+
+# Vercel deployment
 .vercel
 
-# typescript
-*.tsbuildinfo
-next-env.d.ts
+# Docker
+docker-compose.override.yml
+
+# ============================================================
+# 10. TEMPORARY & CACHE FILES
+# ============================================================
+
+# Cache directories
+.cache/
+.eslintcache
+.stylelintcache
+
+# Temp files
+tmp/
+temp/
+*.tmp
+*.temp
+
+# Compiled binaries
+*.exe
+*.dll
+*.so
+
+# ============================================================
+# 11. JUNEI & AGENT FILES
+# ============================================================
+
+# Junie session data (keep plans and guidelines)
+.junie/sessions/
+.junie/cache/
+!.junie/plans/
+!.junie/guidelines/
+!.junie/AGENTS.md
+
+# ============================================================
+# 12. PACKAGES
+# ============================================================
+*.7z
+*.dmg
+*.gz
+*.rar
+*.tar
+*.zip
+*.tgz
+
+# ============================================================
+# 13. MEDIA ASSETS (large files)
+# ============================================================
+
+# Large media files (use Git LFS if needed)
+*.jpg
+*.jpeg
+*.png
+*.gif
+*.svg
+*.ico
+*.mp4
+*.mov
+*.avi
+*.mp3
+*.wav
+*.flac
+
+# ============================================================
+# END OF .gitignore
+# ============================================================
+
+# Files that ARE safe to commit to GitHub:
+# ✅ /app/                    - Next.js pages and routes
+# ✅ /components/             - React components
+# ✅ /features/               - Feature modules
+# ✅ /db/                     - Database schema and connections
+# ✅ /drizzle/                - Database migrations
+# ✅ /lib/                    - Shared utilities
+# ✅ /docs/                   - Documentation
+# ✅ /tests/                  - Test files
+# ✅ /public/                 - Static assets (small files)
+# ✅ /shared/                 - Shared types and utilities
+# ✅ /types/                  - TypeScript type definitions
+# ✅ /core/                   - Core utilities
+# ✅ package.json             - Dependencies
+# ✅ package-lock.json        - Lock file for reproducible builds
+# ✅ tsconfig.json            - TypeScript config
+# ✅ next.config.ts           - Next.js config
+# ✅ tailwind.config.*        - Tailwind config
+# ✅ .env.example             - Environment template (NO secrets)
+# ✅ .gitignore               - This file
+# ✅ README.md                - Documentation
+# ✅ vercel.json              - Vercel config
+# ✅ docker-compose.yml       - Docker config
+# ✅ AGENTS.md                - Agent guidelines
