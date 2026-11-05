@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import { format } from "date-fns";
 import { id } from "date-fns/locale";
 import { Camera, Image as ImagePlus, Loader2, Trash2, Upload, X } from "lucide-react";
@@ -75,9 +76,11 @@ export function GalleryPageContent({
         {selectedFile && previewUrl ? (
           <div className="mt-4 space-y-3">
             <div className="relative overflow-hidden rounded-lg border border-border/60">
-              <img
+              <Image
                 src={previewUrl}
                 alt={selectedFile.name}
+                width={512}
+                height={256}
                 className="max-h-64 w-full object-contain bg-muted"
               />
               <button
@@ -158,11 +161,14 @@ export function GalleryPageContent({
                 key={image.id}
                 className="group relative overflow-hidden rounded-xl border border-border/60 bg-muted/30"
               >
-                <div className="aspect-square">
-                  <img
+                <div className="aspect-square relative">
+                  <Image
                     src={image.fileUrl}
                     alt={image.title}
-                    className="size-full object-cover"
+                    fill
+                    className="object-cover"
+                    loading="lazy"
+                    sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
                   />
                 </div>
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 transition-opacity group-hover:opacity-100" />

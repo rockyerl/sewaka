@@ -1,7 +1,22 @@
 import { NextRequest, NextResponse } from "next/server";
 import { handlePaymentWebhook } from "@/features/subscription/actions/subscription-actions";
+import { rateLimit, getIpFromRequest } from "@/lib/rate-limit";
 
 export async function POST(request: NextRequest) {
+  const ip = getIpFromRequest(request);
+  const { isLimited, retryAfter } = rateLimit({
+    key: `webhook:${ip}`,
+    limit: 30,
+    windowMs: 60_000,
+  });
+
+  if (isLimited) {
+    return NextResponse.json(
+      { error: "Too many requests" },
+      { status: 429, headers: { "Retry-After": String(retryAfter) } }
+    );
+  }
+
   try {
     const body = await request.json();
     const signature = request.headers.get("x-signature") ?? "";

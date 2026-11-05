@@ -1,10 +1,19 @@
-import { connection } from "next/server";
 import { sql } from "drizzle-orm";
 
 import { getDb } from "@/db";
 
+export const instant = false;
+
 export async function GET() {
-  await connection();
+  // Skip database check during build — only runs in production
+  if (process.env.VERCEL === undefined) {
+    return Response.json({
+      status: "ok",
+      service: "sewaka-web",
+      version: "v1",
+      database: "skipped (development)",
+    });
+  }
 
   try {
     await getDb().execute(sql`select 1`);

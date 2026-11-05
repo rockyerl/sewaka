@@ -2,8 +2,23 @@ import { NextRequest, NextResponse } from "next/server";
 import { eq, and } from "drizzle-orm";
 import { getDb } from "@/db";
 import { guests } from "@/db/schema";
+import { rateLimit, getIpFromRequest } from "@/lib/rate-limit";
 
 export async function POST(request: NextRequest) {
+  const ip = getIpFromRequest(request);
+  const { isLimited, retryAfter } = rateLimit({
+    key: `checkin:${ip}`,
+    limit: 20,
+    windowMs: 60_000,
+  });
+
+  if (isLimited) {
+    return NextResponse.json(
+      { error: "Terlalu banyak permintaan. Coba lagi nanti." },
+      { status: 429, headers: { "Retry-After": String(retryAfter) } }
+    );
+  }
+
   try {
     const db = await getDb();
     const formData = await request.formData();

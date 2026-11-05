@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import Image from "next/image";
 import { ArrowLeft, MapPin, Phone, Mail, Trash2, Plus, Image as ImageIcon } from "lucide-react";
 import Link from "next/link";
 
@@ -146,10 +147,13 @@ export default async function VendorPortfolioPage({
               <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
                 {portfolio.map((img) => (
                   <div key={img.id} className="group relative aspect-square overflow-hidden rounded-lg border">
-                    <img
+                    <Image
                       src={img.imageUrl}
                       alt={img.caption || ""}
-                      className="h-full w-full object-cover"
+                      fill
+                      className="object-cover"
+                      loading="lazy"
+                      sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, 25vw"
                     />
                     {img.caption && (
                       <p className="absolute bottom-0 left-0 right-0 bg-black/60 p-2 text-xs text-white">

@@ -1,8 +1,10 @@
 "use client";
 
 import type { ReactNode } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { Menu, X } from "lucide-react";
 
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -24,6 +26,7 @@ export function AppLayout({
   notifications,
 }: AppLayoutProps) {
   const pathname = usePathname();
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const activeItem =
     ALL_NAV_ITEMS.find((item) =>
@@ -36,6 +39,71 @@ export function AppLayout({
 
   return (
     <div className="min-h-svh">
+      {/* Mobile Menu Button */}
+      <button
+        type="button"
+        className="fixed left-4 top-4 z-30 rounded-lg bg-background/95 p-2 shadow-md md:hidden"
+        onClick={() => setMobileMenuOpen(true)}
+        aria-label="Buka menu navigasi"
+      >
+        <Menu className="size-5" />
+      </button>
+
+      {/* Mobile Sidebar Overlay */}
+      {mobileMenuOpen && (
+        <div className="fixed inset-0 z-40 md:hidden">
+          <div
+            className="absolute inset-0 bg-black/50"
+            onClick={() => setMobileMenuOpen(false)}
+          />
+          <div className="absolute inset-y-0 left-0 w-[280px] bg-background shadow-xl">
+            <div className="flex items-center justify-between border-b border-border p-4">
+              <Link
+                className="font-serif text-xl tracking-tight text-primary"
+                href="/dashboard"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                sewaka<span className="text-[#c5a849]">.</span>
+              </Link>
+              <button
+                type="button"
+                className="rounded-lg p-2 hover:bg-muted"
+                onClick={() => setMobileMenuOpen(false)}
+                aria-label="Tutup menu"
+              >
+                <X className="size-5" />
+              </button>
+            </div>
+            <nav className="overflow-y-auto p-4" style={{ maxHeight: "calc(100vh - 72px)" }}>
+              <ul className="space-y-1">
+                {ALL_NAV_ITEMS.map((item) => {
+                  const isActive =
+                    item.href === "/dashboard"
+                      ? pathname === "/dashboard" || pathname === "/"
+                      : pathname.startsWith(item.href);
+                  return (
+                    <li key={item.href}>
+                      <Link
+                        href={item.href}
+                        onClick={() => setMobileMenuOpen(false)}
+                        className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors ${
+                          isActive
+                            ? "bg-muted font-medium text-foreground"
+                            : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                        }`}
+                      >
+                        <item.icon className="size-4" />
+                        {item.label}
+                      </Link>
+                    </li>
+                  );
+                })}
+              </ul>
+            </nav>
+          </div>
+        </div>
+      )}
+
       {/* Sidebar */}
       <div className="print:hidden">
         <AppSidebar
@@ -48,7 +116,7 @@ export function AppLayout({
       </div>
 
       {/* Main Content Area */}
-      <main className="min-w-0 md:ml-[260px] print:ml-0 print:p-0">
+      <main id="main-content" tabIndex={-1} className="min-w-0 md:ml-[260px] print:ml-0 print:p-0">
         {/* Top Header */}
         <header className="sticky top-0 z-10 flex h-16 items-center justify-between border-b border-border bg-background/90 px-5 backdrop-blur-md sm:px-8 lg:px-11 print:hidden">
           <div className="flex items-center gap-3">

@@ -242,6 +242,7 @@ com.sewaka-web/
 │   ├── storage.ts          # File storage (Vercel Blob)
 │   └── env.ts              # Environment validation
 ├── docs/                   # Documentation
+│   ├── DEPLOYMENT.md       # Production deployment guide
 │   ├── specs.md            # Technical specifications
 │   ├── architecture.md     # Architecture documentation
 │   ├── specification.md    # Feature specifications
@@ -331,13 +332,13 @@ Cron job untuk notification scheduler sudah dikonfigurasi di `vercel.json`:
 
 | Metrik | Nilai |
 |--------|-------|
-| **Total Halaman** | 46+ |
+| **Total Halaman** | 50+ |
 | **Fitur PRD** | ~100% diimplementasikan |
 | **Action Files** | 44+ |
-| **Components** | 26+ |
+| **Components** | 30+ |
 | **Database Tables** | 28+ |
 | **Migrations** | 16 files (0000-0015) |
-| **Tests** | 5 test cases pass |
+| **Tests** | 23+ test cases (5 unit + 18 E2E) |
 
 ## 📄 Dokumentasi
 
@@ -346,6 +347,9 @@ Cron job untuk notification scheduler sudah dikonfigurasi di `vercel.json`:
 - **[Feature Specifications](docs/specification.md)** — Detail setiap fitur
 - **[Brand Guidelines](docs/sewaka_brand_guidelines.md)** — Panduan brand Sewaka
 - **[PRD](docs/Wedora_Product_Requirements_Document.md)** — Product Requirements Document
+- **[Deployment Guide](docs/DEPLOYMENT.md)** — Panduan deploy ke Vercel production
+- **[Post-Launch Guide](docs/POST-LAUNCH.md)** — Monitoring, maintenance, dan troubleshooting
+- **[Changelog](CHANGELOG.md)** — Riwayat perubahan versi
 
 ## 🤝 Kontribusi
 
