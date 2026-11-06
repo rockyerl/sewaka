@@ -3,13 +3,13 @@ import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { PageHeader, SectionCard, EmptyState } from "@/components/shared";
 
 import { createTaskAction } from "@/features/tasks/actions";
 import { listWorkspaceTasks } from "@/features/tasks/queries";
 import { TaskRow } from "@/features/tasks/components/task-row";
 import { TaskCategorySection } from "@/features/tasks/components/task-category-list";
 import { ChecklistTemplateSection } from "@/features/tasks/components/checklist-template";
-import { listMyWorkspaces } from "@/features/workspaces/queries";
 
 function statusBadge(status: string) {
   const map: Record<string, { label: string; cls: string }> = {
@@ -29,17 +29,11 @@ async function TasksPageContent({ workspaceId }: { workspaceId: string }) {
 
   return (
     <>
-      <section className="mb-6">
-        <p className="mb-1.5 text-[10px] font-semibold tracking-[0.14em] text-[#a08f74]">
-          RENCANA PERSIAPAN
-        </p>
-        <h1 className="font-serif text-3xl font-normal tracking-tight sm:text-[38px]">
-          Checklist Persiapan
-        </h1>
-        <p className="mt-2 text-sm text-muted-foreground">
-          Pantau progres setiap langkah persiapan pernikahanmu.
-        </p>
-      </section>
+      <PageHeader
+        eyebrow="RENCANA PERSIAPAN"
+        title="Checklist Persiapan"
+        description="Pantau progres setiap langkah persiapan pernikahanmu."
+      />
 
       {/* Stats */}
       <div className="mb-5 grid gap-3 sm:grid-cols-3">
@@ -69,14 +63,9 @@ async function TasksPageContent({ workspaceId }: { workspaceId: string }) {
       <TaskCategorySection workspaceId={workspaceId} />
 
       {/* Task List */}
-      <Card className="mb-5 gap-5 rounded-xl border-border/80 bg-card p-5 shadow-sm sm:p-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="mb-1.5 text-[10px] font-semibold tracking-[0.14em] text-[#a08f74]">
-              DAFTAR TUGAS
-            </p>
-            <h2 className="font-serif text-xl font-medium tracking-tight">Semua Tugas</h2>
-          </div>
+      <SectionCard eyebrow="DAFTAR TUGAS" title="Semua Tugas">
+        <div className="flex items-center justify-between mb-4">
+          <div />
           <div className="flex items-center gap-2">
             {statusBadge("TODO")}
             {statusBadge("IN_PROGRESS")}
@@ -90,9 +79,7 @@ async function TasksPageContent({ workspaceId }: { workspaceId: string }) {
             ))}
           </div>
         ) : (
-          <p className="mt-4 rounded-lg bg-muted/60 p-4 text-sm text-muted-foreground">
-            Belum ada tugas. Tambahkan langkah pertama untuk memulai persiapan.
-          </p>
+          <EmptyState message="Belum ada tugas. Tambahkan langkah pertama untuk memulai persiapan." />
         )}
         {canEdit ? (
           <form action={createTaskAction} className="mt-4 grid gap-2 sm:grid-cols-[1fr_auto]">
@@ -137,7 +124,7 @@ async function TasksPageContent({ workspaceId }: { workspaceId: string }) {
             />
           </form>
         ) : null}
-      </Card>
+      </SectionCard>
     </>
   );
 }
@@ -149,14 +136,13 @@ export default async function TasksPage({
 }: {
   searchParams?: Promise<{ workspaceId?: string }>;
 }) {
-  const workspaces = await listMyWorkspaces();
+  const { getCurrentWorkspace } = await import("@/lib/workspace-cache");
   const resolvedSearchParams = await (searchParams ?? Promise.resolve({}));
   const workspaceIdFromQuery = typeof resolvedSearchParams === "object" && resolvedSearchParams !== null
     ? (resolvedSearchParams as { workspaceId?: string }).workspaceId
     : undefined;
 
-  const workspace =
-    workspaces.find((item) => item.id === workspaceIdFromQuery) ?? workspaces[0];
+  const workspace = await getCurrentWorkspace(workspaceIdFromQuery);
   if (!workspace) return null;
 
   return <TasksPageContent workspaceId={workspace.id} />;

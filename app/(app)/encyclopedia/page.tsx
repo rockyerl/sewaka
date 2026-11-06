@@ -1,4 +1,3 @@
-import { listMyWorkspaces } from "@/features/workspaces/queries";
 import { getEncyclopediaArticles } from "@/features/encyclopedia/queries/encyclopedia-queries";
 import { CulturalEncyclopediaView } from "@/features/encyclopedia/components/cultural-encyclopedia-view";
 
@@ -9,15 +8,14 @@ export default async function EncyclopediaPage({
 }: {
   searchParams?: Promise<{ workspaceId?: string }>;
 }) {
-  const workspaces = await listMyWorkspaces();
+  const { getCurrentWorkspace } = await import("@/lib/workspace-cache");
   const resolvedSearchParams = await (searchParams ?? Promise.resolve({}));
   const workspaceIdFromQuery =
     typeof resolvedSearchParams === "object" && resolvedSearchParams !== null
       ? (resolvedSearchParams as { workspaceId?: string }).workspaceId
       : undefined;
 
-  const workspace =
-    workspaces.find((item) => item.id === workspaceIdFromQuery) ?? workspaces[0];
+  const workspace = await getCurrentWorkspace(workspaceIdFromQuery);
   if (!workspace) return null;
 
   const articles = await getEncyclopediaArticles();

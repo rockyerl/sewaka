@@ -195,4 +195,84 @@ export const CULTURAL_ENCYCLOPEDIA: RitualArticle[] = [
     culturalAdvice:
       "Pastikan pemaes memeriksa bantalan busa pada sanggul Suntiang agar tekanan berat di kepala terbagi merata dan nyaman selama prosesi pelaminan.",
   },
+
+  // --- NASIONAL ---
+  {
+    id: "nasional-persiapan-pelaminan",
+    tradition: "NASIONAL",
+    title: "Persiapan Pelaminan & Dekorasi Nusantara",
+    subtitle: "Menciptakan Ruang Sakral dengan Sentuhan Modern",
+    category: "PERSIAPAN",
+    philosophy:
+      "Pernikahan nasional modern menggabungkan elemen-elemen terbaik dari berbagai tradisi Nusantara dengan sentuhan kontemporer. Pelaminan menjadi pusat perhatian yang mencerminkan kepribadian kedua mempelai, memadukan keindahan alam Indonesia dengan estetika modern yang elegan.",
+    stepByStep: [
+      "Tentukan tema pernikahan yang merepresentasikan kedua mempelai (rustic, garden, classic, modern, dll).",
+      "Pilih venue dan sesuaikan dengan konsep dekorasi yang diinginkan.",
+      "Siapkan pelaminan dengan dekorasi bunga segar, kain brokat, atau elemen adat pilihan.",
+      "Tata pencahayaan dan musik pengiring untuk menciptakan suasana intim dan berkesan.",
+      "Siapkan buku tamu, guest book, atau alternatif kreatif seperti pohon harapan.",
+      "Koordinasi dengan vendor fotografi untuk momen-momen penting di pelaminan.",
+    ],
+    ubarampe: [
+      { name: "Dekorasi Pelaminan (Bunga, Kain, Cahaya)", meaning: "Ruang sakral tempat penyatuan dua jiwa dalam ikatan suci" },
+      { name: "Busana Pengantin (Kebaya, Jas, atau Adat Pilihan)", meaning: "Ekspresi identitas budaya dan kepribadian kedua mempelai" },
+      { name: "Aksesoris Pelengkap (Sanggul, Bros, Jam Tangan)", meaning: "Detail kecil yang menyempurnakan penampilan dan makna" },
+      { name: "Buku Tamu & Souvenir", meaning: "Jejak kenangan dan apresiasi atas kehadiran orang-orang tersayang" },
+    ],
+    culturalAdvice:
+      "Pilih elemen dekorasi yang memiliki makna personal bagi kedua mempelai, bukan sekadar tren. Sentuhan personal akan membuat hari pernikahan lebih berkesan dan autentik.",
+  },
+  {
+    id: "nasional-akad-pernikahan",
+    tradition: "NASIONAL",
+    title: "Akad Nikah & Ijab Qabul",
+    subtitle: "Momen Suci Penyatuan Dua Hati di Hadapan Tuhan",
+    category: "AKAD",
+    philosophy:
+      "Akad nikah adalah inti dari pernikahan — momen sakral di mana dua orang menyatakan komitmen suci di hadapan Tuhan dan saksi. Dalam pernikahan nasional, akad tetap menjadi pusat perhatian dengan tata cara yang sesuai agama dan kepercayaan, dibungkus dengan suasana khidmat namun modern.",
+    stepByStep: [
+      "Persiapan dokumen dan administrasi pernikahan (buku nikah, surat keterangan, dll).",
+      "Kedatangan kedua mempelai dan keluarga ke tempat akad.",
+      "Pembacaan niat nikah dan khutbah nikah oleh penghulu atau pemuka agama.",
+      "Ijab Qabul: Lailazim dan Qabul — momen penentuan sah atau tidaknya pernikahan.",
+      "Doa bersama dan penyerahan mempelai wanita kepada mempelai pria.",
+      "Pemotongan tumpeng atau kue pernikahan sebagai simbol pertama kerja sama.",
+    ],
+    ubarampe: [
+      { name: "Buku Nikah & Dokumen Resmi", meaning: "Legalitas pernikahan yang diakui negara dan agama" },
+      { name: "Cincin Nikah", meaning: "Lambang ikatan abadi yang tidak putus antara suami dan istri" },
+      { name: "Mata Air Suci / Air Zamzam", meaning: "Penyucian hati dan keberkahan dalam memulai kehidupan baru" },
+      { name: "Tumpeng atau Kue Pernikahan", meaning: "Simbol pertama berbagi rezeki dan kehidupan bersama" },
+      { name: "Saksi Pernikahan (Minimal 2 Orang)", meaning: "Peneguhan komitmen di hadapan orang-orang yang dipercaya" },
+    ],
+    culturalAdvice:
+      "Jaga kekhusyukan momen akad. Batasi dokumentasi fotografi agar tidak mengganggu konsentrasi dan kesakralan ijab qabul. Biarkan momen ini menjadi kenangan paling berkesan.",
+  },
+  {
+    id: "nasional-resepsi-pernikahan",
+    tradition: "NASIONAL",
+    title: "Resepsi & Pesta Pernikahan Modern",
+    subtitle: "Perayaan Bahagia Bersama Orang-orang Tersayang",
+    category: "RESEPSI",
+    philosophy:
+      "Resepsi pernikahan nasional adalah perayaan kebahagiaan yang menggabungkan tradisi dan modernitas. Dari first dance hingga throwing petals, setiap momen dirancang untuk menciptakan kenangan indah yang akan dikenang seumur hidup oleh kedua mempelai dan para tamu.",
+    stepByStep: [
+      "Grand entrance: Masuknya kedua mempelai diiringi musik dan hamparan kelopak bunga.",
+      "Reading vows: Pembacaan janji pernikahan yang ditulis langsung oleh kedua mempelai.",
+      "First dance: Tarian pertama sebagai suami istri di hadapan orang-orang tersayang.",
+      "Cutting cake: Memotong kue pernikahan bersama sebagai simbol kerja sama dalam kehidupan.",
+      "Serving dinner: Sajian makan bersama dengan menu yang disesuaikan selera tamu.",
+      "Entertainment: Musik live, DJ, atau pertunjukan yang menghidupkan suasana pesta.",
+      "Throwing petals/rice: Tamu memberikan berkah dan doa saat kedua mempelai keluar.",
+    ],
+    ubarampe: [
+      { name: "Kue Pernikahan Bertingkat", meaning: "Simbol kebahagiaan dan manisnya kehidupan yang akan dibangun bersama" },
+      { name: "Topi Pengantin (Bridal Bouquet & Groom's Boutonniere)", meaning: "Aksesoris sakral yang menandai hari paling istimewa dalam hidup" },
+      { name: "Kelopak Bunga untuk Throwing", meaning: "Berkah, doa, dan harapan baik dari para tamu" },
+      { name: "Sound System & Pencahayaan", meaning: "Menciptakan suasana meriah dan berkesan bagi semua tamu" },
+      { name: "Guest Book & Wish Box", meaning: "Kumpulan doa, harapan, dan pesan cinta dari orang-orang tersayang" },
+    ],
+    culturalAdvice:
+      "Jangan terlalu terpaku pada kesempurnaan. Biarkan ada ruang untuk momen spontan dan kekeluargaan. Pernikahan yang paling berkesan adalah yang terasa autentik dan penuh cinta.",
+  },
 ];

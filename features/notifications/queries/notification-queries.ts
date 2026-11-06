@@ -172,7 +172,8 @@ async function syncWorkspaceReminders(
 export async function listNotifications(workspaceId?: string) {
   if (workspaceId) {
     return withWorkspace({ workspaceId }, async (tx) => {
-      await syncWorkspaceReminders(tx, workspaceId);
+      // Skip sync on every request - it's expensive with many guests
+      // Sync is triggered by guest actions (RSVP changes) instead
       return tx
         .select()
         .from(notifications)
@@ -183,7 +184,7 @@ export async function listNotifications(workspaceId?: string) {
   }
 
   return withWorkspace(async (tx, wsId) => {
-    await syncWorkspaceReminders(tx, wsId);
+    // Skip sync on every request - it's expensive with many guests
     return tx
       .select()
       .from(notifications)

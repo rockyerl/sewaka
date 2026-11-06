@@ -2,6 +2,7 @@ import { format } from "date-fns";
 
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { AdminPagination, AdminPageHeader } from "@/components/shared/admin-components";
 import { listAdminWorkspaces } from "@/features/admin/actions/admin-actions";
 
 export default async function AdminWorkspacesPage({
@@ -17,10 +18,7 @@ export default async function AdminWorkspacesPage({
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="font-serif text-3xl font-normal tracking-tight">Manajemen Workspace</h1>
-        <p className="mt-1 text-sm text-muted-foreground">Lihat semua workspace pernikahan.</p>
-      </div>
+      <AdminPageHeader title="Manajemen Workspace" description="Lihat semua workspace pernikahan." />
 
       <form className="flex gap-2">
         <input
@@ -59,25 +57,11 @@ export default async function AdminWorkspacesPage({
           ))}
         </div>
 
-        {data.pagination.totalPages > 1 && (
-          <div className="mt-4 flex items-center justify-between">
-            <p className="text-xs text-muted-foreground">
-              Halaman {data.pagination.page} dari {data.pagination.totalPages}
-            </p>
-            <div className="flex gap-2">
-              {data.pagination.page > 1 && (
-                <a href={`/admin/workspaces?page=${data.pagination.page - 1}`} className="rounded-lg border border-border px-3 py-1 text-xs hover:bg-muted">
-                  Sebelumnya
-                </a>
-              )}
-              {data.pagination.page < data.pagination.totalPages && (
-                <a href={`/admin/workspaces?page=${data.pagination.page + 1}`} className="rounded-lg border border-border px-3 py-1 text-xs hover:bg-muted">
-                  Selanjutnya
-                </a>
-              )}
-            </div>
-          </div>
-        )}
+        <AdminPagination
+          page={data.pagination.page}
+          totalPages={data.pagination.totalPages}
+          baseUrl="/admin/workspaces"
+        />
       </Card>
     </div>
   );

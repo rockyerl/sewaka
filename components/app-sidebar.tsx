@@ -1,5 +1,6 @@
 "use client";
 
+import { useMemo } from "react";
 import {
   Flower2,
   ChevronDown,
@@ -29,7 +30,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Card } from "@/components/ui/card";
-import { signOutAction } from "@/features/auth/actions";
+import { signOutAction } from "@/lib/auth-actions";
 
 export interface NavItem {
   label: string;
@@ -84,27 +85,33 @@ export function AppSidebar({
   navCounts,
 }: AppSidebarProps) {
   const pathname = usePathname();
-  const coupleNames = [workspace.coupleOne, workspace.coupleTwo].filter(Boolean);
 
-  const navigation = ALL_NAV_ITEMS.map((item) => {
-    const isActive = activeNav
-      ? item.href === activeNav
-      : item.href === "/dashboard"
-      ? pathname === "/dashboard" || pathname === "/"
-      : pathname.startsWith(item.href);
+  const coupleNames = useMemo(
+    () => [workspace.coupleOne, workspace.coupleTwo].filter(Boolean),
+    [workspace.coupleOne, workspace.coupleTwo],
+  );
 
-    return {
-      ...item,
-      active: isActive,
-      count: item.countKey ? navCounts?.[item.countKey] : undefined,
-    };
-  });
+  const navigation = useMemo(() => {
+    return ALL_NAV_ITEMS.map((item) => {
+      const isActive = activeNav
+        ? item.href === activeNav
+        : item.href === "/dashboard"
+        ? pathname === "/dashboard" || pathname === "/"
+        : pathname.startsWith(item.href);
+
+      return {
+        ...item,
+        active: isActive,
+        count: item.countKey ? navCounts?.[item.countKey] : undefined,
+      };
+    });
+  }, [activeNav, pathname, navCounts]);
 
   return (
     <aside className="fixed inset-y-0 left-0 z-20 hidden w-[260px] flex-col border-r border-border bg-sidebar px-5 py-7 md:flex overflow-y-auto overflow-x-hidden [scrollbar-width:thin] [scrollbar-color:hsl(var(--border))_transparent]">
       {/* Brand Logo */}
       <Link
-        className="mb-8 flex w-fit shrink-0 items-center gap-2.5"
+        className="mb-5 flex w-fit shrink-0 items-center gap-2.5"
         href="/dashboard"
         aria-label="Sewaka, beranda"
       >
@@ -116,37 +123,6 @@ export function AppSidebar({
         </span>
       </Link>
 
-      {/* Workspace Selector */}
-      <div className="flex min-h-16 shrink-0 items-center gap-3 rounded-xl border border-border px-3">
-        <span className="grid size-10 shrink-0 place-items-center rounded-full bg-[#f1e7d8] font-serif text-sm font-semibold text-primary">
-          {coupleNames.length
-            ? coupleNames.map((name) => name?.charAt(0)).join("&")
-            : workspace.name.slice(0, 2).toUpperCase()}
-        </span>
-        <span className="grid min-w-0 flex-1 gap-1">
-          <span className="truncate text-sm font-medium">{workspace.name}</span>
-          <span className="text-xs text-muted-foreground">Workspace pernikahan</span>
-        </span>
-        <ChevronDown className="size-4 shrink-0 text-muted-foreground" />
-      </div>
-
-      {workspaces.length > 1 && (
-        <nav className="mt-2 grid shrink-0 gap-1" aria-label="Pilih workspace">
-          {workspaces.map((item) => (
-            <Link
-              className={`truncate rounded-lg px-3 py-2 text-xs ${
-                item.id === workspace.id
-                  ? "bg-accent font-medium text-primary"
-                  : "text-muted-foreground hover:bg-accent"
-              }`}
-              href={`/dashboard?workspaceId=${encodeURIComponent(item.id)}`}
-              key={item.id}
-            >
-              {item.name}
-            </Link>
-          ))}
-        </nav>
-      )}
 
       {/* Navigation Menu */}
       <p className="mb-2.5 mt-8 shrink-0 px-2 text-[10px] font-semibold tracking-[0.14em] text-[#a29a90]">
@@ -192,7 +168,7 @@ export function AppSidebar({
           </div>
           <a
             className="inline-flex items-center gap-1.5 text-xs font-semibold text-primary hover:underline"
-            href="/internals/special-thanks"
+            href="/encyclopedia"
           >
             Lihat panduan →
           </a>

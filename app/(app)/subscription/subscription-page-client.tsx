@@ -6,6 +6,7 @@ import { Check, Crown, Clock, Star, Zap } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { PageHeader, SectionCard } from "@/components/shared";
 
 import { SubscriptionCheckout } from "@/features/subscription/components/subscription-checkout";
 
@@ -110,19 +111,11 @@ export function SubscriptionPageClient({
       ];
   return (
     <>
-      <section className="mb-6">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-          <div>
-            <p className="mb-1.5 text-[10px] font-semibold tracking-[0.14em] text-[#a08f74]">
-              PAKET LANGGANAN
-            </p>
-            <h1 className="font-serif text-3xl font-normal tracking-tight sm:text-[38px]">
-              Pilih Paketmu
-            </h1>
-            <p className="mt-2 text-sm text-muted-foreground">
-              Mulai gratis, upgrade kapan saja untuk fitur lebih lengkap.
-            </p>
-          </div>
+      <PageHeader
+        eyebrow="PAKET LANGGANAN"
+        title="Pilih Paketmu"
+        description="Mulai gratis, upgrade kapan saja untuk fitur lebih lengkap."
+        actions={
           <Link
             href="/subscription/history"
             className="inline-flex items-center gap-1.5 rounded-xl border border-[#D4AF37]/40 bg-[#FAF5EC]/60 px-3 py-2 text-xs font-medium text-[#5B132B] shadow-xs hover:bg-[#FAF5EC]"
@@ -130,8 +123,8 @@ export function SubscriptionPageClient({
             <Clock className="size-3.5 text-[#D4AF37]" />
             <span>Riwayat Langganan</span>
           </Link>
-        </div>
-      </section>
+        }
+      />
 
       <div className="grid gap-5 lg:grid-cols-3">
         {plans.map((plan) => {
@@ -215,15 +208,7 @@ export function SubscriptionPageClient({
       </div>
 
       {/* FAQ Section */}
-      <Card className="mt-5 gap-5 rounded-xl border-border/80 bg-card p-5 shadow-sm sm:p-6">
-        <div>
-          <p className="mb-1.5 text-[10px] font-semibold tracking-[0.14em] text-[#a08f74]">
-            PERTANYAAN UMUM
-          </p>
-          <h2 className="font-serif text-xl font-medium tracking-tight">
-            FAQ
-          </h2>
-        </div>
+      <SectionCard eyebrow="PERTANYAAN UMUM" title="FAQ">
         <div className="grid gap-4 sm:grid-cols-2">
           <div>
             <h3 className="text-sm font-medium">Bisa upgrade kapan saja?</h3>
@@ -250,7 +235,7 @@ export function SubscriptionPageClient({
             </p>
           </div>
         </div>
-      </Card>
+      </SectionCard>
     </>
   );
 }

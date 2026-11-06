@@ -1,7 +1,6 @@
-import { auth } from "@/auth";
-import { listMyWorkspaces } from "@/features/workspaces/queries";
 import { listWorkspaceImages } from "@/features/gallery/queries";
 import { GalleryPageContent } from "@/features/gallery/components/gallery-page";
+import { PageHeader } from "@/components/shared";
 
 export const instant = false;
 
@@ -10,14 +9,13 @@ export default async function GalleryPage({
 }: {
   searchParams?: Promise<{ workspaceId?: string }>;
 }) {
-  const workspaces = await listMyWorkspaces();
+  const { getCurrentWorkspace } = await import("@/lib/workspace-cache");
   const resolvedSearchParams = await (searchParams ?? Promise.resolve({}));
   const workspaceIdFromQuery = typeof resolvedSearchParams === "object" && resolvedSearchParams !== null
     ? (resolvedSearchParams as { workspaceId?: string }).workspaceId
     : undefined;
 
-  const workspace =
-    workspaces.find((item) => item.id === workspaceIdFromQuery) ?? workspaces[0];
+  const workspace = await getCurrentWorkspace(workspaceIdFromQuery);
   if (!workspace) {
     return <p className="py-10 text-center text-muted-foreground">Workspace tidak ditemukan.</p>;
   }
@@ -26,12 +24,11 @@ export default async function GalleryPage({
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="font-serif text-2xl font-medium tracking-tight">Galeri Foto</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Simpan foto referensi, inspirasi, dan momen persiapan pernikahanmu.
-        </p>
-      </div>
+      <PageHeader
+        eyebrow="GALERI"
+        title="Galeri Foto"
+        description="Simpan foto referensi, inspirasi, dan momen persiapan pernikahanmu."
+      />
       <GalleryPageContent workspaceId={workspace.id} images={images} />
     </div>
   );

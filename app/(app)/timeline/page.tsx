@@ -1,9 +1,9 @@
-import { listMyWorkspaces } from "@/features/workspaces/queries";
 import { getEventsAction } from "@/features/events/actions/event-actions";
 import { getCulturalRundownsAction } from "@/features/rundown/actions/rundown-actions";
 import { CalendarDays, Clock, MapPin, User, ScrollText } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { PageHeader } from "@/components/shared";
 
 export const instant = false;
 
@@ -19,30 +19,22 @@ export default async function TimelinePage({
 }: {
   searchParams?: Promise<{ workspaceId?: string }>;
 }) {
+  const { getCurrentWorkspace } = await import("@/lib/workspace-cache");
   const resolvedSearchParams = await (searchParams ?? Promise.resolve({ workspaceId: undefined }));
   const workspaceId = (resolvedSearchParams as any).workspaceId;
 
-  if (!workspaceId) {
-    const workspaces = await listMyWorkspaces();
-    if (workspaces.length === 0) {
-      return (
-        <div className="flex flex-col items-center justify-center min-h-[50vh] text-center">
-          <CalendarDays className="h-12 w-12 text-muted-foreground mb-4" />
-          <h2 className="text-xl font-semibold mb-2">Belum ada workspace</h2>
-          <p className="text-muted-foreground">Buat workspace pernikahan untuk memulai.</p>
-        </div>
-      );
-    }
-  }
-
-  const finalWorkspaceId = workspaceId || (await listMyWorkspaces())[0]?.id;
-  if (!finalWorkspaceId) {
+  const workspace = await getCurrentWorkspace(workspaceId);
+  if (!workspace) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[50vh] text-center">
-        <p className="text-muted-foreground">Tidak ada workspace yang tersedia.</p>
+        <CalendarDays className="h-12 w-12 text-muted-foreground mb-4" />
+        <h2 className="text-xl font-semibold mb-2">Belum ada workspace</h2>
+        <p className="text-muted-foreground">Buat workspace pernikahan untuk memulai.</p>
       </div>
     );
   }
+
+  const finalWorkspaceId = workspace.id;
 
   const events = await getEventsAction(finalWorkspaceId);
   const rundowns = await getCulturalRundownsAction(finalWorkspaceId);
@@ -72,12 +64,11 @@ export default async function TimelinePage({
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-serif font-bold text-[#5B132B]">Timeline Pernikahan</h1>
-        <p className="text-muted-foreground mt-1">
-          Lihat urutan acara dan rundown pernikahanmu
-        </p>
-      </div>
+      <PageHeader
+        eyebrow="TIMELINE"
+        title="Timeline Pernikahan"
+        description="Lihat urutan acara dan rundown pernikahanmu"
+      />
 
       {/* Events Timeline */}
       <Card className="p-6">

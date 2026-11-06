@@ -1,54 +1,15 @@
-import { ArrowUpRight, Download, TrendingDown, TrendingUp, Wallet } from "lucide-react";
+import { ArrowUpRight, Download, Wallet } from "lucide-react";
 import Link from "next/link";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
+import { PageHeader, SectionCard, StatCard } from "@/components/shared";
+import { formatCurrency } from "@/lib/format-currency";
 
 import { exportBudgetReport } from "@/features/budget/actions";
 import { getFinancialReport } from "@/features/budget/queries";
-import { listMyWorkspaces } from "@/features/workspaces/queries";
-
-function formatCurrency(value: string) {
-  return new Intl.NumberFormat("id-ID", {
-    style: "currency",
-    currency: "IDR",
-    maximumFractionDigits: 0,
-  }).format(Number(value));
-}
-
-function StatCard({
-  label,
-  value,
-  icon: Icon,
-  iconClass,
-  trend,
-}: {
-  label: string;
-  value: string;
-  icon: typeof Wallet;
-  iconClass: string;
-  trend?: "up" | "down" | "neutral";
-}) {
-  return (
-    <Card className="gap-3 rounded-xl border-border/80 bg-card p-5 shadow-sm shadow-stone-900/[0.025]">
-      <div className="flex items-start justify-between gap-3">
-        <div>
-          <p className="text-sm text-muted-foreground">{label}</p>
-          <p className="mt-2 font-serif text-2xl font-medium tracking-tight">{value}</p>
-        </div>
-        <div className="flex items-center gap-2">
-          {trend === "up" && <TrendingUp className="size-4 text-[#527553]" />}
-          {trend === "down" && <TrendingDown className="size-4 text-[#9b4a4a]" />}
-          <span className={`grid size-10 shrink-0 place-items-center rounded-xl ${iconClass}`}>
-            <Icon className="size-5" strokeWidth={1.7} />
-          </span>
-        </div>
-      </div>
-    </Card>
-  );
-}
 
 export async function exportBudgetReportAction(formData: FormData) {
   "use server";
@@ -66,30 +27,24 @@ async function FinancialPageContent({ workspaceId }: { workspaceId: string }) {
 
   return (
     <>
-      <section className="mb-6 flex flex-col justify-between gap-5 sm:flex-row sm:items-end">
-        <div>
-          <p className="mb-1.5 text-[10px] font-semibold tracking-[0.14em] text-[#a08f74]">
-            KEUANGAN
-          </p>
-          <h1 className="font-serif text-3xl font-normal tracking-tight sm:text-[38px]">
-            Laporan Keuangan
-          </h1>
-          <p className="mt-2 text-sm text-muted-foreground">
-            Lihat perbandingan anggaran dan pengeluaran pernikahanmu.
-          </p>
-        </div>
-        <div className="flex items-center gap-2">
-          <Button asChild variant="outline" className="w-fit gap-2 rounded-lg px-4">
-            <Link href="/budget">Kelola Anggaran</Link>
-          </Button>
-          <form action={exportBudgetReportAction}>
-            <input type="hidden" name="workspaceId" value={workspaceId} />
-            <Button type="submit" variant="outline" className="gap-2 rounded-lg px-4">
-              <Download className="size-4" /> Export CSV
+      <PageHeader
+        eyebrow="KEUANGAN"
+        title="Laporan Keuangan"
+        description="Lihat perbandingan anggaran dan pengeluaran pernikahanmu."
+        actions={
+          <>
+            <Button asChild variant="outline" className="w-fit gap-2 rounded-lg px-4">
+              <Link href="/budget">Kelola Anggaran</Link>
             </Button>
-          </form>
-        </div>
-      </section>
+            <form action={exportBudgetReportAction}>
+              <input type="hidden" name="workspaceId" value={workspaceId} />
+              <Button type="submit" variant="outline" className="gap-2 rounded-lg px-4">
+                <Download className="size-4" /> Export CSV
+              </Button>
+            </form>
+          </>
+        }
+      />
 
       {/* Stats Grid */}
       <section className="mb-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4" aria-label="Statistik keuangan">
@@ -152,15 +107,7 @@ async function FinancialPageContent({ workspaceId }: { workspaceId: string }) {
       </Card>
 
       {/* By Category */}
-      <Card className="mb-6 gap-4 rounded-xl border-border/80 bg-card p-5 shadow-sm sm:p-6">
-        <div>
-          <p className="mb-1.5 text-[10px] font-semibold tracking-[0.14em] text-[#a08f74]">
-            PER KATEGORI
-          </p>
-          <h2 className="font-serif text-xl font-medium tracking-tight">
-            Perbandingan Anggaran per Kategori
-          </h2>
-        </div>
+      <SectionCard eyebrow="PER KATEGORI" title="Perbandingan Anggaran per Kategori">
         {report.byCategory.length > 0 ? (
           <div className="mt-4 space-y-4">
             {report.byCategory.map((cat) => {
@@ -220,16 +167,10 @@ async function FinancialPageContent({ workspaceId }: { workspaceId: string }) {
             Belum ada kategori budget. Buat kategori di halaman anggaran.
           </p>
         )}
-      </Card>
+      </SectionCard>
 
       {/* Recent Expenses */}
-      <Card className="mb-6 gap-4 rounded-xl border-border/80 bg-card p-5 shadow-sm sm:p-6">
-        <div>
-          <p className="mb-1.5 text-[10px] font-semibold tracking-[0.14em] text-[#a08f74]">
-            PENGELUARAN TERBARU
-          </p>
-          <h2 className="font-serif text-xl font-medium tracking-tight">Riwayat Pengeluaran</h2>
-        </div>
+      <SectionCard eyebrow="PENGELUARAN TERBARU" title="Riwayat Pengeluaran">
         {report.recentExpenses.length > 0 ? (
           <div className="mt-4 divide-y divide-border/60">
             {report.recentExpenses.map((exp) => (
@@ -265,7 +206,7 @@ async function FinancialPageContent({ workspaceId }: { workspaceId: string }) {
             Belum ada pengeluaran.
           </p>
         )}
-      </Card>
+      </SectionCard>
     </>
   );
 }
@@ -277,15 +218,14 @@ export default async function FinancialPage({
 }: {
   searchParams?: Promise<{ workspaceId?: string }>;
 }) {
-  const workspaces = await listMyWorkspaces();
+  const { getCurrentWorkspace } = await import("@/lib/workspace-cache");
   const resolvedSearchParams = await (searchParams ?? Promise.resolve({}));
   const workspaceIdFromQuery =
     typeof resolvedSearchParams === "object" && resolvedSearchParams !== null
       ? (resolvedSearchParams as { workspaceId?: string }).workspaceId
       : undefined;
 
-  const workspace =
-    workspaces.find((item) => item.id === workspaceIdFromQuery) ?? workspaces[0];
+  const workspace = await getCurrentWorkspace(workspaceIdFromQuery);
   if (!workspace) return null;
 
   return <FinancialPageContent workspaceId={workspace.id} />;

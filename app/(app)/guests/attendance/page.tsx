@@ -5,38 +5,9 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
+import { PageHeader, StatCard } from "@/components/shared";
 
 import { getAttendanceReport } from "@/features/guests/queries";
-import { listMyWorkspaces } from "@/features/workspaces/queries";
-
-function StatCard({
-  label,
-  value,
-  icon: Icon,
-  iconClass,
-  detail,
-}: {
-  label: string;
-  value: string | number;
-  icon: typeof Users;
-  iconClass: string;
-  detail?: string;
-}) {
-  return (
-    <Card className="gap-3 rounded-xl border-border/80 bg-card p-5 shadow-sm shadow-stone-900/[0.025]">
-      <div className="flex items-start justify-between gap-3">
-        <div>
-          <p className="text-sm text-muted-foreground">{label}</p>
-          <p className="mt-2 font-serif text-2xl font-medium tracking-tight">{value}</p>
-          {detail && <p className="mt-1 text-xs text-muted-foreground">{detail}</p>}
-        </div>
-        <span className={`grid size-10 shrink-0 place-items-center rounded-xl ${iconClass}`}>
-          <Icon className="size-5" strokeWidth={1.7} />
-        </span>
-      </div>
-    </Card>
-  );
-}
 
 async function AttendancePageContent({ workspaceId }: { workspaceId: string }) {
   const stats = await getAttendanceReport(workspaceId);
@@ -46,48 +17,42 @@ async function AttendancePageContent({ workspaceId }: { workspaceId: string }) {
 
   return (
     <>
-      <section className="mb-6 flex flex-col justify-between gap-5 sm:flex-row sm:items-end">
-        <div>
-          <p className="mb-1.5 text-[10px] font-semibold tracking-[0.14em] text-[#a08f74]">
-            TAMU & KEHADIRAN
-          </p>
-          <h1 className="font-serif text-3xl font-normal tracking-tight sm:text-[38px]">
-            Laporan Kehadiran
-          </h1>
-          <p className="mt-2 text-sm text-muted-foreground">
-            Pantau konfirmasi dan kehadiran tamu pernikahanmu.
-          </p>
-        </div>
-        <Button asChild variant="outline" className="w-fit gap-2 rounded-lg px-4">
-          <Link href="/guests">Kelola Tamu</Link>
-        </Button>
-      </section>
+      <PageHeader
+        eyebrow="TAMU & KEHADIRAN"
+        title="Laporan Kehadiran"
+        description="Pantau konfirmasi dan kehadiran tamu pernikahanmu."
+        actions={
+          <Button asChild variant="outline" className="w-fit gap-2 rounded-lg px-4">
+            <Link href="/guests">Kelola Tamu</Link>
+          </Button>
+        }
+      />
 
       {/* Stats Grid */}
       <section className="mb-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4" aria-label="Statistik kehadiran">
         <StatCard
           label="Total Tamu"
-          value={stats.totalGuests}
+          value={String(stats.totalGuests)}
           icon={Users}
           iconClass="bg-[#f1e7d8] text-primary"
         />
         <StatCard
           label="Konfirmasi Hadir"
-          value={stats.accepted}
+          value={String(stats.accepted)}
           icon={CheckCircle2}
           iconClass="bg-[#edf3e9] text-[#527553]"
           detail={`${stats.declined} tidak hadir, ${stats.pending} menunggu`}
         />
         <StatCard
           label="Sudah Check-in"
-          value={stats.checkedIn}
+          value={String(stats.checkedIn)}
           icon={CheckCircle2}
           iconClass="bg-[#e9f0f5] text-[#4a7a9b]"
           detail={`dari ${stats.accepted} yang konfirmasi`}
         />
         <StatCard
           label="Belum Check-in"
-          value={stats.accepted - stats.checkedIn}
+          value={String(stats.accepted - stats.checkedIn)}
           icon={Clock}
           iconClass="bg-[#fff4e5] text-[#9b7922]"
         />
@@ -220,15 +185,14 @@ export default async function AttendancePage({
 }: {
   searchParams?: Promise<{ workspaceId?: string }>;
 }) {
-  const workspaces = await listMyWorkspaces();
+  const { getCurrentWorkspace } = await import("@/lib/workspace-cache");
   const resolvedSearchParams = await (searchParams ?? Promise.resolve({}));
   const workspaceIdFromQuery =
     typeof resolvedSearchParams === "object" && resolvedSearchParams !== null
       ? (resolvedSearchParams as { workspaceId?: string }).workspaceId
       : undefined;
 
-  const workspace =
-    workspaces.find((item) => item.id === workspaceIdFromQuery) ?? workspaces[0];
+  const workspace = await getCurrentWorkspace(workspaceIdFromQuery);
   if (!workspace) return null;
 
   return <AttendancePageContent workspaceId={workspace.id} />;

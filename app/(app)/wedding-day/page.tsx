@@ -2,9 +2,9 @@ import { Clock, MapPin, User, CalendarDays, Flower2 } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
+import { PageHeader } from "@/components/shared";
 
 import { listWorkspaceRundowns } from "@/features/rundown/queries";
-import { listMyWorkspaces } from "@/features/workspaces/queries";
 
 function ceremonyTypeBadge(type: string | null) {
   if (!type) return null;
@@ -25,17 +25,11 @@ async function WeddingDayPageContent({ workspaceId }: { workspaceId: string }) {
 
   return (
     <>
-      <section className="mb-6">
-        <p className="mb-1.5 text-[10px] font-semibold tracking-[0.14em] text-[#a08f74]">
-          HARI PERNIKAHAN
-        </p>
-        <h1 className="font-serif text-3xl font-normal tracking-tight sm:text-[38px]">
-          Rundown Hari Pernikahan
-        </h1>
-        <p className="mt-2 text-sm text-muted-foreground">
-          Lihat rangkaian acara dan jadwal hari pernikahanmu.
-        </p>
-      </section>
+      <PageHeader
+        eyebrow="HARI PERNIKAHAN"
+        title="Rundown Hari Pernikahan"
+        description="Lihat rangkaian acara dan jadwal hari pernikahanmu."
+      />
 
       {/* Legend */}
       <Card className="mb-6 gap-4 rounded-xl border-border/80 bg-card p-5 shadow-sm sm:p-6">
@@ -138,15 +132,14 @@ export default async function WeddingDayPage({
 }: {
   searchParams?: Promise<{ workspaceId?: string }>;
 }) {
-  const workspaces = await listMyWorkspaces();
+  const { getCurrentWorkspace } = await import("@/lib/workspace-cache");
   const resolvedSearchParams = await (searchParams ?? Promise.resolve({}));
   const workspaceIdFromQuery =
     typeof resolvedSearchParams === "object" && resolvedSearchParams !== null
       ? (resolvedSearchParams as { workspaceId?: string }).workspaceId
       : undefined;
 
-  const workspace =
-    workspaces.find((item) => item.id === workspaceIdFromQuery) ?? workspaces[0];
+  const workspace = await getCurrentWorkspace(workspaceIdFromQuery);
   if (!workspace) return null;
 
   return <WeddingDayPageContent workspaceId={workspace.id} />;

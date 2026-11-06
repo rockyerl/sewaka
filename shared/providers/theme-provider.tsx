@@ -9,11 +9,11 @@ interface ThemeProviderProps {
 
 /**
  * Provider tema yang mendukung dark/light mode.
- * Default: mengikuti preferensi sistem.
+ * Default: light mode.
  */
 export function ThemeProvider({ children }: ThemeProviderProps) {
   return (
-    <NextThemesProvider attribute="class" defaultTheme="system" enableSystem>
+    <NextThemesProvider attribute="class" defaultTheme="light" enableSystem>
       {children}
     </NextThemesProvider>
   );

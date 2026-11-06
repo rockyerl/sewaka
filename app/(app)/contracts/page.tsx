@@ -4,8 +4,8 @@ import { auth } from "@/auth";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { PageHeader, EmptyState } from "@/components/shared";
 import { FileText, CheckCircle2, Clock, Download, Trash2, Upload } from "lucide-react";
-import { listMyWorkspaces } from "@/features/workspaces/queries";
 import { listWorkspaceContracts } from "@/features/contracts/queries";
 import { ConfirmSubmitButton } from "@/components/confirm-submit-button";
 import { markContractSignedAction as markContractSignedActionImpl, deleteContractAction as deleteContractActionImpl } from "@/features/contracts/actions";
@@ -33,14 +33,13 @@ export default async function ContractsPage({
 }: {
   searchParams?: Promise<{ workspaceId?: string }>;
 }) {
-  const workspaces = await listMyWorkspaces();
+  const { getCurrentWorkspace } = await import("@/lib/workspace-cache");
   const resolvedSearchParams = await (searchParams ?? Promise.resolve({}));
   const workspaceIdFromQuery = typeof resolvedSearchParams === "object" && resolvedSearchParams !== null
     ? (resolvedSearchParams as { workspaceId?: string }).workspaceId
     : undefined;
 
-  const workspace =
-    workspaces.find((item) => item.id === workspaceIdFromQuery) ?? workspaces[0];
+  const workspace = await getCurrentWorkspace(workspaceIdFromQuery);
   if (!workspace) {
     return <p className="py-10 text-center text-muted-foreground">Workspace tidak ditemukan.</p>;
   }
@@ -49,25 +48,19 @@ export default async function ContractsPage({
 
   return (
     <div className="space-y-6">
-      <div className="flex items-start justify-between gap-4">
-        <div>
-          <h1 className="font-serif text-2xl font-medium tracking-tight">Kontrak Vendor</h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Kelola kontrak dan perjanjian dengan vendor pernikahanmu.
-          </p>
-        </div>
-        <Button className="h-9 rounded-lg px-3 text-xs">
-          <Upload className="size-3.5" /> Upload Kontrak
-        </Button>
-      </div>
+      <PageHeader
+        eyebrow="DOKUMEN"
+        title="Kontrak Vendor"
+        description="Kelola kontrak dan perjanjian dengan vendor pernikahanmu."
+        actions={
+          <Button className="h-9 rounded-lg px-3 text-xs">
+            <Upload className="size-3.5" /> Upload Kontrak
+          </Button>
+        }
+      />
 
       {contracts.length === 0 ? (
-        <Card className="rounded-xl border-border/60 bg-card p-8 text-center">
-          <FileText className="mx-auto size-8 text-muted-foreground" />
-          <p className="mt-3 text-sm text-muted-foreground">
-            Belum ada kontrak. Upload kontrak vendor di sini.
-          </p>
-        </Card>
+        <EmptyState message="Belum ada kontrak. Upload kontrak vendor di sini." />
       ) : (
         <div className="space-y-3">
           {contracts.map((contract) => (

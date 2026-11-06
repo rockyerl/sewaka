@@ -4,10 +4,10 @@ import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { ConfirmSubmitButton } from "@/components/confirm-submit-button";
+import { PageHeader, SectionCard, EmptyState } from "@/components/shared";
 
 import { createEventAction, deleteEventAction } from "@/features/events/actions";
 import { listWorkspaceEvents } from "@/features/events/queries";
-import { listMyWorkspaces } from "@/features/workspaces/queries";
 import {
   getWorkspaceCulturalInfo,
   listWorkspaceRundowns,
@@ -27,17 +27,11 @@ async function EventsPageContent({ workspaceId }: { workspaceId: string }) {
 
   return (
     <>
-      <section className="mb-6">
-        <div className="mb-1.5 flex items-center gap-1.5 text-[10px] font-semibold tracking-[0.14em] text-[#a08f74]">
-          <Sparkles className="size-3 text-[#c5a849]" /> RANGKAIAN PROSESI & ACARA
-        </div>
-        <h1 className="font-serif text-3xl font-normal tracking-tight sm:text-[38px]">
-          Acara & Alur Adat Pernikahan
-        </h1>
-        <p className="mt-2 text-sm text-muted-foreground">
-          Panduan terstruktur urutan prosesi adat sakral, peranti ritual, dan jadwal rangkaian acara pernikahanmu.
-        </p>
-      </section>
+      <PageHeader
+        eyebrow="RANGKAIAN PROSESI & ACARA"
+        title="Acara & Alur Adat Pernikahan"
+        description="Panduan terstruktur urutan prosesi adat sakral, peranti ritual, dan jadwal rangkaian acara pernikahanmu."
+      />
 
       {/* Main Feature: Interactive Cultural Rundown */}
       <section className="mb-10">
@@ -50,21 +44,13 @@ async function EventsPageContent({ workspaceId }: { workspaceId: string }) {
       </section>
 
       {/* Secondary Feature: Generic Schedule Overview */}
-      <section>
-        <Card className="gap-5 rounded-2xl border-border/80 bg-card p-5 shadow-sm sm:p-7">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="mb-1 text-[10px] font-semibold tracking-[0.14em] text-[#a08f74]">
-                JADWAL RANGKAIAN
-              </p>
-              <h2 className="font-serif text-xl font-medium tracking-tight">
-                Daftar Seluruh Acara (Akad, Resepsi, Syukuran)
-              </h2>
-            </div>
-            <span className="rounded-full bg-[#5b132b]/10 px-3 py-1 text-xs font-semibold text-[#5b132b]">
-              {events.length} Acara Terdaftar
-            </span>
-          </div>
+      <SectionCard eyebrow="JADWAL RANGKAIAN" title="Daftar Seluruh Acara (Akad, Resepsi, Syukuran)">
+        <div className="flex items-center justify-between mb-4">
+          <div />
+          <span className="rounded-full bg-[#5b132b]/10 px-3 py-1 text-xs font-semibold text-[#5b132b]">
+            {events.length} Acara Terdaftar
+          </span>
+        </div>
 
           {events.length > 0 ? (
             <div className="mt-4 space-y-3">
@@ -125,9 +111,7 @@ async function EventsPageContent({ workspaceId }: { workspaceId: string }) {
               ))}
             </div>
           ) : (
-            <p className="mt-4 rounded-xl border border-dashed border-border/80 bg-muted/20 p-6 text-center text-xs text-muted-foreground">
-              Belum ada jadwal acara umum. Tambahkan acara seperti Pengajian, Akad, atau Resepsi di bawah.
-            </p>
+            <EmptyState message="Belum ada jadwal acara umum. Tambahkan acara seperti Pengajian, Akad, atau Resepsi di bawah." />
           )}
 
           {canEdit ? (
@@ -160,8 +144,7 @@ async function EventsPageContent({ workspaceId }: { workspaceId: string }) {
               />
             </form>
           ) : null}
-        </Card>
-      </section>
+      </SectionCard>
     </>
   );
 }
@@ -173,15 +156,14 @@ export default async function EventsPage({
 }: {
   searchParams?: Promise<{ workspaceId?: string }>;
 }) {
-  const workspaces = await listMyWorkspaces();
+  const { getCurrentWorkspace } = await import("@/lib/workspace-cache");
   const resolvedSearchParams = await (searchParams ?? Promise.resolve({}));
   const workspaceIdFromQuery =
     typeof resolvedSearchParams === "object" && resolvedSearchParams !== null
       ? (resolvedSearchParams as { workspaceId?: string }).workspaceId
       : undefined;
 
-  const workspace =
-    workspaces.find((item) => item.id === workspaceIdFromQuery) ?? workspaces[0];
+  const workspace = await getCurrentWorkspace(workspaceIdFromQuery);
   if (!workspace) return null;
 
   return <EventsPageContent workspaceId={workspace.id} />;

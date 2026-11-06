@@ -12,13 +12,14 @@ import {
 } from "lucide-react";
 import { differenceInCalendarDays, format } from "date-fns";
 import Link from "next/link";
+import { Suspense } from "react";
 
-import { auth } from "@/auth";
 import { ConfirmSubmitButton } from "@/components/confirm-submit-button";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { SectionHeading, StatCard } from "@/components/shared";
 import { Card } from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
+import { formatCurrency } from "@/lib/format-currency";
 import { AnnouncementsBanner } from "@/features/notifications/components/announcements-banner";
 import { getActiveAnnouncements } from "@/features/admin/actions/admin-feature-actions";
 
@@ -28,10 +29,19 @@ import {
 } from "@/features/budget/actions";
 import { BudgetSummary } from "@/features/budget/components";
 import { getBudgetOverview } from "@/features/budget/queries";
-import { ActivityLogSection } from "@/features/dashboard/components/activity-log";
-import { CalendarView } from "@/features/dashboard/components/calendar-view";
 import { WeddingCountdown } from "@/features/dashboard/components/wedding-countdown";
 import { QuickActions } from "@/features/dashboard/components/quick-actions";
+
+// Lazy-load heavy sections below the fold with Suspense boundaries
+async function CalendarViewLazy() {
+  const { CalendarView } = await import("@/features/dashboard/components/calendar-view");
+  return <CalendarView />;
+}
+
+async function ActivityLogLazy() {
+  const { ActivityLogSection } = await import("@/features/dashboard/components/activity-log");
+  return <ActivityLogSection />;
+}
 import { createEventAction, deleteEventAction } from "@/features/events/actions";
 import { listWorkspaceEvents } from "@/features/events/queries";
 import { createGuestAction, deleteGuestAction } from "@/features/guests/actions";
@@ -45,90 +55,7 @@ import {
   updateVendorStatusAction,
 } from "@/features/vendors/actions";
 import { listWorkspaceVendors } from "@/features/vendors/queries";
-import { listMyWorkspaces } from "@/features/workspaces/queries";
 
-function SectionHeading({
-  eyebrow,
-  title,
-  action,
-  href,
-}: {
-  eyebrow: string;
-  title: string;
-  action?: string;
-  href?: string;
-}) {
-  return (
-    <div className="flex items-end justify-between gap-3">
-      <div>
-        <p className="mb-1.5 text-[10px] font-semibold tracking-[0.14em] text-[#a08f74]">
-          {eyebrow}
-        </p>
-        <h2 className="font-serif text-xl font-medium tracking-tight">{title}</h2>
-      </div>
-      {action && href ? (
-        <Link
-          className="inline-flex shrink-0 items-center gap-1 text-xs font-medium text-primary hover:underline"
-          href={href}
-        >
-          {action} <ArrowRight className="size-3.5" />
-        </Link>
-      ) : null}
-    </div>
-  );
-}
-
-function StatCard({
-  label,
-  value,
-  detail,
-  icon: Icon,
-  iconClass,
-  progress,
-}: {
-  label: string;
-  value: string;
-  detail: string;
-  icon: typeof ListChecks;
-  iconClass: string;
-  progress?: number;
-}) {
-  return (
-    <Card className="gap-3 rounded-xl border-border/80 bg-card p-5 shadow-sm shadow-stone-900/[0.025]">
-      <div className="flex items-start justify-between gap-3">
-        <div>
-          <p className="text-sm text-muted-foreground">{label}</p>
-          <p className="mt-2 font-serif text-2xl font-medium tracking-tight">{value}</p>
-        </div>
-        <span className={`grid size-10 shrink-0 place-items-center rounded-xl ${iconClass}`}>
-          <Icon className="size-5" strokeWidth={1.7} />
-        </span>
-      </div>
-      {progress !== undefined ? (
-        <div className="space-y-2">
-          <div className="flex items-center justify-between text-xs text-muted-foreground">
-            <span>{detail}</span>
-            <span>{progress}%</span>
-          </div>
-          <Progress
-            value={progress}
-            className="h-1.5 bg-[#eeeae3] [&_[data-slot=progress-indicator]]:bg-primary"
-          />
-        </div>
-      ) : (
-        <p className="text-xs text-muted-foreground">{detail}</p>
-      )}
-    </Card>
-  );
-}
-
-function formatCurrency(value: string) {
-  return new Intl.NumberFormat("id-ID", {
-    style: "currency",
-    currency: "IDR",
-    maximumFractionDigits: 0,
-  }).format(Number(value));
-}
 
 
 async function DashboardPageContent({ workspaceId }: { workspaceId: string }) {
@@ -593,14 +520,18 @@ async function DashboardPageContent({ workspaceId }: { workspaceId: string }) {
         ) : null}
       </Card>
 
-      {/* Calendar View */}
+      {/* Calendar View - lazy loaded */}
       <div className="mt-10">
-        <CalendarView />
+        <Suspense fallback={<div className="animate-pulse rounded-xl bg-muted/50 h-64" />}>
+          <CalendarViewLazy />
+        </Suspense>
       </div>
 
-      {/* Activity Log */}
+      {/* Activity Log - lazy loaded */}
       <div className="mt-10">
-        <ActivityLogSection />
+        <Suspense fallback={<div className="animate-pulse rounded-xl bg-muted/50 h-48" />}>
+          <ActivityLogLazy />
+        </Suspense>
       </div>
 
       {/* Inspiration Card */}
@@ -641,18 +572,16 @@ export default async function DashboardPage({
 }: {
   searchParams?: Promise<{ workspaceId?: string }>;
 }) {
-  const session = await auth();
-  const [workspaces, announcements] = await Promise.all([
-    listMyWorkspaces(),
-    getActiveAnnouncements(),
-  ]);
+  const { getCurrentWorkspace } = await import("@/lib/workspace-cache");
   const resolvedSearchParams = await (searchParams ?? Promise.resolve({}));
   const workspaceIdFromQuery = typeof resolvedSearchParams === "object" && resolvedSearchParams !== null
     ? (resolvedSearchParams as { workspaceId?: string }).workspaceId
     : undefined;
 
-  const workspace =
-    workspaces.find((item) => item.id === workspaceIdFromQuery) ?? workspaces[0];
+  const [workspace, announcements] = await Promise.all([
+    getCurrentWorkspace(workspaceIdFromQuery),
+    getActiveAnnouncements(),
+  ]);
   if (!workspace) {
     return null;
   }
@@ -670,7 +599,7 @@ export default async function DashboardPage({
   const daysUntilWedding = workspace.weddingDate
     ? Math.max(0, differenceInCalendarDays(workspace.weddingDate, new Date()))
     : null;
-  const greetingName = session?.user?.name?.split(" ")[0] ?? "di Sewaka";
+  const greetingName = workspace.coupleOne?.split(" ")[0] ?? "di Sewaka";
   const todayLabel = new Intl.DateTimeFormat("id-ID", {
     weekday: "long",
     day: "numeric",

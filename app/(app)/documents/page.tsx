@@ -2,10 +2,10 @@ import { Plus, Upload } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { PageHeader } from "@/components/shared";
 
 import { uploadDocumentAction as uploadDocumentActionInternal } from "@/features/documents/actions";
 import { DocumentListSection } from "@/features/documents/components/document-list";
-import { listMyWorkspaces } from "@/features/workspaces/queries";
 
 export async function uploadDocumentAction(formData: FormData) {
   "use server";
@@ -15,17 +15,11 @@ export async function uploadDocumentAction(formData: FormData) {
 async function DocumentsPageContent({ workspaceId }: { workspaceId: string }) {
   return (
     <>
-      <section className="mb-6">
-        <p className="mb-1.5 text-[10px] font-semibold tracking-[0.14em] text-[#a08f74]">
-          DOKUMEN & FILE
-        </p>
-        <h1 className="font-serif text-3xl font-normal tracking-tight sm:text-[38px]">
-          Kelola Dokumen
-        </h1>
-        <p className="mt-2 text-sm text-muted-foreground">
-          Simpan kontrak, bukti pembayaran, desain, dan dokumen penting lainnya.
-        </p>
-      </section>
+      <PageHeader
+        eyebrow="DOKUMEN & FILE"
+        title="Kelola Dokumen"
+        description="Simpan kontrak, bukti pembayaran, desain, dan dokumen penting lainnya."
+      />
 
       {/* Upload Area */}
       <Card className="mb-5 rounded-xl border-2 border-dashed border-border/60 bg-card p-6 shadow-sm">
@@ -99,14 +93,13 @@ export default async function DocumentsPage({
 }: {
   searchParams?: Promise<{ workspaceId?: string }>;
 }) {
-  const workspaces = await listMyWorkspaces();
+  const { getCurrentWorkspace } = await import("@/lib/workspace-cache");
   const resolvedSearchParams = await (searchParams ?? Promise.resolve({}));
   const workspaceIdFromQuery = typeof resolvedSearchParams === "object" && resolvedSearchParams !== null
     ? (resolvedSearchParams as { workspaceId?: string }).workspaceId
     : undefined;
 
-  const workspace =
-    workspaces.find((item) => item.id === workspaceIdFromQuery) ?? workspaces[0];
+  const workspace = await getCurrentWorkspace(workspaceIdFromQuery);
   if (!workspace) return null;
 
   return <DocumentsPageContent workspaceId={workspace.id} />;

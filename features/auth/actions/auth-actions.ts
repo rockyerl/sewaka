@@ -20,7 +20,7 @@ export type AuthActionResult = {
 };
 
 export async function signInWithGoogleAction() {
-  await signIn("google", { redirectTo: "/" });
+  await signIn("google", { redirectTo: "/dashboard" });
 }
 
 export async function signOutAction() {

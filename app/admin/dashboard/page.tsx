@@ -1,49 +1,23 @@
 import { format } from "date-fns";
 
-import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Card } from "@/components/ui/card";
+import {
+  AdminStatCard,
+  AdminNavCard,
+} from "@/components/shared/admin-components";
+import { formatCurrency } from "@/lib/format-currency";
 import {
   getAdminStats,
   listAdminUsers,
-  listAdminWorkspaces,
-  listAdminPlans,
   listAdminPayments,
   listAdminLogs,
 } from "@/features/admin/actions/admin-actions";
-import Link from "next/link";
-
-function StatCard({
-  label,
-  value,
-  detail,
-}: {
-  label: string;
-  value: string;
-  detail?: string;
-}) {
-  return (
-    <Card className="rounded-xl border-border/80 bg-card p-5 shadow-sm">
-      <p className="text-sm text-muted-foreground">{label}</p>
-      <p className="mt-2 font-serif text-2xl font-medium tracking-tight">{value}</p>
-      {detail && <p className="mt-1 text-xs text-muted-foreground">{detail}</p>}
-    </Card>
-  );
-}
-
-function formatCurrency(value: number) {
-  return new Intl.NumberFormat("id-ID", {
-    style: "currency",
-    currency: "IDR",
-    maximumFractionDigits: 0,
-  }).format(value);
-}
 
 export default async function AdminDashboardPage() {
-  const [stats, usersData, workspacesData, plans, paymentsData, logsData] = await Promise.all([
+  const [stats, usersData, paymentsData, logsData] = await Promise.all([
     getAdminStats(),
     listAdminUsers({ page: 1, limit: 5 }),
-    listAdminWorkspaces({ page: 1, limit: 5 }),
-    listAdminPlans(),
     listAdminPayments({ page: 1, limit: 5 }),
     listAdminLogs({ page: 1, limit: 10 }),
   ]);
@@ -59,34 +33,19 @@ export default async function AdminDashboardPage() {
 
       {/* Stats */}
       <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3" aria-label="Statistik platform">
-        <StatCard label="Total Pengguna" value={String(stats.totalUsers)} detail="Akun terdaftar" />
-        <StatCard label="Total Workspace" value={String(stats.totalWorkspaces)} detail="Pernikahan aktif" />
-        <StatCard label="Langganan Aktif" value={String(stats.activeSubscriptions)} detail={`dari ${stats.totalSubscriptions} total`} />
-        <StatCard label="Total Pendapatan" value={formatCurrency(stats.totalRevenue)} detail={`${stats.totalTransactions} transaksi`} />
+        <AdminStatCard label="Total Pengguna" value={String(stats.totalUsers)} detail="Akun terdaftar" />
+        <AdminStatCard label="Total Workspace" value={String(stats.totalWorkspaces)} detail="Pernikahan aktif" />
+        <AdminStatCard label="Langganan Aktif" value={String(stats.activeSubscriptions)} detail={`dari ${stats.totalSubscriptions} total`} />
+        <AdminStatCard label="Total Pendapatan" value={formatCurrency(stats.totalRevenue)} detail={`${stats.totalTransactions} transaksi`} />
       </section>
 
       {/* Navigation */}
       <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-        <Link href="/admin/users" className="block rounded-xl border border-border/80 bg-card p-5 shadow-sm hover:border-primary/50 transition-colors">
-          <h3 className="font-medium">Manajemen Pengguna</h3>
-          <p className="mt-1 text-xs text-muted-foreground">Lihat dan kelola semua pengguna</p>
-        </Link>
-        <Link href="/admin/workspaces" className="block rounded-xl border border-border/80 bg-card p-5 shadow-sm hover:border-primary/50 transition-colors">
-          <h3 className="font-medium">Manajemen Workspace</h3>
-          <p className="mt-1 text-xs text-muted-foreground">Lihat dan kelola workspace</p>
-        </Link>
-        <Link href="/admin/plans" className="block rounded-xl border border-border/80 bg-card p-5 shadow-sm hover:border-primary/50 transition-colors">
-          <h3 className="font-medium">Paket Langganan</h3>
-          <p className="mt-1 text-xs text-muted-foreground">Kelola subscription plans</p>
-        </Link>
-        <Link href="/admin/payments" className="block rounded-xl border border-border/80 bg-card p-5 shadow-sm hover:border-primary/50 transition-colors">
-          <h3 className="font-medium">Monitoring Pembayaran</h3>
-          <p className="mt-1 text-xs text-muted-foreground">Lihat semua transaksi</p>
-        </Link>
-        <Link href="/admin/logs" className="block rounded-xl border border-border/80 bg-card p-5 shadow-sm hover:border-primary/50 transition-colors">
-          <h3 className="font-medium">System Logs</h3>
-          <p className="mt-1 text-xs text-muted-foreground">Aktivitas sistem</p>
-        </Link>
+        <AdminNavCard href="/admin/users" title="Manajemen Pengguna" description="Lihat dan kelola semua pengguna" />
+        <AdminNavCard href="/admin/workspaces" title="Manajemen Workspace" description="Lihat dan kelola workspace" />
+        <AdminNavCard href="/admin/plans" title="Paket Langganan" description="Kelola subscription plans" />
+        <AdminNavCard href="/admin/payments" title="Monitoring Pembayaran" description="Lihat semua transaksi" />
+        <AdminNavCard href="/admin/logs" title="System Logs" description="Aktivitas sistem" />
       </section>
 
       {/* Recent Users */}

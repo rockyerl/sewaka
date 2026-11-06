@@ -1,3 +1,4 @@
+import { AdminPageHeader } from "@/components/shared/admin-components";
 import { listAdminPlans } from "@/features/admin/actions/admin-actions";
 import { PlansCRUD } from "@/features/admin/components/plans-crud";
 
@@ -12,12 +13,7 @@ export default async function AdminPlansPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="font-serif text-3xl font-normal tracking-tight">Paket Langganan</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Kelola subscription plans — tambah, edit, atau hapus paket.
-        </p>
-      </div>
+      <AdminPageHeader title="Paket Langganan" description="Kelola subscription plans — tambah, edit, atau hapus paket." />
 
       <PlansCRUD plans={typedPlans} />
     </div>

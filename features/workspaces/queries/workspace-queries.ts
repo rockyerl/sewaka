@@ -27,23 +27,37 @@ export async function listMyWorkspaces(): Promise<WorkspaceSummary[]> {
   const userId = z.string().uuid().safeParse(session?.user?.id);
 
   if (!userId.success) {
+    console.error("[listMyWorkspaces] Invalid user ID:", {
+      hasSession: !!session,
+      sessionId: session?.user?.id,
+    });
     return [];
   }
 
-  return getDb().transaction(async (transaction) => {
-    await transaction.execute(sql`
-      select set_config('app.user_id', ${userId.data}, true)
-    `);
+  const db = getDb();
+  
+  // Use direct query instead of SQL function to avoid RLS issues with connection poolers
+  // The RLS policy workspace_member_read_by_user allows sewaka_app to read by user_id
+  // The RLS policy workspace_owner_read allows reading workspaces where user is a member
+  const result = await db.execute(sql`
+    SELECT
+      ww.id,
+      ww.name,
+      ww.couple_one as "coupleOne",
+      ww.couple_two as "coupleTwo",
+      ww.wedding_date as "weddingDate",
+      ww.location,
+      ww.total_budget as "totalBudget",
+      ww.cultural_tradition as "culturalTradition",
+      ww.invitation_slug as "invitationSlug",
+      wm.role
+    FROM public.workspace_members wm
+    JOIN public.wedding_workspaces ww ON ww.id = wm.workspace_id
+    WHERE wm.user_id = ${userId.data}::uuid
+    ORDER BY ww.created_at ASC
+  `);
 
-    const result = await transaction.execute(sql`
-      select id, name, couple_one as "coupleOne", couple_two as "coupleTwo",
-        wedding_date as "weddingDate", location, total_budget as "totalBudget",
-        cultural_tradition as "culturalTradition", invitation_slug as "invitationSlug", role
-      from public.list_my_workspaces()
-    `);
-
-    return z.array(workspaceSummarySchema).parse(result.rows);
-  });
+  return z.array(workspaceSummarySchema).parse(result.rows);
 }
 
 export async function createWorkspace(input: z.input<typeof createWorkspaceSchema>) {

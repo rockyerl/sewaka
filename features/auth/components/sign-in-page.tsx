@@ -41,7 +41,7 @@ function RegisterForm({
 
   useEffect(() => {
     if (state?.success) {
-      router.push("/");
+      router.push("/dashboard");
       router.refresh();
     } else if (state?.error) {
       setMessage(state.error);
@@ -133,7 +133,7 @@ function LoginForm({
 
   useEffect(() => {
     if (state?.success) {
-      router.push("/");
+      router.push("/dashboard");
       router.refresh();
     } else if (state?.error) {
       setMessage(state.error);
@@ -205,8 +205,8 @@ function LoginForm({
   );
 }
 
-export function SignInPage({ googleEnabled }: { googleEnabled: boolean }) {
-  const [mode, setMode] = useState<"login" | "register">("login");
+export function SignInPage({ googleEnabled, defaultMode = "login" }: { googleEnabled: boolean; defaultMode?: "login" | "register" }) {
+  const [mode, setMode] = useState<"login" | "register">(defaultMode);
 
   return (
     <main className="grid min-h-svh place-items-center px-5 py-10">

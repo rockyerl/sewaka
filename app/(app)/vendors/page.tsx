@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { ConfirmSubmitButton } from "@/components/confirm-submit-button";
+import { PageHeader, SectionCard } from "@/components/shared";
 
 import {
   createVendorAction,
@@ -21,7 +22,6 @@ import {
 } from "@/features/vendors/components/quotation-list";
 import { CuratedVendorDirectory } from "@/features/vendors/components/curated-vendor-directory";
 import { VendorComparisonTrigger } from "@/features/vendors/components/vendor-comparison-trigger";
-import { listMyWorkspaces } from "@/features/workspaces/queries";
 
 function statusBadge(status: string) {
   const map: Record<string, { label: string; cls: string }> = {
@@ -44,7 +44,7 @@ interface VendorsPageProps {
 export const instant = false;
 
 export default async function VendorsPage({ searchParams }: VendorsPageProps) {
-  const workspaces = await listMyWorkspaces();
+  const { getCurrentWorkspace } = await import("@/lib/workspace-cache");
   const resolvedSearchParams = await (searchParams ?? Promise.resolve({}));
   const workspaceIdFromQuery =
     typeof resolvedSearchParams === "object" && resolvedSearchParams !== null
@@ -56,8 +56,7 @@ export default async function VendorsPage({ searchParams }: VendorsPageProps) {
       ? (resolvedSearchParams as { tab?: string }).tab || "my_vendors"
       : "my_vendors";
 
-  const workspace =
-    workspaces.find((item) => item.id === workspaceIdFromQuery) ?? workspaces[0];
+  const workspace = await getCurrentWorkspace(workspaceIdFromQuery);
   if (!workspace) return null;
 
   const [vendors, curatedVendors] = await Promise.all([
@@ -77,21 +76,11 @@ export default async function VendorsPage({ searchParams }: VendorsPageProps) {
 
   return (
     <>
-      <section className="mb-6">
-        <p className="mb-1.5 text-[10px] font-semibold tracking-[0.14em] text-[#a08f74]">
-          PENCARIAN & MANAJEMEN VENDOR
-        </p>
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div>
-            <h1 className="font-serif text-3xl font-normal tracking-tight sm:text-[38px] text-[#1C1917]">
-              Vendor Pernikahan
-            </h1>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Jelajahi vendor adat terkurasi atau kelola penawaran & pembayaran vendor pilihanmu.
-            </p>
-          </div>
-
-          {/* Tab Selector Links */}
+      <PageHeader
+        eyebrow="PENCARIAN & MANAJEMEN VENDOR"
+        title="Vendor Pernikahan"
+        description="Jelajahi vendor adat terkurasi atau kelola penawaran & pembayaran vendor pilihanmu."
+        actions={
           <div className="flex flex-wrap items-center gap-2">
             <VendorComparisonTrigger workspaceId={workspace.id} vendors={vendors} />
 
@@ -120,8 +109,8 @@ export default async function VendorsPage({ searchParams }: VendorsPageProps) {
               </Link>
             </div>
           </div>
-        </div>
-      </section>
+        }
+      />
 
       {activeTab === "curated" ? (
         <CuratedVendorDirectory
@@ -154,13 +143,7 @@ export default async function VendorsPage({ searchParams }: VendorsPageProps) {
           </div>
 
           {/* Vendor List */}
-          <Card className="mb-5 gap-5 rounded-xl border-border/80 bg-card p-5 shadow-sm sm:p-6">
-            <div>
-              <p className="mb-1.5 text-[10px] font-semibold tracking-[0.14em] text-[#a08f74]">
-                DAFTAR VENDOR SAYA
-              </p>
-              <h2 className="font-serif text-xl font-medium tracking-tight">Semua Vendor Pilihan</h2>
-            </div>
+          <SectionCard eyebrow="DAFTAR VENDOR SAYA" title="Semua Vendor Pilihan">
             {vendors.length > 0 ? (
               <div className="mt-4 space-y-4">
                 {vendors.map((vendor) => (
@@ -284,7 +267,7 @@ export default async function VendorsPage({ searchParams }: VendorsPageProps) {
                 </Button>
               </form>
             ) : null}
-          </Card>
+          </SectionCard>
         </>
       )}
     </>

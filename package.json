@@ -61,6 +61,8 @@
     "drizzle-kit": "^0.31.11",
     "eslint": "^9.39.5",
     "eslint-config-next": "^16.4.5",
+    "eslint-import-resolver-typescript": "^4.4.5",
+    "eslint-plugin-import": "^2.32.0",
     "shadcn": "^4.23.0",
     "tailwindcss": "^4.3.4",
     "typescript": "^5.9.3"

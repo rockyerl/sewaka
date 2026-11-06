@@ -4,6 +4,7 @@ import { auth } from "@/auth";
 import { ConfirmSubmitButton } from "@/components/confirm-submit-button";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { PageHeader } from "@/components/shared";
 
 import { deactivateAccountAction } from "@/features/auth/actions/account-actions";
 import { signOutAction } from "@/features/auth/actions/auth-actions";
@@ -11,7 +12,6 @@ import { PushNotificationSettings } from "@/features/notifications/components/pu
 import { WhatsAppNotificationSettings } from "@/features/notifications/components/whatsapp-notification-settings";
 import { CalendarSyncSettings } from "@/features/calendar/components/calendar-sync-settings";
 import { getWhatsAppNotificationSettings } from "@/features/notifications/actions/whatsapp-notification-actions";
-import { listMyWorkspaces } from "@/features/workspaces/queries/workspace-queries";
 
 async function AccountSettingsPageContent({ 
   userId, 
@@ -26,17 +26,11 @@ async function AccountSettingsPageContent({
 }) {
   return (
     <>
-      <section className="mb-6">
-        <p className="mb-1.5 text-[10px] font-semibold tracking-[0.14em] text-[#a08f74]">
-          PENGATURAN AKUN
-        </p>
-        <h1 className="font-serif text-3xl font-normal tracking-tight sm:text-[38px]">
-          Akun Saya
-        </h1>
-        <p className="mt-2 text-sm text-muted-foreground">
-          Kelola pengaturan akun, notifikasi, dan keamanan.
-        </p>
-      </section>
+      <PageHeader
+        eyebrow="PENGATURAN AKUN"
+        title="Akun Saya"
+        description="Kelola pengaturan akun, notifikasi, dan keamanan."
+      />
 
       {/* Profile Info */}
       <Card className="mb-6 gap-4 rounded-xl border-border/80 bg-card p-5 shadow-sm sm:p-6">
@@ -119,12 +113,15 @@ async function AccountSettingsPageContent({
 export const instant = false;
 
 export default async function AccountSettingsPage() {
+  const { getCurrentWorkspace } = await import("@/lib/workspace-cache");
   const session = await auth();
   if (!session?.user?.id) return null;
 
-  const whatsappSettings = await getWhatsAppNotificationSettings();
-  const workspaces = await listMyWorkspaces();
-  const workspaceId = workspaces[0]?.id ?? null;
+  const [whatsappSettings, workspace] = await Promise.all([
+    getWhatsAppNotificationSettings(),
+    getCurrentWorkspace(),
+  ]);
+  const workspaceId = workspace?.id ?? null;
 
   return (
     <AccountSettingsPageContent 

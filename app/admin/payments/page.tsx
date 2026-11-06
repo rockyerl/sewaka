@@ -2,15 +2,9 @@ import { format } from "date-fns";
 
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { AdminPagination, AdminPageHeader } from "@/components/shared/admin-components";
+import { formatCurrency } from "@/lib/format-currency";
 import { listAdminPayments } from "@/features/admin/actions/admin-actions";
-
-function formatCurrency(amount: string) {
-  return new Intl.NumberFormat("id-ID", {
-    style: "currency",
-    currency: "IDR",
-    maximumFractionDigits: 0,
-  }).format(Number(amount));
-}
 
 export default async function AdminPaymentsPage({
   searchParams,
@@ -25,10 +19,7 @@ export default async function AdminPaymentsPage({
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="font-serif text-3xl font-normal tracking-tight">Monitoring Pembayaran</h1>
-        <p className="mt-1 text-sm text-muted-foreground">Lihat semua transaksi pembayaran.</p>
-      </div>
+      <AdminPageHeader title="Monitoring Pembayaran" description="Lihat semua transaksi pembayaran." />
 
       {/* Filter */}
       <form className="flex gap-2">
@@ -53,7 +44,7 @@ export default async function AdminPaymentsPage({
           {data.payments.map((payment) => (
             <div key={payment.id} className="flex items-center justify-between py-3">
               <div>
-                <p className="text-sm font-medium">{formatCurrency(payment.amount)}</p>
+                <p className="text-sm font-medium">{formatCurrency(Number(payment.amount))}</p>
                 <p className="text-xs text-muted-foreground">
                   {payment.gateway ?? "Manual"} • {payment.paidAt ? format(payment.paidAt, "d MMM yyyy HH:mm") : "Belum dibayar"}
                 </p>
@@ -76,25 +67,11 @@ export default async function AdminPaymentsPage({
           ))}
         </div>
 
-        {data.pagination.totalPages > 1 && (
-          <div className="mt-4 flex items-center justify-between">
-            <p className="text-xs text-muted-foreground">
-              Halaman {data.pagination.page} dari {data.pagination.totalPages}
-            </p>
-            <div className="flex gap-2">
-              {data.pagination.page > 1 && (
-                <a href={`/admin/payments?page=${data.pagination.page - 1}`} className="rounded-lg border border-border px-3 py-1 text-xs hover:bg-muted">
-                  Sebelumnya
-                </a>
-              )}
-              {data.pagination.page < data.pagination.totalPages && (
-                <a href={`/admin/payments?page=${data.pagination.page + 1}`} className="rounded-lg border border-border px-3 py-1 text-xs hover:bg-muted">
-                  Selanjutnya
-                </a>
-              )}
-            </div>
-          </div>
-        )}
+        <AdminPagination
+          page={data.pagination.page}
+          totalPages={data.pagination.totalPages}
+          baseUrl="/admin/payments"
+        />
       </Card>
     </div>
   );

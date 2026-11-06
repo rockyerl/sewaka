@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import Link from "next/link";
 import {
   Check,
@@ -313,25 +313,42 @@ export function GuestListView({
     URL.revokeObjectURL(url);
   };
 
-  // Filtered guests
-  const filteredGuests = guests.filter((g) => {
-    const matchesSearch =
-      g.name.toLowerCase().includes(search.toLowerCase()) ||
-      (g.category && g.category.toLowerCase().includes(search.toLowerCase())) ||
-      (g.invitationCode && g.invitationCode.toLowerCase().includes(search.toLowerCase()));
+  // Filtered guests - memoized to avoid re-filtering on every render
+  const filteredGuests = useMemo(() => {
+    const searchLower = search.toLowerCase();
+    return guests.filter((g) => {
+      const matchesSearch =
+        g.name.toLowerCase().includes(searchLower) ||
+        (g.category && g.category.toLowerCase().includes(searchLower)) ||
+        (g.invitationCode && g.invitationCode.toLowerCase().includes(searchLower));
 
-    if (!matchesSearch) return false;
+      if (!matchesSearch) return false;
 
-    if (filterRsvp === "ALL") return true;
-    if (filterRsvp === "CHECKED_IN") return g.checkedIn;
-    return g.rsvpStatus === filterRsvp;
-  });
+      if (filterRsvp === "ALL") return true;
+      if (filterRsvp === "CHECKED_IN") return g.checkedIn;
+      return g.rsvpStatus === filterRsvp;
+    });
+  }, [guests, search, filterRsvp]);
 
-  const accepted = guests.filter((g) => g.rsvpStatus === "ACCEPTED").length;
-  const declined = guests.filter((g) => g.rsvpStatus === "DECLINED").length;
-  const pending = guests.filter((g) => g.rsvpStatus === "PENDING").length;
-  const checkedInCount = guests.filter((g) => g.checkedIn).length;
-  const totalPlusOnes = guests.reduce((sum, g) => sum + g.plusOnes, 0);
+  // Statistics - memoized to avoid re-counting on every render
+  const stats = useMemo(() => {
+    let accepted = 0;
+    let declined = 0;
+    let pending = 0;
+    let checkedInCount = 0;
+    let totalPlusOnes = 0;
+
+    for (const g of guests) {
+      if (g.rsvpStatus === "ACCEPTED") accepted++;
+      else if (g.rsvpStatus === "DECLINED") declined++;
+      else if (g.rsvpStatus === "PENDING") pending++;
+
+      if (g.checkedIn) checkedInCount++;
+      totalPlusOnes += g.plusOnes;
+    }
+
+    return { accepted, declined, pending, checkedInCount, totalPlusOnes };
+  }, [guests]);
 
   return (
     <>
@@ -427,25 +444,25 @@ export function GuestListView({
         <Card className="rounded-xl border-border/80 bg-card p-4 sm:p-5 shadow-sm">
           <p className="text-xs text-muted-foreground">Total Diundang</p>
           <p className="mt-1 font-serif text-2xl font-medium">{guests.length}</p>
-          {totalPlusOnes > 0 && (
-            <p className="text-[11px] text-muted-foreground">+{totalPlusOnes} pendamping</p>
+          {stats.totalPlusOnes > 0 && (
+            <p className="text-[11px] text-muted-foreground">+{stats.totalPlusOnes} pendamping</p>
           )}
         </Card>
         <Card className="rounded-xl border-border/80 bg-card p-4 sm:p-5 shadow-sm">
           <p className="text-xs text-muted-foreground">Hadir (RSVP)</p>
-          <p className="mt-1 font-serif text-2xl font-medium text-[#527553]">{accepted}</p>
+          <p className="mt-1 font-serif text-2xl font-medium text-[#527553]">{stats.accepted}</p>
         </Card>
         <Card className="rounded-xl border-border/80 bg-card p-4 sm:p-5 shadow-sm">
           <p className="text-xs text-muted-foreground">Tidak Hadir</p>
-          <p className="mt-1 font-serif text-2xl font-medium text-[#9b4a4a]">{declined}</p>
+          <p className="mt-1 font-serif text-2xl font-medium text-[#9b4a4a]">{stats.declined}</p>
         </Card>
         <Card className="rounded-xl border-border/80 bg-card p-4 sm:p-5 shadow-sm">
           <p className="text-xs text-muted-foreground">Menunggu</p>
-          <p className="mt-1 font-serif text-2xl font-medium text-muted-foreground">{pending}</p>
+          <p className="mt-1 font-serif text-2xl font-medium text-muted-foreground">{stats.pending}</p>
         </Card>
         <Card className="rounded-xl border-border/80 bg-card p-4 sm:p-5 shadow-sm col-span-2 sm:col-span-1 border-amber-200 bg-amber-50/40">
           <p className="text-xs font-medium text-[#5B132B]">Sudah Check-In</p>
-          <p className="mt-1 font-serif text-2xl font-semibold text-[#5B132B]">{checkedInCount}</p>
+          <p className="mt-1 font-serif text-2xl font-semibold text-[#5B132B]">{stats.checkedInCount}</p>
           <p className="text-[11px] text-[#A08F74]">Meja Resepsi</p>
         </Card>
       </div>
@@ -478,10 +495,10 @@ export function GuestListView({
         <div className="flex items-center gap-1.5 overflow-x-auto py-3">
           {[
             { id: "ALL", label: "Semua" },
-            { id: "ACCEPTED", label: `Hadir (${accepted})` },
-            { id: "PENDING", label: `Menunggu (${pending})` },
-            { id: "DECLINED", label: `Tidak Hadir (${declined})` },
-            { id: "CHECKED_IN", label: `Sudah Check-In (${checkedInCount})` },
+            { id: "ACCEPTED", label: `Hadir (${stats.accepted})` },
+            { id: "PENDING", label: `Menunggu (${stats.pending})` },
+            { id: "DECLINED", label: `Tidak Hadir (${stats.declined})` },
+            { id: "CHECKED_IN", label: `Sudah Check-In (${stats.checkedInCount})` },
           ].map((tab) => (
             <button
               key={tab.id}

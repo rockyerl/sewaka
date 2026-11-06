@@ -8,6 +8,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
+import { PageHeader, SectionCard } from "@/components/shared";
+import { formatCurrency } from "@/lib/format-currency";
 
 import {
   createExpenseAction,
@@ -17,15 +19,6 @@ import {
 } from "@/features/budget/actions";
 import { BudgetSummary } from "@/features/budget/components";
 import { getBudgetOverview } from "@/features/budget/queries";
-import { listMyWorkspaces } from "@/features/workspaces/queries";
-
-function formatCurrency(value: string) {
-  return new Intl.NumberFormat("id-ID", {
-    style: "currency",
-    currency: "IDR",
-    maximumFractionDigits: 0,
-  }).format(Number(value));
-}
 
 
 async function BudgetPageContent({ workspaceId }: { workspaceId: string }) {
@@ -39,19 +32,11 @@ async function BudgetPageContent({ workspaceId }: { workspaceId: string }) {
 
   return (
     <>
-      <section className="mb-6">
-        <p className="mb-1.5 text-[10px] font-semibold tracking-[0.14em] text-[#a08f74]">
-          KEUANGAN
-        </p>
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-          <div>
-            <h1 className="font-serif text-3xl font-normal tracking-tight sm:text-[38px]">
-              Kelola Anggaran
-            </h1>
-            <p className="mt-2 text-sm text-muted-foreground">
-              Atur batas anggaran dan pantau pengeluaran pernikahanmu.
-            </p>
-          </div>
+      <PageHeader
+        eyebrow="KEUANGAN"
+        title="Kelola Anggaran"
+        description="Atur batas anggaran dan pantau pengeluaran pernikahanmu."
+        actions={
           <Link
             href="/budget/financial"
             className="inline-flex items-center gap-1.5 rounded-xl border border-[#D4AF37]/40 bg-[#FAF5EC]/60 px-3 py-2 text-xs font-medium text-[#5B132B] shadow-xs hover:bg-[#FAF5EC]"
@@ -59,8 +44,8 @@ async function BudgetPageContent({ workspaceId }: { workspaceId: string }) {
             <BarChart3 className="size-3.5 text-[#D4AF37]" />
             <span>Laporan Keuangan</span>
           </Link>
-        </div>
-      </section>
+        }
+      />
 
       {/* Total Budget */}
       <Card className="mb-5 gap-5 rounded-xl border-border/80 bg-card p-5 shadow-sm shadow-stone-900/[0.025] sm:p-6">
@@ -117,13 +102,7 @@ async function BudgetPageContent({ workspaceId }: { workspaceId: string }) {
       </Card>
 
       {/* Budget Summary */}
-      <Card className="mb-5 gap-5 rounded-xl border-border/80 bg-card p-5 shadow-sm shadow-stone-900/[0.025] sm:p-6">
-        <div>
-          <p className="mb-1.5 text-[10px] font-semibold tracking-[0.14em] text-[#a08f74]">
-            RINCIAN KATEGORI
-          </p>
-          <h2 className="font-serif text-xl font-medium tracking-tight">Kategori Anggaran</h2>
-        </div>
+      <SectionCard eyebrow="RINCIAN KATEGORI" title="Kategori Anggaran">
         {budget.categories.length > 0 ? (
           <div className="mt-4 divide-y divide-border/60">
             {budget.categories.map((cat) => {
@@ -187,16 +166,10 @@ async function BudgetPageContent({ workspaceId }: { workspaceId: string }) {
             </Button>
           </form>
         ) : null}
-      </Card>
+      </SectionCard>
 
       {/* Recent Expenses */}
-      <Card className="mb-5 gap-5 rounded-xl border-border/80 bg-card p-5 shadow-sm shadow-stone-900/[0.025] sm:p-6">
-        <div>
-          <p className="mb-1.5 text-[10px] font-semibold tracking-[0.14em] text-[#a08f74]">
-            RIWAYAT PENGELUARAN
-          </p>
-          <h2 className="font-serif text-xl font-medium tracking-tight">Pengeluaran Terbaru</h2>
-        </div>
+      <SectionCard eyebrow="RIWAYAT PENGELUARAN" title="Pengeluaran Terbaru">
         {budget.recentExpenses.length > 0 ? (
           <div className="mt-4 divide-y divide-border/60">
             {budget.recentExpenses.map((expense) => (
@@ -262,7 +235,7 @@ async function BudgetPageContent({ workspaceId }: { workspaceId: string }) {
             </Button>
           </form>
         ) : null}
-      </Card>
+      </SectionCard>
     </>
   );
 }
@@ -274,14 +247,13 @@ export default async function BudgetPage({
 }: {
   searchParams?: Promise<{ workspaceId?: string }>;
 }) {
-  const workspaces = await listMyWorkspaces();
+  const { getCurrentWorkspace } = await import("@/lib/workspace-cache");
   const resolvedSearchParams = await (searchParams ?? Promise.resolve({}));
   const workspaceIdFromQuery = typeof resolvedSearchParams === "object" && resolvedSearchParams !== null
     ? (resolvedSearchParams as { workspaceId?: string }).workspaceId
     : undefined;
 
-  const workspace =
-    workspaces.find((item) => item.id === workspaceIdFromQuery) ?? workspaces[0];
+  const workspace = await getCurrentWorkspace(workspaceIdFromQuery);
   if (!workspace) return null;
 
   return <BudgetPageContent workspaceId={workspace.id} />;

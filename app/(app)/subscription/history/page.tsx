@@ -2,11 +2,11 @@ import { CheckCircle2, Clock, CreditCard, XCircle } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
+import { PageHeader } from "@/components/shared";
 
 import { getSubscriptionHistory } from "@/features/subscription/queries/subscription-history-queries";
-import { listMyWorkspaces } from "@/features/workspaces/queries";
 
-function formatCurrency(amount: string, currency: string) {
+function formatCurrencyWithCurrency(amount: string, currency: string) {
   return new Intl.NumberFormat("id-ID", {
     style: "currency",
     currency: currency || "IDR",
@@ -47,17 +47,11 @@ async function SubscriptionHistoryPageContent({ workspaceId }: { workspaceId: st
 
   return (
     <>
-      <section className="mb-6">
-        <p className="mb-1.5 text-[10px] font-semibold tracking-[0.14em] text-[#a08f74]">
-          LANGGANAN
-        </p>
-        <h1 className="font-serif text-3xl font-normal tracking-tight sm:text-[38px]">
-          Riwayat Langganan
-        </h1>
-        <p className="mt-2 text-sm text-muted-foreground">
-          Lihat riwayat langganan dan pembayaran workspace kamu.
-        </p>
-      </section>
+      <PageHeader
+        eyebrow="LANGGANAN"
+        title="Riwayat Langganan"
+        description="Lihat riwayat langganan dan pembayaran workspace kamu."
+      />
 
       {history.length > 0 ? (
         <div className="space-y-6">
@@ -126,7 +120,7 @@ async function SubscriptionHistoryPageContent({ workspaceId }: { workspaceId: st
                           </p>
                         </div>
                         <span className="ml-3 shrink-0 text-sm font-medium">
-                          {formatCurrency(tx.amount, tx.currency)}
+                          {formatCurrencyWithCurrency(tx.amount, tx.currency)}
                         </span>
                       </div>
                     ))}
@@ -156,15 +150,14 @@ export default async function SubscriptionHistoryPage({
 }: {
   searchParams?: Promise<{ workspaceId?: string }>;
 }) {
-  const workspaces = await listMyWorkspaces();
+  const { getCurrentWorkspace } = await import("@/lib/workspace-cache");
   const resolvedSearchParams = await (searchParams ?? Promise.resolve({}));
   const workspaceIdFromQuery =
     typeof resolvedSearchParams === "object" && resolvedSearchParams !== null
       ? (resolvedSearchParams as { workspaceId?: string }).workspaceId
       : undefined;
 
-  const workspace =
-    workspaces.find((item) => item.id === workspaceIdFromQuery) ?? workspaces[0];
+  const workspace = await getCurrentWorkspace(workspaceIdFromQuery);
   if (!workspace) return null;
 
   return <SubscriptionHistoryPageContent workspaceId={workspace.id} />;

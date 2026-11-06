@@ -1,5 +1,4 @@
 import { Suspense } from "react";
-import { SignInPage } from "@/features/auth/components";
 import { AppLayout } from "@/components/app-layout";
 
 function AppLayoutLoading() {
@@ -47,11 +46,7 @@ async function AppLayoutPage({
   const sessionUser = session?.user;
 
   if (!sessionUser?.id) {
-    return (
-      <SignInPage
-        googleEnabled={Boolean(process.env.AUTH_GOOGLE_ID && process.env.AUTH_GOOGLE_SECRET)}
-      />
-    );
+    redirect("/auth/signin");
   }
 
   const userId = sessionUser!.id;
@@ -59,27 +54,28 @@ async function AppLayoutPage({
   const userEmail = sessionUser!.email;
   const userImage = sessionUser!.image;
 
-  // Get user role
+  // Parallelize: get user role, workspaces, and search params simultaneously
   const db = getDb();
-  const [userRoleRow] = await db
-    .select({ role: users.role })
-    .from(users)
-    .where(eq(users.id, userId))
-    .limit(1);
+  const [userRoleRows, workspaces, params] = await Promise.all([
+    db.select({ role: users.role }).from(users).where(eq(users.id, userId)).limit(1),
+    listMyWorkspaces(),
+    searchParams,
+  ]);
+
+  const userRoleRow = userRoleRows[0];
 
   // Admin users go to admin panel, unless they explicitly use ?asUser=true
-  const params = await searchParams;
   if (userRoleRow?.role === "admin" && !params?.asUser) {
     redirect("/admin/dashboard");
   }
-
-  const workspaces = await listMyWorkspaces();
 
   if (workspaces.length === 0) {
     return <WorkspaceSetup name={userName ?? ""} />;
   }
 
   const workspace = workspaces[0];
+
+  // Fetch notifications in parallel with workspace data
   const notifications = await listNotifications(workspace.id);
 
   return (

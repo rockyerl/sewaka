@@ -46,18 +46,14 @@ export async function getBudgetOverview(
   userId?: string,
 ): Promise<BudgetOverview> {
   return withWorkspace({ workspaceId, userId }, async (transaction) => {
+    // Fetch budget total
     const budgetRows = await transaction
       .select({ totalAmount: budgets.totalAmount })
       .from(budgets)
       .where(eq(budgets.workspaceId, workspaceId))
       .limit(1);
 
-    const spentRows = await transaction
-      .select({
-        spentAmount: sql<string>`coalesce(sum(${expenses.amount}), 0)::text`,
-      })
-      .from(expenses);
-
+    // Fetch categories with their allocated amounts
     const categories = await transaction
       .select({
         id: budgetCategories.id,
@@ -65,17 +61,12 @@ export async function getBudgetOverview(
         allocatedAmount: budgetCategories.allocatedAmount,
       })
       .from(budgetCategories)
+      .where(eq(budgetCategories.workspaceId, workspaceId))
       .orderBy(asc(budgetCategories.name));
 
-    const categorySpend = await transaction
-      .select({
-        categoryId: expenses.categoryId,
-        spentAmount: sql<string>`coalesce(sum(${expenses.amount}), 0)::text`,
-      })
-      .from(expenses)
-      .groupBy(expenses.categoryId);
-
-    const recentExpenses = await transaction
+    // Fetch expenses for this workspace only, with category info, ordered by date
+    // This single query replaces the separate spent, categorySpend, and recentExpenses queries
+    const allExpenses = await transaction
       .select({
         id: expenses.id,
         categoryId: expenses.categoryId,
@@ -86,17 +77,26 @@ export async function getBudgetOverview(
       })
       .from(expenses)
       .leftJoin(budgetCategories, eq(expenses.categoryId, budgetCategories.id))
-      .orderBy(desc(expenses.expenseDate), desc(expenses.createdAt))
-      .limit(6);
+      .where(eq(expenses.workspaceId, workspaceId))
+      .orderBy(desc(expenses.expenseDate), desc(expenses.createdAt));
 
+    // Calculate totals from the fetched expenses
     const totalAmount = budgetRows[0]?.totalAmount ?? "0";
-    const spentAmount = spentRows[0]?.spentAmount ?? "0";
-    const spendByCategory = new Map(
-      categorySpend.map(({ categoryId, spentAmount: amount }) => [
-        categoryId,
-        amount,
-      ]),
-    );
+    let spentAmount = "0";
+    const spendByCategory = new Map<string, string>();
+
+    for (const exp of allExpenses) {
+      // Add to total spent
+      spentAmount = fromCents(toCents(spentAmount) + toCents(exp.amount));
+      // Add to category spent
+      if (exp.categoryId) {
+        const current = spendByCategory.get(exp.categoryId) ?? "0";
+        spendByCategory.set(exp.categoryId, fromCents(toCents(current) + toCents(exp.amount)));
+      }
+    }
+
+    // Take only the 6 most recent expenses for display
+    const recentExpenses = allExpenses.slice(0, 6);
 
     return {
       totalAmount,

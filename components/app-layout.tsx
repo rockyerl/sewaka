@@ -9,7 +9,7 @@ import { Menu, X } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { AppSidebar, ALL_NAV_ITEMS, type AppSidebarProps } from "@/components/app-sidebar";
-import { NotificationCenter, type NotificationItem } from "@/features/notifications/components/notification-center";
+import { NotificationCenter, type NotificationItem } from "@/components/notification-center";
 
 export interface AppLayoutProps extends AppSidebarProps {
   children: ReactNode;
@@ -39,24 +39,14 @@ export function AppLayout({
 
   return (
     <div className="min-h-svh">
-      {/* Mobile Menu Button */}
-      <button
-        type="button"
-        className="fixed left-4 top-4 z-30 rounded-lg bg-background/95 p-2 shadow-md md:hidden"
-        onClick={() => setMobileMenuOpen(true)}
-        aria-label="Buka menu navigasi"
-      >
-        <Menu className="size-5" />
-      </button>
-
       {/* Mobile Sidebar Overlay */}
       {mobileMenuOpen && (
-        <div className="fixed inset-0 z-40 md:hidden">
+        <div className="fixed inset-0 z-50 md:hidden" onClick={() => setMobileMenuOpen(false)}>
+          <div className="absolute inset-0 bg-black/50" />
           <div
-            className="absolute inset-0 bg-black/50"
-            onClick={() => setMobileMenuOpen(false)}
-          />
-          <div className="absolute inset-y-0 left-0 w-[280px] bg-background shadow-xl">
+            className="absolute inset-y-0 left-0 w-[280px] bg-background shadow-xl"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="flex items-center justify-between border-b border-border p-4">
               <Link
                 className="font-serif text-xl tracking-tight text-primary"
@@ -73,6 +63,18 @@ export function AppLayout({
               >
                 <X className="size-5" />
               </button>
+            </div>
+            {/* Workspace Info - Mobile */}
+            <div className="flex items-center gap-3 border-b border-border px-4 py-3">
+              <span className="grid size-8 shrink-0 place-items-center rounded-full bg-[#f1e7d8] font-serif text-xs font-semibold text-primary">
+                {workspace.coupleOne && workspace.coupleTwo
+                  ? `${workspace.coupleOne.charAt(0)}&${workspace.coupleTwo.charAt(0)}`
+                  : workspace.name.slice(0, 2).toUpperCase()}
+              </span>
+              <div className="grid min-w-0 gap-0.5">
+                <span className="truncate text-sm font-medium">{workspace.name}</span>
+                <span className="text-xs text-muted-foreground">Workspace pernikahan</span>
+              </div>
             </div>
             <nav className="overflow-y-auto p-4" style={{ maxHeight: "calc(100vh - 72px)" }}>
               <ul className="space-y-1">
@@ -104,6 +106,18 @@ export function AppLayout({
         </div>
       )}
 
+      {/* Mobile Menu Button */}
+      {!mobileMenuOpen && (
+        <button
+          type="button"
+          className="fixed left-4 top-3 z-[60] rounded-lg bg-background/95 p-2 shadow-md md:hidden"
+          onClick={() => setMobileMenuOpen(true)}
+          aria-label="Buka menu navigasi"
+        >
+          <Menu className="size-5" />
+        </button>
+      )}
+
       {/* Sidebar */}
       <div className="print:hidden">
         <AppSidebar
@@ -118,7 +132,7 @@ export function AppLayout({
       {/* Main Content Area */}
       <main id="main-content" tabIndex={-1} className="min-w-0 md:ml-[260px] print:ml-0 print:p-0">
         {/* Top Header */}
-        <header className="sticky top-0 z-10 flex h-16 items-center justify-between border-b border-border bg-background/90 px-5 backdrop-blur-md sm:px-8 lg:px-11 print:hidden">
+        <header className="sticky top-0 z-20 flex h-16 items-center justify-between border-b border-border bg-background/90 px-5 pl-[72px] backdrop-blur-md sm:px-8 sm:pl-8 lg:px-11 lg:pl-11 print:hidden">
           <div className="flex items-center gap-3">
             <Link
               className="font-serif text-xl tracking-tight text-primary md:hidden"
@@ -126,24 +140,18 @@ export function AppLayout({
             >
               sewaka<span className="text-[#c5a849]">.</span>
             </Link>
-            <div className="hidden text-sm text-muted-foreground md:block">
-              Workspace <span className="mx-2 text-border">/</span>{" "}
-              <span className="font-medium text-foreground">
-                {activeItem?.label ?? "Dashboard"}
-              </span>
-            </div>
           </div>
           <div className="flex items-center gap-2.5 sm:gap-4">
+            {/* Workspace Selector - Desktop */}
+            <div className="hidden items-center gap-2 rounded-xl border border-border px-3 py-1.5 md:flex">
+              <span className="grid size-7 shrink-0 place-items-center rounded-full bg-[#f1e7d8] font-serif text-xs font-semibold text-primary">
+                {workspace.coupleOne && workspace.coupleTwo
+                  ? `${workspace.coupleOne.charAt(0)}&${workspace.coupleTwo.charAt(0)}`
+                  : workspace.name.slice(0, 2).toUpperCase()}
+              </span>
+              <span className="max-w-[120px] truncate text-xs font-medium">{workspace.name}</span>
+            </div>
             <NotificationCenter notifications={notifications ?? []} />
-
-            <Badge
-              variant="secondary"
-              className="gap-2 rounded-full bg-[#edf3e9] px-3 py-1.5 font-normal text-[#527553]"
-            >
-              <span className="size-1.5 rounded-full bg-[#6b9b70]" />
-              <span className="hidden sm:inline">Persiapan berjalan</span>
-              <span className="sm:hidden">Berjalan</span>
-            </Badge>
             <Avatar className="size-8 md:hidden">
               <AvatarFallback className="bg-[#ead9ca] font-serif text-primary">
                 {sessionUser.name?.charAt(0) ?? "S"}

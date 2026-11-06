@@ -1,9 +1,8 @@
 import { format } from "date-fns";
-import { updateUserRole as updateUserRoleInternal } from "@/features/admin/actions/admin-actions";
-
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { listAdminUsers } from "@/features/admin/actions/admin-actions";
+import { AdminPagination, AdminPageHeader } from "@/components/shared/admin-components";
+import { listAdminUsers, updateUserRole as updateUserRoleInternal } from "@/features/admin/actions/admin-actions";
 
 export async function setRoleAction(formData: FormData) {
   "use server";
@@ -40,10 +39,7 @@ export default async function AdminUsersPage({
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="font-serif text-3xl font-normal tracking-tight">Manajemen Pengguna</h1>
-        <p className="mt-1 text-sm text-muted-foreground">Lihat dan kelola semua pengguna platform.</p>
-      </div>
+      <AdminPageHeader title="Manajemen Pengguna" description="Lihat dan kelola semua pengguna platform." />
 
       {/* Search */}
       <form className="flex gap-2">
@@ -85,26 +81,11 @@ export default async function AdminUsersPage({
           ))}
         </div>
 
-        {/* Pagination */}
-        {data.pagination.totalPages > 1 && (
-          <div className="mt-4 flex items-center justify-between">
-            <p className="text-xs text-muted-foreground">
-              Halaman {data.pagination.page} dari {data.pagination.totalPages}
-            </p>
-            <div className="flex gap-2">
-              {data.pagination.page > 1 && (
-                <a href={`/admin/users?page=${data.pagination.page - 1}`} className="rounded-lg border border-border px-3 py-1 text-xs hover:bg-muted">
-                  Sebelumnya
-                </a>
-              )}
-              {data.pagination.page < data.pagination.totalPages && (
-                <a href={`/admin/users?page=${data.pagination.page + 1}`} className="rounded-lg border border-border px-3 py-1 text-xs hover:bg-muted">
-                  Selanjutnya
-                </a>
-              )}
-            </div>
-          </div>
-        )}
+        <AdminPagination
+          page={data.pagination.page}
+          totalPages={data.pagination.totalPages}
+          baseUrl="/admin/users"
+        />
       </Card>
     </div>
   );

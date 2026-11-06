@@ -1,6 +1,6 @@
 import "server-only";
 
-import { asc, desc, sql } from "drizzle-orm";
+import { asc, desc, eq, sql } from "drizzle-orm";
 
 import { withWorkspace } from "@/db/with-workspace";
 import { tasks } from "@/db/schema";
@@ -29,6 +29,7 @@ export async function listWorkspaceTasks(
         dueDate: tasks.dueDate,
       })
       .from(tasks)
+      .where(eq(tasks.workspaceId, workspaceId))
       .orderBy(sql`${tasks.dueDate} asc nulls last`, desc(tasks.createdAt), asc(tasks.title)),
   );
 }

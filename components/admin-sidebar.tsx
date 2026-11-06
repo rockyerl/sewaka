@@ -19,13 +19,13 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { signOutAction } from "@/features/auth/actions";
+import { signOutAction } from "@/lib/auth-actions";
 
 export interface AdminNavItem {
   label: string;
@@ -61,6 +61,15 @@ export function AdminSidebar({ sessionUser }: AdminSidebarProps) {
   const pathname = usePathname();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
+  const navItems = useMemo(
+    () =>
+      ADMIN_NAV_ITEMS.map((item) => ({
+        ...item,
+        isActive: pathname.startsWith(item.href),
+      })),
+    [pathname]
+  );
+
   const renderNavItems = () => (
     <>
       {/* Brand Logo */}
@@ -86,25 +95,22 @@ export function AdminSidebar({ sessionUser }: AdminSidebarProps) {
       {/* Navigation */}
       <nav className="flex-1">
         <ul className="space-y-1">
-          {ADMIN_NAV_ITEMS.map((item) => {
-            const isActive = pathname.startsWith(item.href);
-            return (
-              <li key={item.href}>
-                <Link
-                  className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors ${
-                    isActive
-                      ? "bg-accent font-medium text-primary"
-                      : "text-[#746d66] hover:bg-accent hover:text-primary"
-                  }`}
-                  href={item.href}
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  <item.icon className="size-[18px] shrink-0" strokeWidth={1.7} />
-                  <span>{item.label}</span>
-                </Link>
-              </li>
-            );
-          })}
+          {navItems.map((item) => (
+            <li key={item.href}>
+              <Link
+                className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors ${
+                  item.isActive
+                    ? "bg-accent font-medium text-primary"
+                    : "text-[#746d66] hover:bg-accent hover:text-primary"
+                }`}
+                href={item.href}
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                <item.icon className="size-[18px] shrink-0" strokeWidth={1.7} />
+                <span>{item.label}</span>
+              </Link>
+            </li>
+          ))}
         </ul>
       </nav>
 

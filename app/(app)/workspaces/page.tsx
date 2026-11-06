@@ -2,9 +2,10 @@ import { Heart, MapPin, CalendarDays } from "lucide-react";
 
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { PageHeader, SectionCard } from "@/components/shared";
 
 import { auth } from "@/auth";
-import { listMyWorkspaces, listWorkspaceMembers } from "@/features/workspaces/queries";
+import { listWorkspaceMembers } from "@/features/workspaces/queries";
 import { WorkspaceMembersSection } from "@/features/workspaces/components/workspace-members";
 
 
@@ -48,26 +49,14 @@ async function WorkspacesPageContent({
 
   return (
     <>
-      <section className="mb-6">
-        <p className="mb-1.5 text-[10px] font-semibold tracking-[0.14em] text-[#a08f74]">
-          PENGATURAN
-        </p>
-        <h1 className="font-serif text-3xl font-normal tracking-tight sm:text-[38px]">
-          Workspace Pernikahan
-        </h1>
-        <p className="mt-2 text-sm text-muted-foreground">
-          Kelola workspace pernikahan dan pengaturan kolaborasi.
-        </p>
-      </section>
+      <PageHeader
+        eyebrow="PENGATURAN"
+        title="Workspace Pernikahan"
+        description="Kelola workspace pernikahan dan pengaturan kolaborasi."
+      />
 
       {/* Workspaces List */}
-      <Card className="mb-5 gap-5 rounded-xl border-border/80 bg-card p-5 shadow-sm sm:p-6">
-        <div>
-          <p className="mb-1.5 text-[10px] font-semibold tracking-[0.14em] text-[#a08f74]">
-            WORKSPACE KAMU
-          </p>
-          <h2 className="font-serif text-xl font-medium tracking-tight">Daftar Workspace</h2>
-        </div>
+      <SectionCard eyebrow="WORKSPACE KAMU" title="Daftar Workspace">
         {workspaces.length > 0 ? (
           <div className="mt-4 grid gap-4 sm:grid-cols-2">
             {workspaces.map((ws) => {
@@ -135,7 +124,7 @@ async function WorkspacesPageContent({
             })}
           </div>
         ) : null}
-      </Card>
+      </SectionCard>
 
       {/* Workspace Members */}
       {currentWorkspaceId && (
@@ -172,9 +161,10 @@ export default async function WorkspacesPage({
 }: {
   searchParams?: Promise<{ workspaceId?: string }>;
 }) {
+  const { getAllWorkspaces } = await import("@/lib/workspace-cache");
   const session = await auth();
   const userId = session?.user?.id ?? "";
-  const workspaces = await listMyWorkspaces();
+  const workspaces = await getAllWorkspaces();
   const resolvedSearchParams = await (searchParams ?? Promise.resolve({}));
   const workspaceIdFromQuery = typeof resolvedSearchParams === "object" && resolvedSearchParams !== null
     ? (resolvedSearchParams as { workspaceId?: string }).workspaceId

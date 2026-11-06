@@ -1,10 +1,10 @@
 import { auth } from "@/auth";
-import { listMyWorkspaces } from "@/features/workspaces/queries";
 import { OnboardingWizard } from "@/features/workspaces/components/onboarding-wizard";
 
 export default async function OnboardingPage() {
+  const { getAllWorkspaces } = await import("@/lib/workspace-cache");
   const session = await auth();
-  const workspaces = await listMyWorkspaces();
+  const workspaces = await getAllWorkspaces();
 
   // Find workspace that needs onboarding (no couple names set)
   const workspace = workspaces.find((w) => !w.coupleOne || !w.coupleTwo) ?? workspaces[0];
