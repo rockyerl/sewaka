@@ -4,8 +4,6 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { listAdminPayments } from "@/features/admin/actions/admin-actions";
 
-export const instant = false;
-
 function formatCurrency(amount: string) {
   return new Intl.NumberFormat("id-ID", {
     style: "currency",

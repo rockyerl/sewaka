@@ -3,9 +3,14 @@ import { Plus, Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 
-import { uploadDocumentAction } from "@/features/documents/actions";
+import { uploadDocumentAction as uploadDocumentActionInternal } from "@/features/documents/actions";
 import { DocumentListSection } from "@/features/documents/components/document-list";
 import { listMyWorkspaces } from "@/features/workspaces/queries";
+
+export async function uploadDocumentAction(formData: FormData) {
+  "use server";
+  await uploadDocumentActionInternal(formData);
+}
 
 async function DocumentsPageContent({ workspaceId }: { workspaceId: string }) {
   return (
@@ -25,10 +30,7 @@ async function DocumentsPageContent({ workspaceId }: { workspaceId: string }) {
       {/* Upload Area */}
       <Card className="mb-5 rounded-xl border-2 border-dashed border-border/60 bg-card p-6 shadow-sm">
         <form
-          action={async (formData) => {
-            "use server";
-            await uploadDocumentAction(undefined, formData);
-          }}
+          action={uploadDocumentAction}
           className="space-y-4"
         >
           <input type="hidden" name="workspaceId" value={workspaceId} />

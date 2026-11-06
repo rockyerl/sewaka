@@ -1,9 +1,10 @@
 import { put, del, list } from "@vercel/blob";
+import { logger } from "@/lib/logger";
 
 const BLOB_READ_WRITE_TOKEN = process.env.BLOB_READ_WRITE_TOKEN;
 
 if (!BLOB_READ_WRITE_TOKEN) {
-  console.warn("BLOB_READ_WRITE_TOKEN is not set. File uploads will use placeholder URLs.");
+  logger.warn("BLOB_READ_WRITE_TOKEN is not set. File uploads will use placeholder URLs.");
 }
 
 export type UploadResult = {
@@ -54,7 +55,7 @@ export async function deleteFile(url: string): Promise<void> {
   try {
     await del(url);
   } catch (error) {
-    console.error("Failed to delete file:", error);
+    logger.error("Failed to delete file", error);
   }
 }
 
@@ -67,7 +68,7 @@ export async function listFiles(prefix?: string): Promise<any[]> {
     const blobs = await list({ prefix });
     return blobs.blobs;
   } catch (error) {
-    console.error("Failed to list files:", error);
+    logger.error("Failed to list files", error);
     return [];
   }
 }

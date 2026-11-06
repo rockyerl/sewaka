@@ -4,8 +4,6 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 
-export const instant = false;
-
 export default async function AdminSupportPage() {
   const session = await auth();
   if (!session?.user?.id) return null;

@@ -1702,6 +1702,136 @@ export const whatsappNotificationRelations = relations(whatsappNotifications, ({
   }),
 }));
 
+// Feature Flags (ADM-04) — Toggle features on/off per workspace or globally
+export const featureFlags = pgTable(
+  "feature_flags",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    name: text("name").notNull().unique(),
+    description: text("description"),
+    isEnabled: boolean("is_enabled").notNull().default(false),
+    scope: text("scope").notNull().default("global"), // global, workspace, user
+    targetId: uuid("target_id"), // workspace_id or user_id depending on scope
+    metadata: jsonb("metadata"),
+    createdBy: uuid("created_by")
+      .notNull()
+      .references(() => users.id, { onDelete: "set null" }),
+    createdAt: createdAt(),
+    updatedAt: updatedAt(),
+  },
+  (table) => [
+    index("feature_flags_name_idx").on(table.name),
+    index("feature_flags_scope_idx").on(table.scope),
+  ]
+);
+
+export const featureFlagRelations = relations(featureFlags, ({ one }) => ({
+  creator: one(users, {
+    fields: [featureFlags.createdBy],
+    references: [users.id],
+  }),
+}));
+
+// System Settings (ADM-04) — Platform configuration managed by admin
+export const systemSettings = pgTable(
+  "system_settings",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    key: text("key").notNull().unique(),
+    value: jsonb("value").notNull(),
+    description: text("description"),
+    category: text("category").notNull().default("general"), // general, email, payment, storage, notification
+    isPublic: boolean("is_public").notNull().default(false),
+    updatedBy: uuid("updated_by")
+      .references(() => users.id, { onDelete: "set null" }),
+    createdAt: createdAt(),
+    updatedAt: updatedAt(),
+  },
+  (table) => [
+    index("system_settings_key_idx").on(table.key),
+    index("system_settings_category_idx").on(table.category),
+  ]
+);
+
+export const systemSettingRelations = relations(systemSettings, ({ one }) => ({
+  updater: one(users, {
+    fields: [systemSettings.updatedBy],
+    references: [users.id],
+  }),
+}));
+
+// Admin Audit Logs (ADM-09) — Track all admin actions
+export const adminAuditLogs = pgTable(
+  "admin_audit_logs",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    adminId: uuid("admin_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "set null" }),
+    action: text("action").notNull(), // create, update, delete, login, logout, export, etc.
+    entityType: text("entity_type").notNull(), // user, workspace, plan, payment, content, etc.
+    entityId: uuid("entity_id"),
+    oldValue: jsonb("old_value"),
+    newValue: jsonb("new_value"),
+    ipAddress: text("ip_address"),
+    userAgent: text("user_agent"),
+    notes: text("notes"),
+    createdAt: createdAt(),
+  },
+  (table) => [
+    index("admin_audit_logs_admin_idx").on(table.adminId),
+    index("admin_audit_logs_action_idx").on(table.action),
+    index("admin_audit_logs_entity_idx").on(table.entityType, table.entityId),
+    index("admin_audit_logs_created_at_idx").on(table.createdAt),
+  ]
+);
+
+export const adminAuditLogRelations = relations(adminAuditLogs, ({ one }) => ({
+  admin: one(users, {
+    fields: [adminAuditLogs.adminId],
+    references: [users.id],
+  }),
+}));
+
+// Announcements (ADM-NEW) — Broadcast messages to users
+export const announcements = pgTable(
+  "announcements",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    title: text("title").notNull(),
+    content: text("content").notNull(),
+    type: text("type").notNull().default("info"), // info, warning, error, maintenance
+    isActive: boolean("is_active").notNull().default(false),
+    startDate: timestamp("start_date", { withTimezone: true, mode: "date" }),
+    endDate: timestamp("end_date", { withTimezone: true, mode: "date" }),
+    targetAudience: text("target_audience").notNull().default("all"), // all, admin, user, workspace
+    targetWorkspaceId: uuid("target_workspace_id").references(() => weddingWorkspaces.id, {
+      onDelete: "set null",
+    }),
+    createdBy: uuid("created_by")
+      .notNull()
+      .references(() => users.id, { onDelete: "set null" }),
+    createdAt: createdAt(),
+    updatedAt: updatedAt(),
+  },
+  (table) => [
+    index("announcements_active_idx").on(table.isActive),
+    index("announcements_date_idx").on(table.startDate, table.endDate),
+    index("announcements_created_at_idx").on(table.createdAt),
+  ]
+);
+
+export const announcementRelations = relations(announcements, ({ one }) => ({
+  creator: one(users, {
+    fields: [announcements.createdBy],
+    references: [users.id],
+  }),
+  targetWorkspace: one(weddingWorkspaces, {
+    fields: [announcements.targetWorkspaceId],
+    references: [weddingWorkspaces.id],
+  }),
+}));
+
 export const drizzleSchema = {
   users,
   userCredentials,
@@ -1747,6 +1877,10 @@ export const drizzleSchema = {
   pushNotificationSubscriptions,
   calendarSyncs,
   whatsappNotifications,
+  featureFlags,
+  systemSettings,
+  adminAuditLogs,
+  announcements,
   userRelations,
   userCredentialRelations,
   workspaceRelations,
@@ -1779,4 +1913,8 @@ export const drizzleSchema = {
   pushNotificationSubscriptionRelations,
   calendarSyncRelations,
   whatsappNotificationRelations,
+  featureFlagRelations,
+  systemSettingRelations,
+  adminAuditLogRelations,
+  announcementRelations,
 };

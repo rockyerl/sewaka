@@ -7,11 +7,13 @@ import { ThemeProvider } from "@/shared/providers/theme-provider";
 import { ServiceWorkerRegister } from "@/components/service-worker-register";
 import { WebVitalsMonitor } from "@/components/web-vitals-monitor";
 
-const geist = Geist({ subsets: ["latin"], variable: "--font-geist-sans" });
+const geist = Geist({ subsets: ["latin"], variable: "--font-geist-sans", preload: false, display: "swap" });
 const cinzel = Cinzel({
   subsets: ["latin"],
   weight: ["400", "500", "600", "700"],
   variable: "--font-cinzel",
+  preload: false,
+  display: "swap",
 });
 
 export const metadata: Metadata = {
@@ -22,6 +24,11 @@ export const metadata: Metadata = {
   description:
     "Rencanakan hari istimewa dengan tenang bersama Sewaka, ruang persiapan pernikahan yang menghormati tradisi Nusantara.",
   manifest: "/manifest.json",
+  icons: {
+    apple: [
+      { url: "/icons/icon-192x192.svg", sizes: "192x192" },
+    ],
+  },
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
@@ -57,9 +64,11 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           Langsung ke konten utama
         </a>
         <ThemeProvider>
-          <ErrorBoundary>{children}</ErrorBoundary>
-          <ServiceWorkerRegister />
-          <WebVitalsMonitor />
+          <ErrorBoundary>
+            {children}
+            <ServiceWorkerRegister />
+            <WebVitalsMonitor />
+          </ErrorBoundary>
         </ThemeProvider>
       </body>
     </html>

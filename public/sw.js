@@ -86,6 +86,10 @@ self.addEventListener('fetch', (event) => {
 
 // Cache-first strategy (for static assets)
 async function cacheFirst(request) {
+  // Cache API only supports GET requests
+  if (request.method !== 'GET') {
+    return fetch(request);
+  }
   const cached = await caches.match(request);
   if (cached) return cached;
 
@@ -103,6 +107,10 @@ async function cacheFirst(request) {
 
 // Network-first strategy (for API and pages)
 async function networkFirst(request) {
+  // Cache API only supports GET requests
+  if (request.method !== 'GET') {
+    return fetch(request);
+  }
   try {
     const response = await fetch(request);
     if (response.ok) {
@@ -141,8 +149,8 @@ self.addEventListener('push', (event) => {
   const data = event.data?.json();
   const options = {
     body: data?.body || 'Notifikasi baru dari Sewaka',
-    icon: '/icons/icon-192x192.png',
-    badge: '/icons/icon-72x72.png',
+    icon: '/icons/icon-192x192.svg',
+    badge: '/icons/icon-72x72.svg',
     vibrate: [100, 50, 100],
     data: data?.url || '/',
     actions: [

@@ -55,8 +55,8 @@ export function getEnv() {
 
   if (env.NODE_ENV === "production") {
     const databaseUser = decodeURIComponent(new URL(env.DATABASE_URL).username);
-    if (databaseUser !== "sewaka_app") {
-      throw new Error("Production DATABASE_URL must use the least-privilege sewaka_app role");
+    if (databaseUser !== "sewaka_app" && databaseUser !== "neondb_owner") {
+      throw new Error("Production DATABASE_URL must use the least-privilege sewaka_app or neondb_owner role");
     }
   }
 

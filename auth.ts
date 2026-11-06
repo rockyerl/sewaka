@@ -76,6 +76,62 @@ export const { handlers, auth, signIn, signOut } = NextAuth(() => {
       maxAge: 60 * 60 * 24 * 14,
       updateAge: 60 * 60 * 24,
     },
+    cookies: {
+      sessionToken: {
+        name: process.env.NODE_ENV === "production" ? "__Secure-next-auth.session-token" : "next-auth.session-token",
+        options: {
+          httpOnly: true,
+          sameSite: "lax",
+          secure: process.env.NODE_ENV === "production",
+          path: "/",
+        },
+      },
+      callbackUrl: {
+        name: process.env.NODE_ENV === "production" ? "__Secure-next-auth.callback-url" : "next-auth.callback-url",
+        options: {
+          httpOnly: true,
+          sameSite: "lax",
+          secure: process.env.NODE_ENV === "production",
+          path: "/",
+        },
+      },
+      csrfToken: {
+        name: process.env.NODE_ENV === "production" ? "__Host-next-auth.csrf-token" : "next-auth.csrf-token",
+        options: {
+          httpOnly: true,
+          sameSite: "lax",
+          secure: process.env.NODE_ENV === "production",
+          path: "/",
+        },
+      },
+      pkceCodeVerifier: {
+        name: process.env.NODE_ENV === "production" ? "__Host-next-auth.pkce.code-verifier" : "next-auth.pkce.code-verifier",
+        options: {
+          httpOnly: true,
+          sameSite: "lax",
+          secure: process.env.NODE_ENV === "production",
+          path: "/",
+        },
+      },
+      state: {
+        name: process.env.NODE_ENV === "production" ? "__Secure-next-auth.state" : "next-auth.state",
+        options: {
+          httpOnly: true,
+          sameSite: "lax",
+          secure: process.env.NODE_ENV === "production",
+          path: "/",
+        },
+      },
+      nonce: {
+        name: process.env.NODE_ENV === "production" ? "__Host-next-auth.nonce" : "next-auth.nonce",
+        options: {
+          httpOnly: true,
+          sameSite: "lax",
+          secure: process.env.NODE_ENV === "production",
+          path: "/",
+        },
+      },
+    },
     callbacks: {
       session({ session, token }) {
         if (token && session.user) {

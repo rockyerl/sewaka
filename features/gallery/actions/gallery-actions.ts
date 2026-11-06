@@ -6,6 +6,7 @@ import { imageGallery } from "@/db/schema";
 import { auth } from "@/auth";
 import { revalidatePath } from "next/cache";
 import { uploadFile, deleteFile } from "@/lib/storage";
+import { checkStorageLimit, SubscriptionLimitError } from "@/lib/subscription-check";
 
 export async function uploadImageAction(formData: FormData) {
   const session = await auth();
@@ -27,6 +28,15 @@ export async function uploadImageAction(formData: FormData) {
   const maxSize = 10 * 1024 * 1024;
   if (file.size > maxSize) {
     throw new Error("Ukuran file maksimal 10MB.");
+  }
+
+  // Check subscription storage limit
+  try {
+    await checkStorageLimit(workspaceId, file.size);
+  } catch (err) {
+    if (err instanceof SubscriptionLimitError) {
+      throw err;
+    }
   }
 
   // Upload to Vercel Blob storage

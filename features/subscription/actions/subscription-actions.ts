@@ -11,6 +11,7 @@ import {
 import { auth } from "@/auth";
 import { getEnv } from "@/lib/env";
 import { revalidatePath } from "next/cache";
+import { logger } from "@/lib/logger";
 
 /**
  * Create subscription checkout (SUB-03)
@@ -123,9 +124,27 @@ export async function createSubscriptionCheckout(planId: string, workspaceId: st
 export async function handlePaymentWebhook(body: any, signature: string) {
   const env = getEnv();
 
-  // Verify signature (basic check)
+  // Verify Midtrans signature using HMAC-SHA512
   if (!env.MIDTRANS_SERVER_KEY) {
     throw new Error("Midtrans not configured");
+  }
+
+  const crypto = await import("node:crypto");
+  const serverKey = env.MIDTRANS_SERVER_KEY;
+  const orderId = body.order_id;
+  const statuscode = body.status_code;
+  const grossAmount = body.gross_amount;
+
+  // Build signature string: order_id|status_code|gross_amount
+  const signatureString = `${orderId}|${statuscode}|${grossAmount}`;
+  const hmac = crypto.createHmac("sha512", serverKey);
+  hmac.update(signatureString);
+  const expectedSignature = hmac.digest("hex");
+
+  // Verify signature matches
+  if (signature !== expectedSignature) {
+    logger.error("Webhook signature mismatch", { orderId, expectedLength: expectedSignature.length, receivedLength: signature?.length ?? 0 });
+    return { success: false, error: "Invalid signature" };
   }
 
   const db = getDb();

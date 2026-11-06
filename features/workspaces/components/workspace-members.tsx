@@ -1,14 +1,25 @@
-import { Users, X } from "lucide-react";
+"use client";
+
+import { Mail, Plus, Users, X } from "lucide-react";
+import { useState } from "react";
+import { toast } from "sonner";
 
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { ConfirmSubmitButton } from "@/components/confirm-submit-button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
-import { listWorkspaceMembers } from "@/features/workspaces/queries";
-import {
-  updateMemberRoleAction,
-  removeMemberAction,
-} from "@/features/workspaces/actions";
+import { inviteMemberAction, updateMemberRoleAction, removeMemberAction } from "@/features/workspaces/actions";
+
+interface WorkspaceMember {
+  id: string;
+  userId: string;
+  role: string;
+  name: string | null;
+  email: string | null;
+}
 
 function roleBadge(role: string) {
   const map: Record<string, { label: string; cls: string }> = {
@@ -35,15 +46,40 @@ function getInitials(name: string | null | undefined) {
     .toUpperCase();
 }
 
-export async function WorkspaceMembersSection({
+export function WorkspaceMembersSection({
   workspaceId,
   currentUserId,
+  members,
+  canEdit,
 }: {
   workspaceId: string;
   currentUserId: string;
+  members: WorkspaceMember[];
+  canEdit: boolean;
 }) {
-  const members = await listWorkspaceMembers();
-  const canEdit = true;
+  const [showInvite, setShowInvite] = useState(false);
+  const [inviteEmail, setInviteEmail] = useState("");
+  const [inviteRole, setInviteRole] = useState("FAMILY");
+  const [isInviting, setIsInviting] = useState(false);
+
+  const handleInvite = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsInviting(true);
+    try {
+      const formData = new FormData();
+      formData.append("workspaceId", workspaceId);
+      formData.append("email", inviteEmail);
+      formData.append("role", inviteRole);
+      await inviteMemberAction(formData);
+      toast.success("Anggota berhasil diundang!");
+      setInviteEmail("");
+      setShowInvite(false);
+    } catch (err: any) {
+      toast.error(err?.message || "Gagal mengundang anggota");
+    } finally {
+      setIsInviting(false);
+    }
+  };
 
   return (
     <Card className="mb-5 gap-5 rounded-xl border-border/80 bg-card p-5 shadow-sm sm:p-6">
@@ -90,12 +126,19 @@ export async function WorkspaceMembersSection({
                 </div>
                 <div className="flex items-center gap-2 ml-3 shrink-0">
                   {canEdit && !isOwner && (
-                    <form action={updateMemberRoleAction}>
-                      <input type="hidden" name="memberId" value={member.id} />
+                    <form
+                      action={async () => {
+                        const fd = new FormData();
+                        fd.append("memberId", member.id);
+                        fd.append("role", (document.getElementById(`role-${member.id}`) as HTMLSelectElement)?.value || member.role);
+                        await updateMemberRoleAction(fd);
+                        toast.success("Role berhasil diperbarui");
+                      }}
+                    >
                       <select
-                        name="role"
-                        className="h-7 rounded-lg border border-input bg-background px-2 text-[10px] outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                        id={`role-${member.id}`}
                         defaultValue={member.role}
+                        className="h-7 rounded-lg border border-input bg-background px-2 text-[10px] outline-none focus-visible:ring-2 focus-visible:ring-ring"
                       >
                         <option value="PARTNER">Pasangan</option>
                         <option value="COORDINATOR">Koordinator</option>
@@ -104,15 +147,21 @@ export async function WorkspaceMembersSection({
                     </form>
                   )}
                   {canEdit && !isCurrentUser && !isOwner && (
-                    <form action={removeMemberAction}>
-                      <input type="hidden" name="memberId" value={member.id} />
-                      <ConfirmSubmitButton
-                        confirmMessage={`Hapus "${member.name}" dari workspace?`}
-                        aria-label="Hapus anggota"
+                    <form
+                      action={async () => {
+                        const fd = new FormData();
+                        fd.append("memberId", member.id);
+                        await removeMemberAction(fd);
+                        toast.success(`${member.name} dihapus dari workspace`);
+                      }}
+                    >
+                      <button
+                        type="submit"
                         className="size-8 text-muted-foreground hover:text-destructive"
+                        title={`Hapus "${member.name}" dari workspace`}
                       >
                         <X className="size-3.5" />
-                      </ConfirmSubmitButton>
+                      </button>
                     </form>
                   )}
                 </div>
@@ -130,16 +179,77 @@ export async function WorkspaceMembersSection({
       )}
 
       {canEdit && (
-        <div className="mt-4 rounded-lg border border-dashed border-border/60 p-4 text-center">
-          <Users className="mx-auto size-5 text-muted-foreground" />
-          <p className="mt-2 text-xs text-muted-foreground">
-            Untuk mengundang anggota baru, mereka harus memiliki akun Sewaka.
-          </p>
-          <p className="mt-1 text-xs text-muted-foreground">
-            Bagikan link undangan workspace ke pasangan atau keluarga.
-          </p>
+        <div className="mt-4">
+          {!showInvite ? (
+            <button
+              onClick={() => setShowInvite(true)}
+              className="flex w-full items-center justify-center gap-2 rounded-lg border border-dashed border-border/60 p-4 text-xs text-muted-foreground hover:border-[#D4AF37] hover:text-[#D4AF37] transition-colors"
+            >
+              <Mail className="size-4" />
+              Undang anggota baru
+            </button>
+          ) : (
+            <form onSubmit={handleInvite} className="rounded-lg border border-dashed border-border/60 p-4 space-y-3">
+              <div className="flex items-center justify-between">
+                <p className="text-xs font-medium text-muted-foreground">Undang Anggota Baru</p>
+                <button
+                  type="button"
+                  onClick={() => { setShowInvite(false); setInviteEmail(""); }}
+                  className="text-muted-foreground hover:text-foreground"
+                >
+                  <X className="size-4" />
+                </button>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="invite-email" className="text-xs">Email</Label>
+                <Input
+                  id="invite-email"
+                  type="email"
+                  placeholder="contoh@email.com"
+                  value={inviteEmail}
+                  onChange={(e) => setInviteEmail(e.target.value)}
+                  required
+                />
+                <p className="text-[10px] text-muted-foreground">
+                  Orang yang diundang harus sudah punya akun Sewaka.
+                </p>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="invite-role" className="text-xs">Peran</Label>
+                <select
+                  id="invite-role"
+                  value={inviteRole}
+                  onChange={(e) => setInviteRole(e.target.value)}
+                  className="w-full h-9 rounded-lg border border-input bg-background px-3 text-xs outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                >
+                  <option value="PARTNER">Pasangan</option>
+                  <option value="COORDINATOR">Koordinator</option>
+                  <option value="FAMILY">Keluarga</option>
+                </select>
+              </div>
+              <div className="flex gap-2">
+                <Button
+                  type="submit"
+                  disabled={isInviting || !inviteEmail}
+                  className="flex-1 h-8 text-xs bg-[#5B132B] hover:bg-[#4a1025] text-white"
+                >
+                  {isInviting ? "Mengundang..." : "Undang"}
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => { setShowInvite(false); setInviteEmail(""); }}
+                  className="h-8 text-xs"
+                >
+                  Batal
+                </Button>
+              </div>
+            </form>
+          )}
         </div>
       )}
     </Card>
   );
 }
+

@@ -6,6 +6,7 @@ import { z } from "zod";
 import { getDb } from "@/db";
 import { vendorPortfolioImages, vendors } from "@/db/schema";
 import { uploadFile, deleteFile } from "@/lib/storage";
+import { checkStorageLimit, SubscriptionLimitError } from "@/lib/subscription-check";
 
 export const addVendorPortfolioImageSchema = z.object({
   vendorId: z.string().uuid(),

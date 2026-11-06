@@ -4,6 +4,7 @@ import { drizzle, type NodePgDatabase } from "drizzle-orm/node-postgres";
 import { Pool } from "pg";
 
 import { getEnv } from "@/lib/env";
+import { logger } from "@/lib/logger";
 
 import { drizzleSchema } from "./schema";
 
@@ -40,12 +41,7 @@ export function getDb(): Database {
 
   if (!globalForDatabase.sewakaPool) {
     pool.on("error", (error) => {
-      console.error(
-        JSON.stringify({
-          event: "database.idle_client_error",
-          message: error.message,
-        }),
-      );
+      logger.error("Database idle client error", error);
     });
   }
 

@@ -1,11 +1,13 @@
 "use server";
 
+import { headers } from "next/headers";
 import { eq } from "drizzle-orm";
 import { hash } from "bcryptjs";
 import { getDb } from "@/db";
 import { users, userCredentials, verificationTokens } from "@/db/schema";
 import { sendEmail, generateResetToken } from "@/lib/email";
 import { passwordResetTemplate } from "@/lib/email-templates";
+import { rateLimit } from "@/lib/rate-limit";
 
 export type AuthActionResult = {
   success?: boolean;
@@ -15,11 +17,31 @@ export type AuthActionResult = {
 /**
  * Forgot Password (AUTH-05)
  * Sends password reset email with a link containing a token
+ * Rate limited: 3 requests per hour per IP to prevent email flooding
  */
 export async function forgotPasswordAction(
   prevState: AuthActionResult | FormData | undefined,
   formDataMaybe?: FormData,
 ): Promise<AuthActionResult> {
+  // Rate limiting: 3 password reset requests per hour per IP
+  try {
+    const headersList = await headers();
+    const ip = headersList.get("x-forwarded-for")?.split(",")[0].trim() ?? "unknown";
+    const { isLimited, retryAfter } = rateLimit({
+      key: `forgot_password:${ip}`,
+      limit: 3,
+      windowMs: 3_600_000,
+    });
+
+    if (isLimited) {
+      return {
+        error: `Terlalu banyak permintaan. Coba lagi dalam ${retryAfter} detik.`,
+      };
+    }
+  } catch {
+    // Rate limiting is best-effort
+  }
+
   const formData =
     formDataMaybe instanceof FormData
       ? formDataMaybe

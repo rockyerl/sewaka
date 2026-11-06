@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { logger } from "@/lib/logger";
 
 /**
  * Web Vitals Collection Endpoint
@@ -21,8 +22,8 @@ export async function POST(request: NextRequest) {
     }
 
     // In production, send to analytics service
-    // For now, log to console (Vercel will capture this in logs)
-    console.log("Web Vital:", {
+    // For now, log using structured logger (Vercel will capture this in logs)
+    logger.info("Web Vital collected", {
       name: metric.name,
       value: metric.value,
       rating: metric.rating,
@@ -36,7 +37,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ success: true }, { status: 200 });
   } catch (error) {
-    console.error("Web Vitals collection error:", error);
+    logger.error("Web Vitals collection failed", error);
     return NextResponse.json(
       { error: "Failed to process metric" },
       { status: 500 }

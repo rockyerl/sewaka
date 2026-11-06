@@ -1,18 +1,22 @@
 import { format } from "date-fns";
-import { updateUserRole } from "@/features/admin/actions/admin-actions";
+import { updateUserRole as updateUserRoleInternal } from "@/features/admin/actions/admin-actions";
 
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { listAdminUsers } from "@/features/admin/actions/admin-actions";
 
-export const instant = false;
+export async function setRoleAction(formData: FormData) {
+  "use server";
+  const userId = formData.get("userId") as string;
+  const newRole = formData.get("newRole") as "user" | "admin";
+  await updateUserRoleInternal(userId, newRole);
+}
 
 async function SetRoleForm({ userId, currentRole }: { userId: string; currentRole: string }) {
   return (
-    <form action={async () => {
-      "use server";
-      await updateUserRole(userId, currentRole === "admin" ? "user" : "admin");
-    }}>
+    <form action={setRoleAction}>
+      <input type="hidden" name="userId" value={userId} />
+      <input type="hidden" name="newRole" value={currentRole === "admin" ? "user" : "admin"} />
       <button
         type="submit"
         className="h-6 rounded border border-border px-2 text-[10px] hover:bg-muted"

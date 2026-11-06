@@ -6,6 +6,7 @@ import { documents } from "@/db/schema";
 import { auth } from "@/auth";
 import { revalidatePath } from "next/cache";
 import { uploadFile, deleteFile } from "@/lib/storage";
+import { checkStorageLimit, SubscriptionLimitError } from "@/lib/subscription-check";
 
 const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB
 
@@ -46,6 +47,9 @@ export async function uploadDocumentAction(
   }
 
   try {
+    // Check subscription storage limit
+    await checkStorageLimit(workspaceId, file.size);
+
     // Upload to Vercel Blob storage
     const uploadResult = await uploadFile(file, {
       pathname: `documents/${workspaceId}/${Date.now()}-${file.name.replace(/[^a-zA-Z0-9._-]/g, "")}`,
@@ -70,6 +74,9 @@ export async function uploadDocumentAction(
     revalidatePath("/documents");
     return { success: true, fileUrl: uploadResult.url };
   } catch (error: any) {
+    if (error instanceof SubscriptionLimitError) {
+      return { error: error.message };
+    }
     return {
       error: error?.message || "Gagal mengupload file.",
     };

@@ -349,6 +349,8 @@ Cron job untuk notification scheduler sudah dikonfigurasi di `vercel.json`:
 - **[PRD](docs/Wedora_Product_Requirements_Document.md)** — Product Requirements Document
 - **[Deployment Guide](docs/DEPLOYMENT.md)** — Panduan deploy ke Vercel production
 - **[Post-Launch Guide](docs/POST-LAUNCH.md)** — Monitoring, maintenance, dan troubleshooting
+- **[CI/CD Pipeline](docs/CICD.md)** — GitHub Actions workflows dan setup
+- **[Security Audit](docs/SECURITY.md)** — Security architecture, vulnerability assessment, dan pentest checklist
 - **[Changelog](CHANGELOG.md)** — Riwayat perubahan versi
 
 ## 🤝 Kontribusi

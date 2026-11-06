@@ -4,14 +4,24 @@ import { eq, sql } from "drizzle-orm";
 import { getDb } from "@/db";
 import { expenses, budgetCategories, budgets } from "@/db/schema";
 import { auth } from "@/auth";
+import { requireFeature, SubscriptionLimitError } from "@/lib/subscription-check";
 
 /**
- * Export budget report to CSV (BGT-13)
+ * Export budget report to CSV (BGT-13) — Premium feature
  */
 export async function exportBudgetReport(workspaceId: string): Promise<string> {
   const session = await auth();
   if (!session?.user?.id) {
     throw new Error("Unauthorized");
+  }
+
+  // Financial reports are premium only
+  try {
+    await requireFeature(workspaceId, "financial_reports");
+  } catch (err) {
+    if (err instanceof SubscriptionLimitError) {
+      throw err;
+    }
   }
 
   const db = getDb();

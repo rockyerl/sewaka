@@ -1,6 +1,7 @@
 "use server";
 
 import { randomUUID } from "node:crypto";
+import { headers } from "next/headers";
 import { signIn, signOut } from "@/auth";
 import { hash, compare } from "bcryptjs";
 import { eq } from "drizzle-orm";
@@ -9,6 +10,7 @@ import { z } from "zod";
 
 import { getDb } from "@/db";
 import { userCredentials, users } from "@/db/schema";
+import { rateLimit } from "@/lib/rate-limit";
 
 import { loginSchema, registerSchema, updateProfileSchema } from "../schemas/auth";
 
@@ -29,6 +31,25 @@ export async function signInWithEmailAndPasswordAction(
   prevState: AuthActionResult | FormData | undefined,
   formDataMaybe?: FormData,
 ): Promise<AuthActionResult> {
+  // Rate limiting: 5 login attempts per minute per IP
+  try {
+    const headersList = await headers();
+    const ip = headersList.get("x-forwarded-for")?.split(",")[0].trim() ?? "unknown";
+    const { isLimited, retryAfter } = rateLimit({
+      key: `login:${ip}`,
+      limit: 5,
+      windowMs: 60_000,
+    });
+
+    if (isLimited) {
+      return {
+        error: `Terlalu banyak percobaan. Coba lagi dalam ${retryAfter} detik.`,
+      };
+    }
+  } catch {
+    // Rate limiting is best-effort; don't block login if it fails
+  }
+
   const formData =
     formDataMaybe instanceof FormData
       ? formDataMaybe
@@ -95,6 +116,25 @@ export async function registerAction(
   prevState: AuthActionResult | FormData | undefined,
   formDataMaybe?: FormData,
 ): Promise<AuthActionResult> {
+  // Rate limiting: 3 registrations per hour per IP
+  try {
+    const headersList = await headers();
+    const ip = headersList.get("x-forwarded-for")?.split(",")[0].trim() ?? "unknown";
+    const { isLimited, retryAfter } = rateLimit({
+      key: `register:${ip}`,
+      limit: 3,
+      windowMs: 3_600_000,
+    });
+
+    if (isLimited) {
+      return {
+        error: `Terlalu banyak percobaan. Coba lagi dalam ${retryAfter} detik.`,
+      };
+    }
+  } catch {
+    // Rate limiting is best-effort; don't block registration if it fails
+  }
+
   const formData =
     formDataMaybe instanceof FormData
       ? formDataMaybe

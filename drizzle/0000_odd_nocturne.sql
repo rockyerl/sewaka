@@ -128,7 +128,8 @@ CREATE TABLE "vendors" (
 	"notes" text,
 	"status" "vendor_status" DEFAULT 'SHORTLISTED' NOT NULL,
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
-	"updated_at" timestamp with time zone DEFAULT now() NOT NULL
+	"updated_at" timestamp with time zone DEFAULT now() NOT NULL,
+	CONSTRAINT "vendors_workspace_id_uidx" UNIQUE("workspace_id", "id")
 );
 --> statement-breakpoint
 ALTER TABLE "vendors" ENABLE ROW LEVEL SECURITY;--> statement-breakpoint

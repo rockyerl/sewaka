@@ -7,6 +7,7 @@ import { eq, asc } from "drizzle-orm";
 import { getDb } from "@/db";
 import { taskAttachments } from "@/db/schema";
 import { deleteFile } from "@/lib/storage";
+import { checkStorageLimit, SubscriptionLimitError } from "@/lib/subscription-check";
 
 export async function uploadTaskAttachmentAction(
   data: { taskId: string; workspaceId: string; fileName: string; fileUrl: string; fileSize: number; mimeType: string },
@@ -14,6 +15,15 @@ export async function uploadTaskAttachmentAction(
   const session = await auth();
   if (!session?.user?.id) {
     throw new Error("Silakan masuk terlebih dahulu.");
+  }
+
+  // Check subscription storage limit
+  try {
+    await checkStorageLimit(data.workspaceId, data.fileSize);
+  } catch (err) {
+    if (err instanceof SubscriptionLimitError) {
+      throw err;
+    }
   }
 
   await getDb().insert(taskAttachments).values({

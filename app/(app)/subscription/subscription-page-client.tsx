@@ -9,67 +9,105 @@ import { Button } from "@/components/ui/button";
 
 import { SubscriptionCheckout } from "@/features/subscription/components/subscription-checkout";
 
-const plans = [
-  {
-    name: "Gratis",
-    icon: Star,
-    price: "Rp0",
-    period: "selamanya",
-    description: "Mulai persiapan pernikahanmu tanpa biaya.",
-    features: [
-      "1 workspace pernikahan",
-      "Hingga 50 tamu",
-      "Hingga 10 vendor",
-      "Checklist persiapan",
-      "Manajemen anggaran dasar",
-    ],
-    cta: "Mulai Gratis",
-    ctaVariant: "outline" as const,
-    popular: false,
-  },
-  {
-    name: "Premium",
-    icon: Crown,
-    price: "Rp99.000",
-    period: "/bulan",
-    description: "Semua fitur untuk persiapan sempurna.",
-    features: [
-      "Semua fitur Gratis",
-      "Hingga 500 tamu",
-      "Vendor unlimited",
-      "Digital invitation",
-      "QR check-in",
-      "Kolaborasi keluarga",
-      "Laporan keuangan",
-      "Prioritas support",
-    ],
-    cta: "Upgrade ke Premium",
-    ctaVariant: "default" as const,
-    popular: true,
-  },
-  {
-    name: "Enterprise",
-    icon: Zap,
-    price: "Hubungi kami",
-    period: "",
-    description: "Untuk wedding planner dan venue.",
-    features: [
-      "Semua fitur Premium",
-      "Multi-workspace",
-      "Tamu unlimited",
-      "White-label invitation",
-      "API access",
-      "Dedicated support",
-      "Custom integration",
-    ],
-    cta: "Hubungi Sales",
-    ctaVariant: "outline" as const,
-    popular: false,
-  },
-];
+interface PlanFromDb {
+  id: string;
+  name: string;
+  description: string | null;
+  price: string;
+  currency: string;
+  durationMonths: number | null;
+  maxVendors: number | null;
+  maxGuests: number | null;
+  maxStorageBytes: number | null;
+  features: string[] | null;
+  isActive: string;
+  sortOrder: number;
+}
 
-export function SubscriptionPageClient({ initialWorkspaces }: { initialWorkspaces: { id: string }[] }) {
+const planIcons: Record<string, typeof Star> = {
+  Gratis: Star,
+  Premium: Crown,
+  Enterprise: Zap,
+};
+
+const formatPrice = (price: string, currency: string, durationMonths: number | null) => {
+  const num = Number(price);
+  if (num === 0) return "Rp0";
+  const formatted = new Intl.NumberFormat("id-ID", {
+    style: "currency",
+    currency,
+    maximumFractionDigits: 0,
+  }).format(num);
+  const period = durationMonths === 1 ? "/bulan" : durationMonths ? `/${durationMonths} bulan` : "";
+  return `${formatted}${period}`;
+};
+
+const getPlanPeriod = (price: string, durationMonths: number | null) => {
+  const num = Number(price);
+  if (num === 0) return "selamanya";
+  if (durationMonths === 1) return "/bulan";
+  if (durationMonths) return `/${durationMonths} bulan`;
+  return "";
+};
+
+export function SubscriptionPageClient({
+  initialWorkspaces,
+  initialPlans,
+}: {
+  initialWorkspaces: { id: string }[];
+  initialPlans: PlanFromDb[];
+}) {
   const workspaceId = initialWorkspaces[0]?.id ?? '';
+
+  // Fallback to hardcoded plans if database is empty
+  const plans = initialPlans.length > 0
+    ? initialPlans.map((plan) => ({
+        id: plan.id,
+        name: plan.name,
+        icon: planIcons[plan.name] ?? Star,
+        price: plan.name === "Enterprise" && Number(plan.price) === 0 ? "Hubungi kami" : formatPrice(plan.price, plan.currency, plan.durationMonths),
+        period: plan.name === "Enterprise" && Number(plan.price) === 0 ? "" : getPlanPeriod(plan.price, plan.durationMonths),
+        description: plan.description ?? "",
+        features: plan.features ?? [],
+        cta: plan.name === "Gratis" ? "Mulai Gratis" : plan.name === "Enterprise" ? "Hubungi Sales" : `Upgrade ke ${plan.name}`,
+        ctaVariant: plan.name === "Premium" ? ("default" as const) : ("outline" as const),
+        popular: plan.name === "Premium",
+      }))
+    : [
+        {
+          name: "Gratis",
+          icon: Star,
+          price: "Rp0",
+          period: "selamanya",
+          description: "Mulai persiapan pernikahanmu tanpa biaya.",
+          features: ["1 workspace pernikahan", "Hingga 50 tamu", "Hingga 10 vendor", "Checklist persiapan", "Manajemen anggaran dasar"],
+          cta: "Mulai Gratis",
+          ctaVariant: "outline" as const,
+          popular: false,
+        },
+        {
+          name: "Premium",
+          icon: Crown,
+          price: "Rp99.000",
+          period: "/bulan",
+          description: "Semua fitur untuk persiapan sempurna.",
+          features: ["Semua fitur Gratis", "Hingga 500 tamu", "Vendor unlimited", "Digital invitation", "QR check-in", "Kolaborasi keluarga", "Laporan keuangan", "Prioritas support"],
+          cta: "Upgrade ke Premium",
+          ctaVariant: "default" as const,
+          popular: true,
+        },
+        {
+          name: "Enterprise",
+          icon: Zap,
+          price: "Hubungi kami",
+          period: "",
+          description: "Untuk wedding planner dan venue.",
+          features: ["Semua fitur Premium", "Multi-workspace", "Tamu unlimited", "White-label invitation", "API access", "Dedicated support", "Custom integration"],
+          cta: "Hubungi Sales",
+          ctaVariant: "outline" as const,
+          popular: false,
+        },
+      ];
   return (
     <>
       <section className="mb-6">

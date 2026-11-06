@@ -46,7 +46,30 @@ END $$;
 
 --> statement-breakpoint
 
--- 2. Add category_id column to tasks table
+-- 2. Create task_categories table
+
+CREATE TABLE IF NOT EXISTS public.task_categories (
+  id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
+  workspace_id uuid NOT NULL REFERENCES public.wedding_workspaces (id) ON DELETE CASCADE,
+  name text NOT NULL,
+  description text,
+  color text,
+  created_at timestamp with time zone DEFAULT now(),
+  UNIQUE (workspace_id, name),
+  UNIQUE (workspace_id, id)
+);
+
+--> statement-breakpoint
+
+CREATE INDEX IF NOT EXISTS task_categories_workspace_name_uidx ON public.task_categories (workspace_id, name);
+
+--> statement-breakpoint
+
+ALTER TABLE public.task_categories ENABLE ROW LEVEL SECURITY;
+
+--> statement-breakpoint
+
+-- 3. Add category_id column to tasks table
 
 ALTER TABLE public.tasks
   ADD COLUMN IF NOT EXISTS category_id uuid;
@@ -67,28 +90,6 @@ BEGIN
   END IF;
 END
 $$;
-
---> statement-breakpoint
-
--- 3. Create task_categories table
-
-CREATE TABLE IF NOT EXISTS public.task_categories (
-  id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
-  workspace_id uuid NOT NULL REFERENCES public.wedding_workspaces (id) ON DELETE CASCADE,
-  name text NOT NULL,
-  description text,
-  color text,
-  created_at timestamp with time zone DEFAULT now(),
-  UNIQUE (workspace_id, name)
-);
-
---> statement-breakpoint
-
-CREATE INDEX IF NOT EXISTS task_categories_workspace_name_uidx ON public.task_categories (workspace_id, name);
-
---> statement-breakpoint
-
-ALTER TABLE public.task_categories ENABLE ROW LEVEL SECURITY;
 
 --> statement-breakpoint
 

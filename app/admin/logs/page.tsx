@@ -3,8 +3,6 @@ import { format } from "date-fns";
 import { Card } from "@/components/ui/card";
 import { listAdminLogs } from "@/features/admin/actions/admin-actions";
 
-export const instant = false;
-
 export default async function AdminLogsPage({
   searchParams,
 }: {

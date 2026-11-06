@@ -8,9 +8,19 @@ import { FileText, CheckCircle2, Clock, Download, Trash2, Upload } from "lucide-
 import { listMyWorkspaces } from "@/features/workspaces/queries";
 import { listWorkspaceContracts } from "@/features/contracts/queries";
 import { ConfirmSubmitButton } from "@/components/confirm-submit-button";
-import { deleteContractAction, markContractSignedAction } from "@/features/contracts/actions";
+import { markContractSignedAction as markContractSignedActionImpl, deleteContractAction as deleteContractActionImpl } from "@/features/contracts/actions";
 
 export const instant = false;
+
+export async function markContractSignedAction(formData: FormData) {
+  "use server";
+  await markContractSignedActionImpl(formData);
+}
+
+export async function deleteContractAction(formData: FormData) {
+  "use server";
+  await deleteContractActionImpl(formData);
+}
 
 function formatFileSize(bytes: number) {
   if (bytes < 1024) return bytes + " B";
@@ -96,7 +106,7 @@ export default async function ContractsPage({
                       >
                         <Clock className="size-3 mr-1" /> Menunggu
                       </Badge>
-                      <form action={async () => { await markContractSignedAction(new FormData()); }}>
+                      <form action={markContractSignedAction}>
                         <input type="hidden" name="workspaceId" value={workspace.id} />
                         <input type="hidden" name="contractId" value={contract.id} />
                         <Button
@@ -118,7 +128,7 @@ export default async function ContractsPage({
                   >
                     <Download className="size-3.5" />
                   </a>
-                  <form action={async () => { await deleteContractAction(new FormData()); }}>
+                  <form action={deleteContractAction}>
                     <input type="hidden" name="workspaceId" value={workspace.id} />
                     <input type="hidden" name="contractId" value={contract.id} />
                     <ConfirmSubmitButton

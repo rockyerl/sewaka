@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 
 import { vendors } from "@/db/schema";
 import { withWorkspace } from "@/db/with-workspace";
+import { checkVendorLimit, SubscriptionLimitError } from "@/lib/subscription-check";
 
 import { createVendorSchema, deleteVendorSchema, updateVendorStatusSchema } from "../schemas/vendor";
 
@@ -20,6 +21,15 @@ export async function createVendorAction(formData: FormData) {
     email: String(formData.get("email") ?? "") || undefined,
     notes: String(formData.get("notes") ?? "") || undefined,
   });
+
+  // Check subscription vendor limit
+  try {
+    await checkVendorLimit(input.workspaceId);
+  } catch (err) {
+    if (err instanceof SubscriptionLimitError) {
+      throw err;
+    }
+  }
 
   await withWorkspace(
     { workspaceId: input.workspaceId, allowedRoles: editorRoles },

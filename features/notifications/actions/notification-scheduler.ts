@@ -4,6 +4,7 @@ import { eq, and, lte, asc, gte } from "drizzle-orm";
 import { getDb } from "@/db";
 import { notifications, tasks, expenses, budgets, weddingEvents } from "@/db/schema";
 import { sendEmail } from "@/lib/email";
+import { logger } from "@/lib/logger";
 
 /**
  * Schedule task reminders for tasks due within 24 hours (TSK-08)
@@ -47,7 +48,7 @@ export async function scheduleTaskReminders() {
 
     return { processed: dueTasks.length, error: null };
   } catch (error) {
-    console.error("Task reminder scheduler error:", error);
+    logger.error("Task reminder scheduler failed", error);
     return { processed: 0, error: error instanceof Error ? error.message : "Unknown error" };
   }
 }
@@ -92,7 +93,7 @@ export async function scheduleBudgetAlerts() {
 
     return { processed: budgetsList.length, error: null };
   } catch (error) {
-    console.error("Budget alert scheduler error:", error);
+    logger.error("Budget alert scheduler failed", error);
     return { processed: 0, error: error instanceof Error ? error.message : "Unknown error" };
   }
 }
@@ -137,7 +138,7 @@ export async function scheduleEventReminders() {
 
     return { processed: upcomingEvents.length, error: null };
   } catch (error) {
-    console.error("Event reminder scheduler error:", error);
+    logger.error("Event reminder scheduler failed", error);
     return { processed: 0, error: error instanceof Error ? error.message : "Unknown error" };
   }
 }

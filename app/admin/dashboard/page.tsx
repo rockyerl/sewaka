@@ -12,8 +12,6 @@ import {
 } from "@/features/admin/actions/admin-actions";
 import Link from "next/link";
 
-export const instant = false;
-
 function StatCard({
   label,
   value,

@@ -6,6 +6,7 @@ import { revalidatePath } from "next/cache";
 import { getDb } from "@/db";
 import { guests, notifications, weddingWorkspaces, workspaceMembers } from "@/db/schema";
 import { withWorkspace } from "@/db/with-workspace";
+import { checkGuestLimit, SubscriptionLimitError } from "@/lib/subscription-check";
 
 import { createGuestSchema, deleteGuestSchema, updateGuestRsvpSchema } from "../schemas/guest";
 
@@ -20,6 +21,15 @@ export async function createGuestAction(formData: FormData) {
     category: String(formData.get("category") ?? "") || undefined,
     plusOnes: formData.get("plusOnes") || undefined,
   });
+
+  // Check subscription guest limit
+  try {
+    await checkGuestLimit(input.workspaceId);
+  } catch (err) {
+    if (err instanceof SubscriptionLimitError) {
+      throw err;
+    }
+  }
 
   const inviteCode = `SWK-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
 

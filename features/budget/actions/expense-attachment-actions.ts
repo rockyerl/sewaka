@@ -6,6 +6,7 @@ import { eq } from "drizzle-orm";
 import { expenseAttachments } from "@/db/schema";
 import { z } from "zod";
 import { deleteFile } from "@/lib/storage";
+import { checkStorageLimit, SubscriptionLimitError } from "@/lib/subscription-check";
 
 const uploadExpenseAttachmentSchema = z.object({
   expenseId: z.string().uuid(),
@@ -21,6 +22,16 @@ export async function uploadExpenseAttachmentAction(data: z.infer<typeof uploadE
   if (!session?.user?.id) throw new Error("Unauthorized");
 
   const parsed = uploadExpenseAttachmentSchema.parse(data);
+
+  // Check subscription storage limit
+  try {
+    await checkStorageLimit(parsed.workspaceId, parsed.fileSize);
+  } catch (err) {
+    if (err instanceof SubscriptionLimitError) {
+      throw err;
+    }
+  }
+
   const db = await getDb();
   const [result] = await db
     .insert(expenseAttachments)

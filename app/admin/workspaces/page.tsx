@@ -4,8 +4,6 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { listAdminWorkspaces } from "@/features/admin/actions/admin-actions";
 
-export const instant = false;
-
 export default async function AdminWorkspacesPage({
   searchParams,
 }: {

@@ -1,10 +1,12 @@
 "use server";
 
+import { headers } from "next/headers";
 import { eq } from "drizzle-orm";
 import { getDb } from "@/db";
 import { users, verificationTokens } from "@/db/schema";
 import { sendEmail, generateVerificationCode } from "@/lib/email";
 import { verificationCodeTemplate } from "@/lib/email-templates";
+import { rateLimit } from "@/lib/rate-limit";
 
 export type AuthActionResult = {
   success?: boolean;
@@ -14,8 +16,28 @@ export type AuthActionResult = {
 /**
  * Send email verification (AUTH-04)
  * Creates a verification token and sends email with the code
+ * Rate limited: 3 requests per hour per IP to prevent email flooding
  */
 export async function sendEmailVerificationAction(email: string): Promise<AuthActionResult> {
+  // Rate limiting: 3 verification email requests per hour per IP
+  try {
+    const headersList = await headers();
+    const ip = headersList.get("x-forwarded-for")?.split(",")[0].trim() ?? "unknown";
+    const { isLimited, retryAfter } = rateLimit({
+      key: `verify_email:${ip}`,
+      limit: 3,
+      windowMs: 3_600_000,
+    });
+
+    if (isLimited) {
+      return {
+        error: `Terlalu banyak permintaan. Coba lagi dalam ${retryAfter} detik.`,
+      };
+    }
+  } catch {
+    // Rate limiting is best-effort
+  }
+
   try {
     const db = getDb();
 
@@ -26,15 +48,16 @@ export async function sendEmailVerificationAction(email: string): Promise<AuthAc
       .where(eq(users.email, email))
       .limit(1);
 
+    // Always return success to prevent user enumeration
     if (userRow.length === 0) {
-      return { error: "Email tidak terdaftar." };
+      return { success: true };
     }
 
     const user = userRow[0];
 
     // If already verified, no need to send again
     if (user.emailVerified) {
-      return { error: "Email sudah terverifikasi." };
+      return { success: true };
     }
 
     // Generate verification code

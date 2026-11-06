@@ -4,7 +4,7 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 
 import { auth } from "@/auth";
-import { listMyWorkspaces } from "@/features/workspaces/queries";
+import { listMyWorkspaces, listWorkspaceMembers } from "@/features/workspaces/queries";
 import { WorkspaceMembersSection } from "@/features/workspaces/components/workspace-members";
 
 
@@ -138,7 +138,14 @@ async function WorkspacesPageContent({
       </Card>
 
       {/* Workspace Members */}
-      {currentWorkspaceId && <WorkspaceMembersSection workspaceId={currentWorkspaceId} currentUserId={currentUserId} />}
+      {currentWorkspaceId && (
+        <WorkspaceMembersSection
+          workspaceId={currentWorkspaceId}
+          currentUserId={currentUserId}
+          members={await listWorkspaceMembers()}
+          canEdit={true}
+        />
+      )}
 
       {/* Info Card */}
       <Card className="gap-5 rounded-xl border-[#eee4d6] bg-[linear-gradient(140deg,#f8f1e5,#f4eee4_70%,#eee4d5)] p-5 shadow-none sm:p-6">

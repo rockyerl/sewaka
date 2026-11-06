@@ -50,6 +50,12 @@ function StatCard({
   );
 }
 
+export async function exportBudgetReportAction(formData: FormData) {
+  "use server";
+  const workspaceId = formData.get("workspaceId") as string;
+  await exportBudgetReport(workspaceId);
+}
+
 async function FinancialPageContent({ workspaceId }: { workspaceId: string }) {
   const report = await getFinancialReport(workspaceId);
 
@@ -76,7 +82,8 @@ async function FinancialPageContent({ workspaceId }: { workspaceId: string }) {
           <Button asChild variant="outline" className="w-fit gap-2 rounded-lg px-4">
             <Link href="/budget">Kelola Anggaran</Link>
           </Button>
-          <form action={async () => { await exportBudgetReport(workspaceId); }}>
+          <form action={exportBudgetReportAction}>
+            <input type="hidden" name="workspaceId" value={workspaceId} />
             <Button type="submit" variant="outline" className="gap-2 rounded-lg px-4">
               <Download className="size-4" /> Export CSV
             </Button>

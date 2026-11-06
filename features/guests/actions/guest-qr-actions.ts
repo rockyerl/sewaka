@@ -5,6 +5,7 @@ import { getDb } from "@/db";
 import { guests } from "@/db/schema";
 import { auth } from "@/auth";
 import { revalidatePath } from "next/cache";
+import { requireFeature, SubscriptionLimitError } from "@/lib/subscription-check";
 
 /**
  * Check in guest by invitation code (GST-08)
@@ -74,6 +75,15 @@ export async function generateGuestQRCode(workspaceId: string, guestId: string):
   const session = await auth();
   if (!session?.user?.id) {
     throw new Error("Unauthorized");
+  }
+
+  // QR code generation is a premium feature
+  try {
+    await requireFeature(workspaceId, "qr_checkin");
+  } catch (err) {
+    if (err instanceof SubscriptionLimitError) {
+      throw err;
+    }
   }
 
   const db = getDb();

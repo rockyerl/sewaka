@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { handlePaymentWebhook } from "@/features/subscription/actions/subscription-actions";
 import { rateLimit, getIpFromRequest } from "@/lib/rate-limit";
+import { logger } from "@/lib/logger";
 
 export async function POST(request: NextRequest) {
   const ip = getIpFromRequest(request);
@@ -29,7 +30,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ success: true });
   } catch (error: any) {
-    console.error("Webhook error:", error);
+    logger.error("Payment webhook failed", error);
     return NextResponse.json({ error: error?.message || "Webhook failed" }, { status: 500 });
   }
 }

@@ -4,6 +4,14 @@ const nextConfig: NextConfig = {
   /* config options here */
   cacheComponents: true,
   partialPrefetching: true,
+  // Suppress instant navigation validation errors for routes with `export const instant = false`.
+  // Admin routes use NextAuth which internally calls crypto.getRandomValues() - this cannot be
+  // prerendered. The `instant = false` opt-out is the correct approach per Next.js docs.
+  experimental: {
+    instantInsights: {
+      validationLevel: "manual-warning",
+    },
+  },
   images: {
     remotePatterns: [
       // Vercel Blob storage

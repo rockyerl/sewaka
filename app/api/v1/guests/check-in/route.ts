@@ -3,6 +3,7 @@ import { eq, and } from "drizzle-orm";
 import { getDb } from "@/db";
 import { guests } from "@/db/schema";
 import { rateLimit, getIpFromRequest } from "@/lib/rate-limit";
+import { logger } from "@/lib/logger";
 
 export async function POST(request: NextRequest) {
   const ip = getIpFromRequest(request);
@@ -79,7 +80,7 @@ export async function POST(request: NextRequest) {
       },
     });
   } catch (error) {
-    console.error("Check-in error:", error);
+    logger.error("Check-in failed", error);
     return NextResponse.json(
       { error: "Gagal melakukan check-in" },
       { status: 500 }

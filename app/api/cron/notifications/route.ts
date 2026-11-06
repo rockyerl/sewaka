@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { runNotificationScheduler } from "@/features/notifications/actions/notification-scheduler";
+import { logger } from "@/lib/logger";
 
 // Cron job endpoint for Vercel Cron
 // Runs every hour to check for task reminders, budget alerts, and event reminders
@@ -25,7 +26,7 @@ export async function GET() {
       data: result,
     });
   } catch (error) {
-    console.error("Notification scheduler error:", error);
+    logger.error("Notification scheduler failed", error);
     return NextResponse.json(
       { error: "Failed to run notification scheduler" },
       { status: 500 }

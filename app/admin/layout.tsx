@@ -1,80 +1,69 @@
-import Link from "next/link";
-import { redirect } from "next/navigation";
-import { eq } from "drizzle-orm";
-import { auth } from "@/auth";
-import { getDb } from "@/db";
-import { users } from "@/db/schema";
-import { signOutAction } from "@/features/auth/actions";
+import { Suspense } from "react";
+import { AdminSidebar } from "@/components/admin-sidebar";
 
-const navItems = [
-  { href: "/admin/dashboard", label: "Dashboard" },
-  { href: "/admin/users", label: "Pengguna" },
-  { href: "/admin/workspaces", label: "Workspace" },
-  { href: "/admin/plans", label: "Paket" },
-  { href: "/admin/payments", label: "Pembayaran" },
-  { href: "/admin/logs", label: "Logs" },
-  { href: "/admin/support", label: "Support" },
-  { href: "/admin/content", label: "Konten" },
-];
+function AdminLayoutLoading() {
+  return (
+    <div className="min-h-screen bg-[#faf8f5] flex items-center justify-center">
+      <div className="text-center space-y-3">
+        <div className="mx-auto h-8 w-8 animate-spin rounded-full border-4 border-[#5B132B] border-t-transparent" />
+        <p className="text-sm text-muted-foreground">Memuat...</p>
+      </div>
+    </div>
+  );
+}
 
-export default async function AdminLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function AdminLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <Suspense fallback={<AdminLayoutLoading />}>
+      <AdminLayoutPage>{children}</AdminLayoutPage>
+    </Suspense>
+  );
+}
+
+async function AdminLayoutPage({ children }: { children: React.ReactNode }) {
+  const { redirect } = await import("next/navigation");
+  const { auth } = await import("@/auth");
+  const { getDb } = await import("@/db");
+  const { users } = await import("@/db/schema");
+  const { eq } = await import("drizzle-orm");
+
   const session = await auth();
+  const sessionUser = session?.user;
 
-  // Check if user is admin
-  if (!session?.user?.id) {
+  if (!sessionUser?.id) {
     redirect("/auth/signin");
   }
 
+  const userId = sessionUser!.id;
+  const userName = sessionUser!.name;
+  const userEmail = sessionUser!.email;
+  const userImage = sessionUser!.image;
+
   const db = getDb();
-  const [user] = await db
+  const [dbUser] = await db
     .select({ role: users.role })
     .from(users)
-    .where(eq(users.id, session.user.id))
+    .where(eq(users.id, userId))
     .limit(1);
 
-  if (user?.role !== "admin") {
+  if (dbUser?.role !== "admin") {
     redirect("/dashboard");
   }
 
   return (
     <div className="min-h-screen bg-[#faf8f5]">
-      {/* Top bar */}
-      <header className="sticky top-0 z-50 border-b border-border/80 bg-card/80 backdrop-blur">
-        <div className="mx-auto flex h-14 max-w-7xl items-center justify-between px-4 sm:px-6">
-          <div className="flex items-center gap-6">
-            <Link href="/admin/dashboard" className="font-serif text-xl tracking-tight text-primary">
-              sewaka<span className="text-[#c5a849]">.</span> admin
-            </Link>
-            <nav className="hidden items-center gap-1 sm:flex">
-              {navItems.map((item) => (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className="rounded-lg px-3 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-                >
-                  {item.label}
-                </Link>
-              ))}
-            </nav>
-          </div>
-          <div className="flex items-center gap-3">
-            <span className="text-xs text-muted-foreground">{session?.user?.email}</span>
-            <form action={signOutAction}>
-              <button type="submit" className="rounded-lg px-3 py-1.5 text-xs font-medium text-muted-foreground hover:bg-muted hover:text-foreground">
-                Keluar
-              </button>
-            </form>
-          </div>
+      <AdminSidebar
+        sessionUser={{
+          id: userId,
+          name: userName ?? null,
+          email: userEmail ?? null,
+          image: userImage ?? null,
+        }}
+      />
+      <main className="ml-[260px] min-h-screen md:ml-[260px]">
+        <div className="mx-auto max-w-7xl px-4 py-8 pt-20 sm:px-6 md:pt-8">
+          {children}
         </div>
-      </header>
-
-      {/* Content */}
-      <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6">
-        {children}
       </main>
     </div>
   );

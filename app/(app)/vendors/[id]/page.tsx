@@ -8,29 +8,39 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { getVendorDetailAction, getVendorPortfolioAction, addVendorPortfolioImageAction, deleteVendorPortfolioImageAction } from "@/features/vendors/actions/portfolio-actions";
+import { getVendorDetailAction, getVendorPortfolioAction, addVendorPortfolioImageAction as addVendorPortfolioImageActionInternal, deleteVendorPortfolioImageAction as deleteVendorPortfolioImageActionInternal } from "@/features/vendors/actions/portfolio-actions";
 import { getVendorQuotationsAction, getVendorPaymentsAction } from "@/features/vendors/actions/quotation-actions";
 import { CommentsSection } from "@/features/comments/components/comments-section";
 
 export const instant = false;
 
+export async function addVendorPortfolioImageAction(formData: FormData) {
+  "use server";
+  const vendorId = formData.get("vendorId") as string;
+  const workspaceId = formData.get("workspaceId") as string;
+  const imageUrl = formData.get("imageUrl") as string;
+  const caption = formData.get("caption") as string;
+  if (imageUrl) {
+    await addVendorPortfolioImageActionInternal({
+      vendorId,
+      workspaceId,
+      imageUrl,
+      caption: caption || undefined,
+    });
+  }
+}
+
+export async function deleteVendorPortfolioImageAction(formData: FormData) {
+  "use server";
+  const imageId = formData.get("imageId") as string;
+  await deleteVendorPortfolioImageActionInternal(imageId);
+}
+
 async function PortfolioImageForm({ vendorId, workspaceId }: { vendorId: string; workspaceId: string }) {
   return (
-    <form
-      action={async (formData) => {
-        "use server";
-        const imageUrl = formData.get("imageUrl") as string;
-        const caption = formData.get("caption") as string;
-        if (imageUrl) {
-          await addVendorPortfolioImageAction({
-            vendorId,
-            workspaceId,
-            imageUrl,
-            caption: caption || undefined,
-          });
-        }
-      }}
-    >
+    <form action={addVendorPortfolioImageAction}>
+      <input type="hidden" name="vendorId" value={vendorId} />
+      <input type="hidden" name="workspaceId" value={workspaceId} />
       <div className="flex gap-2">
         <Input name="imageUrl" placeholder="URL gambar portfolio..." required />
         <Input name="caption" placeholder="Caption (opsional)" className="max-w-xs" />
@@ -160,12 +170,8 @@ export default async function VendorPortfolioPage({
                         {img.caption}
                       </p>
                     )}
-                    <form
-                      action={async () => {
-                        "use server";
-                        await deleteVendorPortfolioImageAction(img.id);
-                      }}
-                    >
+                    <form action={deleteVendorPortfolioImageAction}>
+                      <input type="hidden" name="imageId" value={img.id} />
                       <button
                         type="submit"
                         className="absolute right-1 top-1 hidden rounded-full bg-red-500 p-1 text-white hover:bg-red-600 group-hover:flex"

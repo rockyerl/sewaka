@@ -19,6 +19,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
+import { AnnouncementsBanner } from "@/features/notifications/components/announcements-banner";
+import { getActiveAnnouncements } from "@/features/admin/actions/admin-feature-actions";
 
 import {
   createExpenseAction,
@@ -640,7 +642,10 @@ export default async function DashboardPage({
   searchParams?: Promise<{ workspaceId?: string }>;
 }) {
   const session = await auth();
-  const workspaces = await listMyWorkspaces();
+  const [workspaces, announcements] = await Promise.all([
+    listMyWorkspaces(),
+    getActiveAnnouncements(),
+  ]);
   const resolvedSearchParams = await (searchParams ?? Promise.resolve({}));
   const workspaceIdFromQuery = typeof resolvedSearchParams === "object" && resolvedSearchParams !== null
     ? (resolvedSearchParams as { workspaceId?: string }).workspaceId
@@ -676,6 +681,11 @@ export default async function DashboardPage({
 
   return (
     <>
+      {/* Announcements */}
+      {announcements.length > 0 && (
+        <AnnouncementsBanner announcements={announcements} />
+      )}
+
       <section className="mb-6 flex flex-col justify-between gap-5 sm:flex-row sm:items-end" id="ringkasan">
         <div>
           <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-[#a08f74]">

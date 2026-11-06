@@ -1,4 +1,5 @@
 import { getEnv } from "@/lib/env";
+import { logger } from "@/lib/logger";
 
 /**
  * Send email using Resend API.
@@ -18,10 +19,7 @@ export async function sendEmail({
   const env = getEnv();
 
   if (!env.RESEND_API_KEY) {
-    console.log("[Email] No RESEND_API_KEY configured. Email would be sent:");
-    console.log(`  To: ${to}`);
-    console.log(`  Subject: ${subject}`);
-    console.log(`  HTML: ${html ?? text ?? "(no body)"}`);
+    logger.info("Email would be sent (no RESEND_API_KEY)", { to, subject });
     return { success: true };
   }
 

@@ -3,8 +3,6 @@ import { listAdminContentsAction } from "@/features/admin/actions/content-action
 import { Badge } from "@/components/ui/badge";
 import { CreateContentForm, ToggleContentActiveButton, DeleteContentButton } from "./content-form";
 
-export const instant = false;
-
 export default async function AdminContentPage() {
   const session = await auth();
   if (!session?.user?.id) return null;

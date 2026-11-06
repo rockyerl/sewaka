@@ -1,6 +1,7 @@
 import { sql } from "drizzle-orm";
 
 import { getDb } from "@/db";
+import { logger } from "@/lib/logger";
 
 export const instant = false;
 
@@ -25,12 +26,7 @@ export async function GET() {
       database: "ok",
     });
   } catch (error) {
-    console.error(
-      JSON.stringify({
-        event: "health_check.database_unavailable",
-        message: error instanceof Error ? error.message : "Unknown database error",
-      }),
-    );
+    logger.error("Health check: database unavailable", error);
 
     return Response.json(
       {

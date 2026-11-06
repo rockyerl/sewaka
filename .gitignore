@@ -238,3 +238,6 @@ temp/
 # ✅ vercel.json              - Vercel config
 # ✅ docker-compose.yml       - Docker config
 # ✅ AGENTS.md                - Agent guidelines
+.neon
+
+.vercel
