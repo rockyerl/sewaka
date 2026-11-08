@@ -1,10 +1,10 @@
 "use server";
 
 import { eq, and } from "drizzle-orm";
-import { getDb } from "@/db";
-import { calendarSyncs, weddingEvents } from "@/db/schema";
-import { auth } from "@/auth";
-import { getEnv } from "@/lib/env";
+import { getDb } from "@/lib/db";
+import { calendarSyncs, weddingEvents } from "@/lib/db/schema";
+import { auth } from "@/lib/actions/auth";
+import { getEnv } from "@/lib/utils/env";
 import { revalidatePath } from "next/cache";
 
 /**

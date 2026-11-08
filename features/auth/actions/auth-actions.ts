@@ -2,17 +2,17 @@
 
 import { randomUUID } from "node:crypto";
 import { headers } from "next/headers";
-import { signIn, signOut } from "@/auth";
+import { signIn, signOut } from "@/lib/actions/auth";
 import { hash, compare } from "bcryptjs";
 import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
-import { getDb } from "@/db";
-import { userCredentials, users } from "@/db/schema";
-import { rateLimit } from "@/lib/rate-limit";
+import { getDb } from "@/lib/db";
+import { userCredentials, users } from "@/lib/db/schema";
+import { rateLimit } from "@/lib/utils/rate-limit";
 
-import { loginSchema, registerSchema, updateProfileSchema } from "../schemas/auth";
+import { loginSchema, registerSchema, updateProfileSchema } from "../actions/auth-schema";
 
 export type AuthActionResult = {
   success?: boolean;
@@ -216,7 +216,7 @@ export async function updateProfileAction(formData: FormData) {
     name: formData.get("name"),
   });
 
-  const { auth } = await import("@/auth");
+  const { auth } = await import("@/lib/actions/auth");
   const session = await auth();
   const userId = z.string().uuid().safeParse(session?.user?.id);
 

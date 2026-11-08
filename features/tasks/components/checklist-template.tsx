@@ -7,8 +7,8 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 
-import { applyChecklistTemplateAction } from "@/features/tasks/actions";
-import { CHECKLIST_MILESTONE_TEMPLATES } from "../constants/checklist-templates";
+import { applyChecklistTemplateAction } from "@/features/tasks/actions/task-actions";
+import { CHECKLIST_MILESTONE_TEMPLATES } from "@/lib/constants/checklist-templates";
 
 export function ChecklistTemplateSection({
   workspaceId,

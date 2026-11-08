@@ -1,12 +1,12 @@
 "use server";
 
 import { eq, and, desc } from "drizzle-orm";
-import { getDb } from "@/db";
-import { vendorContracts } from "@/db/schema";
-import { auth } from "@/auth";
+import { getDb } from "@/lib/db";
+import { vendorContracts } from "@/lib/db/schema";
+import { auth } from "@/lib/actions/auth";
 import { revalidatePath } from "next/cache";
-import { uploadFile, deleteFile } from "@/lib/storage";
-import { checkStorageLimit, SubscriptionLimitError } from "@/lib/subscription-check";
+import { uploadFile, deleteFile } from "@/lib/utils/storage";
+import { checkStorageLimit, SubscriptionLimitError } from "@/lib/utils/subscription-check";
 
 export async function uploadContractAction(formData: FormData) {
   const session = await auth();
@@ -37,7 +37,6 @@ export async function uploadContractAction(formData: FormData) {
   // Upload to Vercel Blob storage
   const uploadResult = await uploadFile(file, {
     pathname: `contracts/${workspaceId}/${Date.now()}-${file.name.replace(/[^a-zA-Z0-9._-]/g, "")}`,
-    accessType: "public",
   });
 
   const db = await getDb();

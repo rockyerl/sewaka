@@ -1,9 +1,9 @@
 "use server";
 
 import { eq, and } from "drizzle-orm";
-import { getDb } from "@/db";
-import { pushNotificationSubscriptions } from "@/db/schema";
-import { auth } from "@/auth";
+import { getDb } from "@/lib/db";
+import { pushNotificationSubscriptions } from "@/lib/db/schema";
+import { auth } from "@/lib/actions/auth";
 import { revalidatePath } from "next/cache";
 
 /**

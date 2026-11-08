@@ -1,12 +1,12 @@
 "use server";
 
-import { auth } from "@/auth";
-import { getDb } from "@/db";
+import { auth } from "@/lib/actions/auth";
+import { getDb } from "@/lib/db";
 import { eq } from "drizzle-orm";
-import { expenseAttachments } from "@/db/schema";
+import { expenseAttachments } from "@/lib/db/schema";
 import { z } from "zod";
-import { deleteFile } from "@/lib/storage";
-import { checkStorageLimit, SubscriptionLimitError } from "@/lib/subscription-check";
+import { deleteFile } from "@/lib/utils/storage";
+import { checkStorageLimit, SubscriptionLimitError } from "@/lib/utils/subscription-check";
 
 const uploadExpenseAttachmentSchema = z.object({
   expenseId: z.string().uuid(),

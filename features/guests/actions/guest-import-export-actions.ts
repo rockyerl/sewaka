@@ -1,12 +1,12 @@
 "use server";
 
 import { eq, and, sql, count } from "drizzle-orm";
-import { getDb } from "@/db";
-import { guests } from "@/db/schema";
-import { auth } from "@/auth";
+import { getDb } from "@/lib/db";
+import { guests } from "@/lib/db/schema";
+import { auth } from "@/lib/actions/auth";
 import { revalidatePath } from "next/cache";
-import { stripHtml } from "@/lib/sanitization";
-import { checkGuestLimit, requireFeature, SubscriptionLimitError } from "@/lib/subscription-check";
+import { stripHtml } from "@/lib/utils/sanitization";
+import { checkGuestLimit, requireFeature, SubscriptionLimitError } from "@/lib/utils/subscription-check";
 
 /**
  * Import guests from CSV data (GST-03)
@@ -35,15 +35,53 @@ export async function importGuestsAction(
   let imported = 0;
 
   try {
-    // Parse CSV
-    const lines = csvText.split("\n").map((line) => line.trim()).filter(Boolean);
+    // Parse CSV with proper handling of quoted fields
+    // Auto-detect delimiter: semicolon (Excel Indonesia/Europe) or comma (US)
+    const lines = csvText.split(/\r?\n/).map((line) => line.trim()).filter(Boolean);
 
     if (lines.length < 2) {
       return { success: false, imported: 0, errors: ["CSV harus memiliki header dan minimal 1 data"] };
     }
 
+    // Detect delimiter from the first data line (skip header)
+    const firstLine = lines[1] || "";
+    const delimiter = firstLine.includes(";") ? ";" : ",";
+
     // Skip header row
     const dataLines = lines.slice(1);
+
+    // Parse a CSV line respecting quoted fields and detected delimiter
+    const parseCsvLine = (line: string): string[] => {
+      const result: string[] = [];
+      let current = "";
+      let inQuotes = false;
+
+      for (let i = 0; i < line.length; i++) {
+        const char = line[i];
+        if (inQuotes) {
+          if (char === '"' && line[i + 1] === '"') {
+            // Escaped quote
+            current += '"';
+            i++;
+          } else if (char === '"') {
+            inQuotes = false;
+          } else {
+            current += char;
+          }
+        } else {
+          if (char === '"') {
+            inQuotes = true;
+          } else if (char === delimiter) {
+            result.push(current.trim());
+            current = "";
+          } else {
+            current += char;
+          }
+        }
+      }
+      result.push(current.trim());
+      return result;
+    };
 
     for (let i = 0; i < dataLines.length; i++) {
       // Check limit before each insert
@@ -55,12 +93,13 @@ export async function importGuestsAction(
         }
       }
 
-      const columns = dataLines[i].split(",").map((c) => c.trim());
+      const columns = parseCsvLine(dataLines[i]);
       // Sanitize all inputs to prevent XSS and CSV injection
       const name = stripHtml(columns[0] || "");
       const email = stripHtml(columns[1] || "");
       const phone = stripHtml(columns[2] || "");
       const category = stripHtml(columns[3] || "");
+      const side = stripHtml(columns[4] || "");
 
       if (!name) {
         errors.push(`Baris ${i + 2}: Nama tamu diperlukan`);
@@ -80,6 +119,7 @@ export async function importGuestsAction(
           email: email || null,
           phone: phone || null,
           category: category || null,
+          side: side || null,
         });
         imported++;
       } catch (error: any) {
@@ -110,18 +150,19 @@ export async function exportGuestsAction(workspaceId: string): Promise<string> {
     .from(guests)
     .where(eq(guests.workspaceId, workspaceId));
 
-  // Generate CSV
-  const header = "Nama,Email,Telepon,Kategori,RSVP,Plus Ones";
+  // Generate CSV with semicolon delimiter for Excel compatibility (Indonesia/Europe)
+  const header = "Nama;Email;Telepon;Kategori;Pihak Mempelai;RSVP;Plus Ones";
   const rows = allGuests.map((g) =>
     [
       `"${(g.name ?? "").replace(/"/g, '""')}"`,
       `"${(g.email ?? "").replace(/"/g, '""')}"`,
       `"${(g.phone ?? "").replace(/"/g, '""')}"`,
       `"${(g.category ?? "").replace(/"/g, '""')}"`,
+      `"${(g.side ?? "").replace(/"/g, '""')}"`,
       g.rsvpStatus,
       g.plusOnes,
-    ].join(","),
+    ].join(";"),
   );
 
-  return [header, ...rows].join("\n");
+  return [header, ...rows].join("\r\n");
 }

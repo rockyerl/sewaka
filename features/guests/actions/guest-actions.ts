@@ -3,12 +3,12 @@
 import { and, eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 
-import { getDb } from "@/db";
-import { guests, notifications, weddingWorkspaces, workspaceMembers } from "@/db/schema";
-import { withWorkspace } from "@/db/with-workspace";
-import { checkGuestLimit, SubscriptionLimitError } from "@/lib/subscription-check";
+import { getDb } from "@/lib/db";
+import { guests, notifications, weddingWorkspaces, workspaceMembers } from "@/lib/db/schema";
+import { withWorkspace } from "@/lib/db/with-workspace";
+import { checkGuestLimit, SubscriptionLimitError } from "@/lib/utils/subscription-check";
 
-import { createGuestSchema, deleteGuestSchema, updateGuestRsvpSchema } from "../schemas/guest";
+import { createGuestSchema, deleteGuestSchema, updateGuestRsvpSchema } from "../actions/guest-schema";
 
 const editorRoles = ["OWNER", "PARTNER", "COORDINATOR"] as const;
 
@@ -19,6 +19,8 @@ export async function createGuestAction(formData: FormData) {
     email: String(formData.get("email") ?? "") || undefined,
     phone: String(formData.get("phone") ?? "") || undefined,
     category: String(formData.get("category") ?? "") || undefined,
+    side: String(formData.get("side") ?? "") || undefined,
+    isVip: formData.get("isVip") === "on" || formData.get("isVip") === "true",
     plusOnes: formData.get("plusOnes") || undefined,
   });
 
@@ -42,6 +44,8 @@ export async function createGuestAction(formData: FormData) {
         email: input.email || null,
         phone: input.phone || null,
         category: input.category || null,
+        side: input.side || null,
+        isVip: input.isVip ?? false,
         plusOnes: input.plusOnes ?? 0,
         invitationCode: inviteCode,
       });

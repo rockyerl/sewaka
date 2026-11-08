@@ -3,11 +3,11 @@
 import { and, eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 
-import { vendors } from "@/db/schema";
-import { withWorkspace } from "@/db/with-workspace";
-import { checkVendorLimit, SubscriptionLimitError } from "@/lib/subscription-check";
+import { vendors } from "@/lib/db/schema";
+import { withWorkspace } from "@/lib/db/with-workspace";
+import { checkVendorLimit, SubscriptionLimitError } from "@/lib/utils/subscription-check";
 
-import { createVendorSchema, deleteVendorSchema, updateVendorStatusSchema } from "../schemas/vendor";
+import { createVendorSchema, deleteVendorSchema, updateVendorStatusSchema } from "../actions/vendor-schema";
 
 const editorRoles = ["OWNER", "PARTNER", "COORDINATOR"] as const;
 

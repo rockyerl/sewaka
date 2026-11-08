@@ -60,7 +60,8 @@ high-level design hingga data flow, component hierarchy, dan design decisions.
 │  └─────────────┘  └─────────────┘  └─────────────────────────┘ │
 │                                                                 │
 │  28+ Tables: users, workspaces, tasks, budget, vendors,         │
-│  guests, documents, gallery, cultural, subscription, etc.       │
+│  guests, documents, gallery, cultural, subscription,            │
+│  invitation_customization, etc.                                 │
 └─────────────────────────────────────────────────────────────────┘
 
 External Services:
@@ -361,6 +362,15 @@ RootLayout (app/layout.tsx)
 ├─ Public Pages (app/)
 │  ├── HomePage (app/page.tsx)
 │  └── InvitationPage (app/invitation/[slug]/)
+│      ├── InvitationCover — "Buka Undangan" full-screen cover
+│      ├── HeroCarousel — multiple hero photos with auto-slide
+│      ├── StoryTimeline — visual timeline with milestones
+│      ├── EventCountdown — real-time countdown per event
+│      ├── LoveAnimation — floating hearts on scroll (toggleable)
+│      ├── GiftAccountsSection — cashless gift with copy button
+│      ├── VideoSection — YouTube embed
+│      ├── LiveStreamSection — external stream link
+│      └── WhatsAppShare — personalized share button
 │
 ├─ Protected Layout (app/(app)/layout.tsx)
 │  ├── AppSidebar (16 menu items)
@@ -396,8 +406,25 @@ RootLayout (app/layout.tsx)
 │  │  ├── GuestListView
 │  │  ├── GuestForm (client)
 │  │  ├── QRCodeGenerator (client)
+│  │  ├── BulkInviteDialog (client) — mass WA invite (max 50/batch)
 │  │  └── AttendanceReport (app/(app)/guests/attendance/)
 │  │
+│  ┌─ Invitation Custom (app/(app)/invitation/custom/)
+│  │  ├── InvitationCustomPage (client)
+│  │  │   ├── Couple Photo Upload
+│  │  │   ├── Theme Picker (5 themes)
+│  │  │   ├── Music URL Input
+│  │  │   ├── Story Textarea
+│  │  │   ├── Story Timeline CRUD (milestones)
+│  │  │   ├── Hero Photo Carousel Upload
+│  │  │   ├── Gallery Image Picker
+│  │  │   ├── Gift Accounts CRUD (bank/e-wallet)
+│  │  │   ├── Video URL Input (YouTube)
+│  │  │   ├── Live Stream URL Input
+│  │  │   ├── Custom Font Picker (Google Fonts)
+│  │  │   ├── Background Image URL
+│  │  │   └── Animations Toggle
+│  │  └── Server Actions: updateInvitationCustom, uploadCouplePhoto
 │  ┌─ Documents (app/(app)/documents/)
 │  │  ├── DocumentList
 │  │  └── DocumentUploadForm (client)
@@ -535,6 +562,35 @@ RootLayout (app/layout.tsx)
 **Trade-offs:**
 - Documentation kurang lengkap dibanding Stripe
 - Support response time bervariasi
+
+### Why JSONB for Invitation Fields?
+
+**Decision:** Gunakan PostgreSQL JSONB untuk `story_timeline`, `hero_photo_urls`, `gift_accounts` di `invitation_customization`.
+
+**Reasons:**
+- Fleksibel — tidak perlu tabel baru untuk setiap fitur
+- Konsisten dengan struktur yang sudah ada (`gallery_image_ids`)
+- Query efisien — PostgreSQL JSONB support indexing
+- Simple CRUD — parse di application layer, simpan sebagai JSON
+
+**Trade-offs:**
+- Tidak ada foreign key constraint ke JSONB data
+- Validasi harus di application layer (sanitasi input)
+- Migration dari struktur JSON perlu manual update
+
+### Why Pure CSS for Love Animation?
+
+**Decision:** Animasi floating hearts/confetti menggunakan CSS keyframes, bukan library eksternal.
+
+**Reasons:**
+- Ringan — tidak menambah bundle size
+- Performan — GPU-accelerated transforms
+- Toggleable — `enable_animations` field untuk on/off
+- Scroll-triggered — muncul hanya saat user scroll
+
+**Trade-offs:**
+- Limited complexity — tidak bisa animasi 3D atau particle system
+- Browser compatibility — CSS animations well-supported di modern browser
 
 ---
 
@@ -795,3 +851,8 @@ export function Component() {
 | **Drizzle** | TypeScript ORM untuk SQL databases |
 | **Auth.js** | Authentication library (sebelumnya NextAuth) |
 | **shadcn/ui** | Component library berbasis Radix UI |
+| **Invitation Cover** | Full-screen halaman pembuka undangan dengan tombol "Buka Undangan" |
+| **Story Timeline** | Visual timeline perjalanan cinta dengan milestone (date, title, description, photo) |
+| **Hero Carousel** | Slider multiple foto couple di hero section dengan auto-slide |
+| **Bulk WhatsApp** | Fitur kirim undangan massal via WhatsApp (max 50/batch) |
+| **Love Animation** | Animasi floating hearts CSS saat scroll, toggleable via admin |

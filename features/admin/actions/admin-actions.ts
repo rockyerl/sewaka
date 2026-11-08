@@ -1,7 +1,7 @@
 "use server";
 
 import { eq, and, count, sql } from "drizzle-orm";
-import { getDb } from "@/db";
+import { getDb } from "@/lib/db";
 import {
   users,
   weddingWorkspaces,
@@ -14,7 +14,7 @@ import {
   guests,
   vendors,
   expenses,
-} from "@/db/schema";
+} from "@/lib/db/schema";
 
 /**
  * Get admin dashboard statistics (ADM-01)

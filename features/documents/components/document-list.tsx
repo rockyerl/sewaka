@@ -1,13 +1,14 @@
 import { FileText, FolderOpen, Download, Trash2, Upload } from "lucide-react";
-import { format } from "date-fns";
-import { formatFileSize } from "@/lib/utils";
+import { formatFileSize } from "@/lib/utils/utils";
 
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
-import { ConfirmSubmitButton } from "@/components/confirm-submit-button";
+import { ConfirmSubmitButton } from "@/components/forms/confirm-submit-button";
+import { DateText } from "@/components/ui/date-badge";
+import { EmptyState } from "@/components/shared/page-components";
 
-import { deleteDocumentAction } from "@/features/documents/actions";
-import { listWorkspaceDocuments } from "@/features/documents/queries/document-queries";
+import { deleteDocumentAction } from "@/features/documents/actions/document-actions";
+import { listWorkspaceDocuments } from "@/features/documents/hooks/document-queries";
 
 const categoryIcons: Record<string, { icon: typeof FileText; color: string }> = {
   "Kontrak": { icon: FileText, color: "bg-[#f4e9e9] text-[#9b4a4a]" },
@@ -74,9 +75,7 @@ export async function DocumentListSection({ workspaceId }: { workspaceId: string
                 <div className="mt-1 flex items-center gap-3 text-xs text-muted-foreground">
                   <span>{formatMimeType(doc.mimeType)}</span>
                   <span>{formatFileSize(doc.fileSize)}</span>
-                  <span>
-                    {format(new Date(doc.createdAt), "dd MMM yyyy")}
-                  </span>
+                  <DateText date={doc.createdAt} />
                 </div>
               </div>
               <div className="flex items-center gap-2 ml-3 shrink-0">
@@ -105,12 +104,7 @@ export async function DocumentListSection({ workspaceId }: { workspaceId: string
           ))}
         </div>
       ) : (
-        <div className="mt-4 rounded-lg bg-muted/60 p-8 text-center">
-          <Upload className="mx-auto size-8 text-muted-foreground" />
-          <p className="mt-3 text-sm text-muted-foreground">
-            Belum ada dokumen. Upload kontrak, bukti pembayaran, atau file penting lainnya.
-          </p>
-        </div>
+        <EmptyState message="Belum ada dokumen. Upload kontrak, bukti pembayaran, atau file penting lainnya." icon={Upload} />
       )}
     </Card>
   );

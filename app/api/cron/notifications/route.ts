@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { runNotificationScheduler } from "@/features/notifications/actions/notification-scheduler";
-import { logger } from "@/lib/logger";
+import { logger } from "@/lib/utils/logger";
 
 // Cron job endpoint for Vercel Cron
 // Runs every hour to check for task reminders, budget alerts, and event reminders

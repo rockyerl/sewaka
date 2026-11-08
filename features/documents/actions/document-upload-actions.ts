@@ -1,12 +1,12 @@
 "use server";
 
 import { eq } from "drizzle-orm";
-import { getDb } from "@/db";
-import { documents } from "@/db/schema";
-import { auth } from "@/auth";
+import { getDb } from "@/lib/db";
+import { documents } from "@/lib/db/schema";
+import { auth } from "@/lib/actions/auth";
 import { revalidatePath } from "next/cache";
-import { uploadFile, deleteFile } from "@/lib/storage";
-import { checkStorageLimit, SubscriptionLimitError } from "@/lib/subscription-check";
+import { uploadFile, deleteFile } from "@/lib/utils/storage";
+import { checkStorageLimit, SubscriptionLimitError } from "@/lib/utils/subscription-check";
 
 const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB
 
@@ -53,7 +53,6 @@ export async function uploadDocumentAction(
     // Upload to Vercel Blob storage
     const uploadResult = await uploadFile(file, {
       pathname: `documents/${workspaceId}/${Date.now()}-${file.name.replace(/[^a-zA-Z0-9._-]/g, "")}`,
-      accessType: "public",
     });
 
     // Save to database

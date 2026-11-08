@@ -1,8 +1,8 @@
 "use server";
 
 import { eq, sum, and } from "drizzle-orm";
-import { getDb } from "@/db";
-import { budgetCategories, expenses, vendors, vendorPayments } from "@/db/schema";
+import { getDb } from "@/lib/db";
+import { budgetCategories, expenses, vendors, vendorPayments } from "@/lib/db/schema";
 
 /**
  * Get budget comparison data (BGT-12)

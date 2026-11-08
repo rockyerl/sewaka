@@ -1,4 +1,4 @@
-import { listWorkspaceSeserahan } from "@/features/seserahan/queries/seserahan-queries";
+import { listWorkspaceSeserahan } from "@/features/seserahan/hooks/seserahan-queries";
 import { SeserahanTrackerView } from "@/features/seserahan/components/seserahan-tracker-view";
 
 export const instant = false;
@@ -8,7 +8,7 @@ export default async function SeserahanPage({
 }: {
   searchParams?: Promise<{ workspaceId?: string }>;
 }) {
-  const { getCurrentWorkspace } = await import("@/lib/workspace-cache");
+  const { getCurrentWorkspace } = await import("@/lib/utils/workspace-cache");
   const resolvedSearchParams = await (searchParams ?? Promise.resolve({}));
   const workspaceIdFromQuery =
     typeof resolvedSearchParams === "object" && resolvedSearchParams !== null

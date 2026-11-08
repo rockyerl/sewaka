@@ -1,6 +1,6 @@
 "use client";
 
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/utils/utils";
 import * as React from "react";
 
 const Alert = React.forwardRef<
@@ -15,7 +15,7 @@ const Alert = React.forwardRef<
     className={cn(
       "relative w-full rounded-lg border px-4 py-3 text-sm [&>svg+div]:translate-y-[-3px] [&>svg]:absolute [&>svg]:left-4 [&>svg]:top-4 [&>svg]:text-foreground [&>svg~*]:pl-7",
       variant === "destructive" &&
-        "border-destructive/20 bg-destructive/5 text-destructive dark:border-destructive/30 dark:bg-destructive/10",
+        "border-destructive/20 bg-destructive/5 text-destructive",
       className,
     )}
     {...props}

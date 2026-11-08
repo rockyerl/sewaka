@@ -3,9 +3,9 @@
 import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 
-import { auth } from "@/auth";
-import { users } from "@/db/schema";
-import { getDb } from "@/db";
+import { auth } from "@/lib/actions/auth";
+import { users } from "@/lib/db/schema";
+import { getDb } from "@/lib/db";
 
 export async function deactivateAccountAction() {
   const session = await auth();

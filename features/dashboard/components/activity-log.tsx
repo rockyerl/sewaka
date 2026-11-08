@@ -1,9 +1,9 @@
-import { format } from "date-fns";
-import { id } from "date-fns/locale";
 import { Clock, FileText } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { listActivityLogs } from "@/features/dashboard/queries/activity-queries";
+import { EmptyState } from "@/components/shared/page-components";
+import { formatDateIndonesia } from "@/components/ui/date-badge";
+import { listActivityLogs } from "@/features/dashboard/hooks/activity-queries";
 
 const actionLabels: Record<string, string> = {
   CREATE: "Membuat",
@@ -51,12 +51,7 @@ export async function ActivityLogSection() {
         <h2 className="mb-4 font-display text-lg font-semibold text-primary">
           Riwayat Aktivitas
         </h2>
-        <Card className="rounded-xl border-border/60 bg-card p-6 text-center">
-          <Clock className="mx-auto h-8 w-8 text-muted-foreground" />
-          <p className="mt-3 text-sm text-muted-foreground">
-            Belum ada aktivitas yang tercatat.
-          </p>
-        </Card>
+        <EmptyState message="Belum ada aktivitas yang tercatat." icon={Clock} />
       </section>
     );
   }
@@ -93,8 +88,8 @@ export async function ActivityLogSection() {
                   </Badge>
                 </div>
                 <time className="mt-1 block text-[11px] text-muted-foreground">
-                  {format(new Date(log.createdAt), "dd MMMM yyyy, HH:mm", {
-                    locale: id,
+                  {formatDateIndonesia(log.createdAt, {
+                    day: "2-digit", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit"
                   })}
                 </time>
               </div>

@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useActionState } from "react";
 import Link from "next/link";
 
-import { resetPasswordAction } from "@/features/auth/actions";
+import { resetPasswordAction } from "@/features/auth/actions/password-actions";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 

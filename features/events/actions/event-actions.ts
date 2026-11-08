@@ -3,10 +3,10 @@
 import { and, eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 
-import { weddingEvents } from "@/db/schema";
-import { withWorkspace } from "@/db/with-workspace";
+import { weddingEvents } from "@/lib/db/schema";
+import { withWorkspace } from "@/lib/db/with-workspace";
 
-import { createEventSchema, deleteEventSchema } from "../schemas/event";
+import { createEventSchema, deleteEventSchema } from "../actions/event-schema";
 
 const editorRoles = ["OWNER", "PARTNER", "COORDINATOR"] as const;
 

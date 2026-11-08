@@ -3,8 +3,8 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
-import { tasks } from "@/db/schema";
-import { withWorkspace } from "@/db/with-workspace";
+import { tasks } from "@/lib/db/schema";
+import { withWorkspace } from "@/lib/db/with-workspace";
 
 const editorRoles = ["OWNER", "PARTNER", "COORDINATOR"] as const;
 

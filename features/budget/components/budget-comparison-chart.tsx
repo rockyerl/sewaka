@@ -3,6 +3,7 @@
 import { BarChart3, TrendingUp, TrendingDown, AlertTriangle } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { formatCurrency } from "@/lib/utils/format-currency";
 
 interface BudgetComparisonData {
   categories: {
@@ -30,15 +31,6 @@ interface BudgetComparisonChartProps {
 }
 
 export function BudgetComparisonChart({ data }: BudgetComparisonChartProps) {
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat("id-ID", {
-      style: "currency",
-      currency: "IDR",
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(amount);
-  };
-
   return (
     <div className="space-y-6">
       {/* Summary Cards */}

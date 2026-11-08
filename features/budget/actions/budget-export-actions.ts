@@ -1,10 +1,10 @@
 "use server";
 
 import { eq, sql } from "drizzle-orm";
-import { getDb } from "@/db";
-import { expenses, budgetCategories, budgets } from "@/db/schema";
-import { auth } from "@/auth";
-import { requireFeature, SubscriptionLimitError } from "@/lib/subscription-check";
+import { getDb } from "@/lib/db";
+import { expenses, budgetCategories, budgets } from "@/lib/db/schema";
+import { auth } from "@/lib/actions/auth";
+import { requireFeature, SubscriptionLimitError } from "@/lib/utils/subscription-check";
 
 /**
  * Export budget report to CSV (BGT-13) — Premium feature

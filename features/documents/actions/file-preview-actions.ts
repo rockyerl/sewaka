@@ -1,9 +1,9 @@
 "use server";
 
 import { eq } from "drizzle-orm";
-import { getDb } from "@/db";
-import { documents } from "@/db/schema";
-import { auth } from "@/auth";
+import { getDb } from "@/lib/db";
+import { documents } from "@/lib/db/schema";
+import { auth } from "@/lib/actions/auth";
 
 /**
  * Get file preview URL (DOC-07)

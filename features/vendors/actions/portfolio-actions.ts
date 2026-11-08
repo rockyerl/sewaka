@@ -1,12 +1,12 @@
-import { auth } from "@/auth";
+import { auth } from "@/lib/actions/auth";
 import { revalidatePath } from "next/cache";
 import { eq, and, asc } from "drizzle-orm";
 import { z } from "zod";
 
-import { getDb } from "@/db";
-import { vendorPortfolioImages, vendors } from "@/db/schema";
-import { uploadFile, deleteFile } from "@/lib/storage";
-import { checkStorageLimit, SubscriptionLimitError } from "@/lib/subscription-check";
+import { getDb } from "@/lib/db";
+import { vendorPortfolioImages, vendors } from "@/lib/db/schema";
+import { uploadFile, deleteFile } from "@/lib/utils/storage";
+import { checkStorageLimit, SubscriptionLimitError } from "@/lib/utils/subscription-check";
 
 export const addVendorPortfolioImageSchema = z.object({
   vendorId: z.string().uuid(),

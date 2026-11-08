@@ -3,13 +3,13 @@
 import { and, eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 
-import { culturalSeserahanItems } from "@/db/schema";
-import { withWorkspace } from "@/db/with-workspace";
+import { culturalSeserahanItems } from "@/lib/db/schema";
+import { withWorkspace } from "@/lib/db/with-workspace";
 import {
   createSeserahanSchema,
   deleteSeserahanSchema,
   updateSeserahanStatusSchema,
-} from "../schemas/seserahan";
+} from "../actions/seserahan-schema";
 
 const editorRoles = ["OWNER", "PARTNER", "COORDINATOR"] as const;
 
@@ -44,6 +44,9 @@ export async function createSeserahanAction(formData: FormData) {
   );
 
   revalidatePath("/seserahan");
+  revalidatePath("/budget");
+  revalidatePath("/budget/financial");
+  revalidatePath("/dashboard");
 }
 
 export async function updateSeserahanStatusAction(formData: FormData) {
@@ -69,6 +72,9 @@ export async function updateSeserahanStatusAction(formData: FormData) {
   );
 
   revalidatePath("/seserahan");
+  revalidatePath("/budget");
+  revalidatePath("/budget/financial");
+  revalidatePath("/dashboard");
 }
 
 export async function deleteSeserahanAction(formData: FormData) {
@@ -92,4 +98,7 @@ export async function deleteSeserahanAction(formData: FormData) {
   );
 
   revalidatePath("/seserahan");
+  revalidatePath("/budget");
+  revalidatePath("/budget/financial");
+  revalidatePath("/dashboard");
 }

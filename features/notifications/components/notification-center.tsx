@@ -2,8 +2,6 @@
 
 import { useState, useTransition } from "react";
 import Link from "next/link";
-import { format } from "date-fns";
-import { id } from "date-fns/locale";
 import {
   Bell,
   Check,
@@ -22,6 +20,8 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Badge } from "@/components/ui/badge";
+import { EmptyState } from "@/components/shared/page-components";
+import { formatDateIndonesia } from "@/components/ui/date-badge";
 import {
   markNotificationReadAction,
   markAllNotificationReadAction,
@@ -157,8 +157,8 @@ export function NotificationCenter({ notifications: initialList }: NotificationC
             items.map((n) => {
               const visual = getNotificationVisuals(n.type);
               const isUnread = n.read === "UNREAD";
-              const dateStr = format(new Date(n.createdAt), "dd MMM, HH:mm", {
-                locale: id,
+              const dateStr = formatDateIndonesia(n.createdAt, {
+                day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit"
               });
 
               return (
@@ -236,17 +236,7 @@ export function NotificationCenter({ notifications: initialList }: NotificationC
               );
             })
           ) : (
-            <div className="py-12 px-6 text-center">
-              <div className="mx-auto grid size-11 place-items-center rounded-full bg-[#FAF5EC] border border-[#E6D5B8]">
-                <Sparkles className="size-5 text-[#c5a849]" />
-              </div>
-              <p className="mt-3 font-serif text-sm font-medium text-foreground">
-                Semua Persiapan Berjalan Lancar
-              </p>
-              <p className="mt-1 text-xs text-muted-foreground">
-                Belum ada pengingat atau peringatan baru.
-              </p>
-            </div>
+            <EmptyState message="Semua persiapan berjalan lancar. Belum ada pengingat atau peringatan baru." icon={Sparkles} />
           )}
         </div>
 

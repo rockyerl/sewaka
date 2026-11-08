@@ -227,6 +227,22 @@ Client components menerima data sebagai props dan memanggil server actions untuk
 #### Events (1 tabel)
 - `events` — wedding events (Akad, Resepsi, dll)
 
+#### Invitation Customization (1 tabel)
+- `invitation_customization` — custom settings per workspace untuk undangan digital
+  - `couple_photo_url` — foto utama mempelai di hero section
+  - `theme` — tema warna (emas, burgundy, sage, rose, navy)
+  - `music_url` — URL musik latar (direct audio file)
+  - `story` — cerita cinta plain text (fallback)
+  - `story_timeline` — JSONB array timeline visual `{date, title, description, photo_url}`
+  - `gallery_image_ids` — array blob IDs galeri foto
+  - `gift_accounts` — JSONB array akun kado digital `{type, name, number, accountName}`
+  - `video_url` — URL YouTube video kenangan
+  - `live_stream_url` — URL live streaming eksternal
+  - `custom_font` — Google Fonts untuk nama mempelai (Playfair Display, Great Vibes, dll)
+  - `background_image_url` — URL gambar background custom
+  - `hero_photo_urls` — JSONB array blob URLs untuk carousel hero
+  - `enable_animations` — toggle animasi floating hearts/confetti
+
 #### Subscription (4 tabel)
 - `subscription_plans` — plan definitions
 - `subscriptions` — user subscriptions dengan trial
@@ -340,6 +356,15 @@ Role admin diset via database: `UPDATE users SET role = 'admin' WHERE id = '...'
 | `/api/v1/payment/webhook` | POST | Midtrans webhook |
 | `/api/v1/vendors/comparison` | GET | Vendor comparison |
 | `/api/v1/guests/check-in` | POST | Guest check-in via QR |
+| `/api/v1/blob` | GET | Blob URL proxy for invitation images |
+
+### Server Actions (Invitation)
+
+| Action | File | Deskripsi |
+|--------|------|-----------|
+| `updateInvitationCustom` | `features/invitation-custom/actions/invitation-custom-actions.ts` | Simpan semua pengaturan undangan (foto, tema, musik, story, timeline, dll) |
+| `uploadCouplePhotoAction` | `features/invitation-custom/actions/invitation-custom-actions.ts` | Upload foto couple/hero ke Vercel Blob |
+| `bulkWaInviteAction` | `features/guests/actions/bulk-invite-actions.ts` | Generate link WhatsApp massal (max 50/batch) |
 
 ### Cron Routes
 
@@ -385,7 +410,9 @@ blob://
 ├── contracts/<workspaceId>/<filename>
 ├── portfolio/<vendorId>/<filename>
 ├── attachments/<taskId>/<filename>
-└── expenses/<expenseId>/<filename>
+├── expenses/<expenseId>/<filename>
+├── couple-photo/<workspaceId>/<filename>    # Hero couple photo
+└── hero-photo/<workspaceId>/<filename>     # Hero carousel photos
 ```
 
 ---

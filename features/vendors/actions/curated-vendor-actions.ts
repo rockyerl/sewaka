@@ -3,10 +3,10 @@
 import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 
-import { getDb } from "@/db";
-import { curatedVendors, vendors } from "@/db/schema";
-import { withWorkspace } from "@/db/with-workspace";
-import { bookmarkCuratedVendorSchema } from "../schemas/curated-vendor";
+import { getDb } from "@/lib/db";
+import { curatedVendors, vendors } from "@/lib/db/schema";
+import { withWorkspace } from "@/lib/db/with-workspace";
+import { bookmarkCuratedVendorSchema } from "../actions/curated-vendor-schema";
 
 const editorRoles = ["OWNER", "PARTNER", "COORDINATOR"] as const;
 

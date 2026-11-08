@@ -2,7 +2,7 @@ import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 
-import { getPublicInvitationBySlug } from "@/features/guests/queries";
+import { getPublicInvitationBySlug } from "@/features/guests/hooks/guest-queries";
 import { PublicInvitationView } from "@/features/guests/components/public-invitation-view";
 
 interface PageProps {
@@ -14,7 +14,7 @@ export async function generateMetadata({ params, searchParams }: PageProps): Pro
   const { slug } = await params;
   const search = searchParams ? await searchParams : undefined;
   const guestName = typeof search?.to === "string" ? search.to.trim() : "";
-  const data = await getPublicInvitationBySlug(slug);
+  const data = await getPublicInvitationBySlug(slug, guestName || undefined);
 
   if (!data) {
     return {
@@ -22,17 +22,21 @@ export async function generateMetadata({ params, searchParams }: PageProps): Pro
     };
   }
 
-  const { workspace, traditionInfo } = data;
+  const { workspace, traditionInfo, custom } = data;
   const couple =
     workspace.coupleOne && workspace.coupleTwo
       ? `${workspace.coupleOne} & ${workspace.coupleTwo}`
       : workspace.name;
 
+  const titlePrefix = data.isVip ? "⭐ Undangan VIP " : "";
   return {
     title: guestName
-      ? `Undangan Spesial untuk ${guestName} | Pernikahan ${couple} - Sewaka`
-      : `Pernikahan ${couple} | Undangan Adat ${traditionInfo.name} - Sewaka`,
+      ? `${titlePrefix}Undangan Spesial untuk ${guestName} | Pernikahan ${couple} - Sewaka`
+      : `${titlePrefix}Pernikahan ${couple} | Undangan Adat ${traditionInfo.name} - Sewaka`,
     description: `Undangan Pernikahan Keraton & Adat ${traditionInfo.name}: ${couple}. ${workspace.invitationQuote || traditionInfo.tagline}`,
+    other: custom?.customFont
+      ? { "google-fonts": custom.customFont }
+      : undefined,
   };
 }
 
@@ -40,22 +44,50 @@ async function InvitationContent({ params, searchParams }: PageProps) {
   const { slug } = await params;
   const search = searchParams ? await searchParams : undefined;
   const guestName = typeof search?.to === "string" ? search.to.trim() : "";
-  const data = await getPublicInvitationBySlug(slug);
+  const data = await getPublicInvitationBySlug(slug, guestName || undefined);
 
   if (!data) {
     notFound();
   }
 
-  const { workspace, events, publicWishes, traditionInfo } = data;
+  const { workspace, events, publicWishes, traditionInfo, isVip, custom, customGalleryImages } = data;
+
+  // Google Fonts preload for custom font
+  const fontLink = custom?.customFont
+    ? `<link rel="preconnect" href="https://fonts.googleapis.com" /><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin /><link href="https://fonts.googleapis.com/css2?family=${encodeURIComponent(custom.customFont)}:wght@400;500;600;700&display=swap" rel="stylesheet" />`
+    : "";
+
+  const customData = custom ? {
+    couplePhotoUrl: custom.couplePhotoUrl,
+    theme: custom.theme,
+    musicUrl: custom.musicUrl,
+    story: custom.story,
+    storyTimeline: custom.storyTimeline as any[] | null,
+    galleryImageIds: custom.galleryImageIds as string[] | null,
+    giftAccounts: custom.giftAccounts as any[] | null,
+    videoUrl: custom.videoUrl,
+    liveStreamUrl: custom.liveStreamUrl,
+    customFont: custom.customFont,
+    backgroundImageUrl: custom.backgroundImageUrl,
+    heroPhotoUrls: custom.heroPhotoUrls as string[] | null,
+    enableAnimations: custom.enableAnimations,
+    enabled: custom.enabled,
+  } : null;
 
   return (
-    <PublicInvitationView
+    <>
+      {fontLink && <div dangerouslySetInnerHTML={{ __html: fontLink }} />}
+      <PublicInvitationView
       workspace={workspace}
       events={events}
       publicWishes={publicWishes}
       traditionInfo={traditionInfo}
       guestName={guestName}
+      isVip={isVip}
+      custom={customData}
+      customGalleryImages={customGalleryImages}
     />
+    </>
   );
 }
 

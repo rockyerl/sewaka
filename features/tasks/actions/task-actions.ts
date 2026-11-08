@@ -3,10 +3,10 @@
 import { and, eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 
-import { activityLogs, tasks, weddingWorkspaces } from "@/db/schema";
-import { withWorkspace } from "@/db/with-workspace";
-import { changeTaskSchema, taskFormSchema, updateTaskSchema } from "../schemas/task";
-import { CHECKLIST_MILESTONE_TEMPLATES } from "../constants/checklist-templates";
+import { activityLogs, tasks, weddingWorkspaces } from "@/lib/db/schema";
+import { withWorkspace } from "@/lib/db/with-workspace";
+import { changeTaskSchema, taskFormSchema, updateTaskSchema } from "../actions/task-schema";
+import { CHECKLIST_MILESTONE_TEMPLATES } from "@/lib/constants/checklist-templates";
 
 const editorRoles = ["OWNER", "PARTNER", "COORDINATOR"] as const;
 
@@ -16,6 +16,7 @@ export async function createTaskAction(formData: FormData) {
     workspaceId: formData.get("workspaceId"),
     title: formData.get("title"),
     description: String(formData.get("description") ?? "") || undefined,
+    categoryId: String(formData.get("categoryId") ?? "") || undefined,
     dueDate: String(formData.get("dueDate") ?? "") || undefined,
   });
 
@@ -28,6 +29,7 @@ export async function createTaskAction(formData: FormData) {
         workspaceId: input.workspaceId,
         title: input.title,
         description: input.description || null,
+        categoryId: input.categoryId || null,
         dueDate: input.dueDate,
         priority: priority as "LOW" | "MEDIUM" | "HIGH",
       });

@@ -5,6 +5,7 @@ import { MessageSquare, Send, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Card } from "@/components/ui/card";
+import { EmptyState } from "@/components/shared/page-components";
 import { createCommentAction, getCommentsAction, deleteCommentAction } from "@/features/comments/actions/comment-actions";
 import { formatDistanceToNow } from "date-fns";
 
@@ -69,9 +70,7 @@ export function CommentsSection({
       {/* Comment List */}
       <div className="space-y-3 mb-4 max-h-60 overflow-y-auto">
         {parentComments.length === 0 && (
-          <p className="text-xs text-muted-foreground text-center py-4">
-            Belum ada komentar. Mulai percakapan!
-          </p>
+          <EmptyState message="Belum ada komentar. Mulai percakapan!" icon={MessageSquare} />
         )}
         {parentComments.map((comment) => (
           <div key={comment.id} className="space-y-2">

@@ -5,11 +5,11 @@ import { Plus, Sparkles, Check } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { createWorkspaceAction } from "../actions";
+import { createWorkspaceAction } from "../actions/workspace-actions";
 import {
   CULTURAL_TRADITIONS,
   type CulturalTradition,
-} from "@/lib/cultural-templates";
+} from "@/lib/constants/cultural-templates";
 
 export function WorkspaceSetup({ name }: { name: string }) {
   const [selectedTradition, setSelectedTradition] =

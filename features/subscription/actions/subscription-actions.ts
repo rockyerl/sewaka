@@ -1,17 +1,17 @@
 "use server";
 
 import { eq, and } from "drizzle-orm";
-import { getDb } from "@/db";
+import { getDb } from "@/lib/db";
 import {
   subscriptions,
   subscriptionPlans,
   paymentTransactions,
   weddingWorkspaces,
-} from "@/db/schema";
-import { auth } from "@/auth";
-import { getEnv } from "@/lib/env";
+} from "@/lib/db/schema";
+import { auth } from "@/lib/actions/auth";
+import { getEnv } from "@/lib/utils/env";
 import { revalidatePath } from "next/cache";
-import { logger } from "@/lib/logger";
+import { logger } from "@/lib/utils/logger";
 
 /**
  * Create subscription checkout (SUB-03)

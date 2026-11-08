@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { getFilePreview } from "@/features/documents/actions/file-preview-actions";
+import { getBlobUrl } from "@/lib/utils/blob-url";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { FileText, Image, Video, Music, Eye, Loader2 } from "lucide-react";
@@ -52,7 +53,7 @@ export function FilePreviewDialog({ documentId, fileName, fileType, children }: 
         return (
           <div className="flex justify-center">
             <img
-              src={preview.fileUrl}
+              src={getBlobUrl(preview.fileUrl)}
               alt={fileName}
               className="max-h-[70vh] rounded-lg object-contain"
             />
@@ -61,7 +62,7 @@ export function FilePreviewDialog({ documentId, fileName, fileType, children }: 
       case "pdf":
         return (
           <iframe
-            src={preview.fileUrl}
+            src={getBlobUrl(preview.fileUrl)}
             className="h-[70vh] w-full rounded-lg"
             title={fileName}
           />
@@ -70,7 +71,7 @@ export function FilePreviewDialog({ documentId, fileName, fileType, children }: 
         return (
           <div className="flex justify-center">
             <video
-              src={preview.fileUrl}
+              src={getBlobUrl(preview.fileUrl)}
               controls
               className="max-h-[70vh] rounded-lg"
             >
@@ -81,7 +82,7 @@ export function FilePreviewDialog({ documentId, fileName, fileType, children }: 
       case "audio":
         return (
           <div className="flex justify-center p-8">
-            <audio src={preview.fileUrl} controls>
+            <audio src={getBlobUrl(preview.fileUrl)} controls>
               Browser Anda tidak mendukung audio
             </audio>
           </div>
@@ -89,7 +90,7 @@ export function FilePreviewDialog({ documentId, fileName, fileType, children }: 
       case "text":
         return (
           <iframe
-            src={preview.fileUrl}
+            src={getBlobUrl(preview.fileUrl)}
             className="h-[70vh] w-full rounded-lg"
             title={fileName}
           />

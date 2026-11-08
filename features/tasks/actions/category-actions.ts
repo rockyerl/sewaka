@@ -1,8 +1,8 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { createTaskCategory, updateTaskCategory, deleteTaskCategory } from "../queries/category-queries";
-import { createTaskCategorySchema, updateTaskCategorySchema } from "../schemas/category";
+import { createTaskCategory, updateTaskCategory, deleteTaskCategory } from "../hooks/category-queries";
+import { createTaskCategorySchema, updateTaskCategorySchema } from "../actions/category-schema";
 
 export async function createTaskCategoryAction(formData: FormData) {
   const input = createTaskCategorySchema.parse({

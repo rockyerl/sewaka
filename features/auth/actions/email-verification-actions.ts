@@ -2,11 +2,11 @@
 
 import { headers } from "next/headers";
 import { eq } from "drizzle-orm";
-import { getDb } from "@/db";
-import { users, verificationTokens } from "@/db/schema";
-import { sendEmail, generateVerificationCode } from "@/lib/email";
-import { verificationCodeTemplate } from "@/lib/email-templates";
-import { rateLimit } from "@/lib/rate-limit";
+import { getDb } from "@/lib/db";
+import { users, verificationTokens } from "@/lib/db/schema";
+import { sendEmail, generateVerificationCode } from "@/lib/email/email";
+import { verificationCodeTemplate } from "@/lib/email/email-templates";
+import { rateLimit } from "@/lib/utils/rate-limit";
 
 export type AuthActionResult = {
   success?: boolean;

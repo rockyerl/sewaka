@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { handlePaymentWebhook } from "@/features/subscription/actions/subscription-actions";
-import { rateLimit, getIpFromRequest } from "@/lib/rate-limit";
-import { logger } from "@/lib/logger";
+import { rateLimit, getIpFromRequest } from "@/lib/utils/rate-limit";
+import { logger } from "@/lib/utils/logger";
 
 export async function POST(request: NextRequest) {
   const ip = getIpFromRequest(request);

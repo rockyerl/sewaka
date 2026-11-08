@@ -1,11 +1,12 @@
 "use server";
 
 import { eq, and } from "drizzle-orm";
-import { getDb } from "@/db";
-import { whatsappNotifications } from "@/db/schema";
-import { auth } from "@/auth";
-import { getEnv } from "@/lib/env";
+import { getDb } from "@/lib/db";
+import { whatsappNotifications } from "@/lib/db/schema";
+import { auth } from "@/lib/actions/auth";
+import { getEnv } from "@/lib/utils/env";
 import { revalidatePath } from "next/cache";
+import { formatCurrency } from "@/lib/utils/format-currency";
 
 /**
  * Update WhatsApp notification settings (COL-08)
@@ -171,7 +172,7 @@ export async function sendBudgetAlertViaWhatsApp(userId: string, workspaceName: 
   }
 
   const percentage = Math.round((spent / budget) * 100);
-  const message = `💰 *Alert Anggaran*\n\nWorkspace: ${workspaceName}\nPengeluaran: Rp ${spent.toLocaleString('id-ID')}\nTotal Anggaran: Rp ${budget.toLocaleString('id-ID')}\nPersentase: ${percentage}%\n\n${percentage >= 80 ? '⚠️ Anggaran hampir habis!' : ''}`;
+  const message = `💰 *Alert Anggaran*\n\nWorkspace: ${workspaceName}\nPengeluaran: ${formatCurrency(spent)}\nTotal Anggaran: ${formatCurrency(budget)}\nPersentase: ${percentage}%\n\n${percentage >= 80 ? '⚠️ Anggaran hampir habis!' : ''}`;
   return sendWhatsAppNotification(userId, message);
 }
 

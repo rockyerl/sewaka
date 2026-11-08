@@ -1,9 +1,9 @@
 "use server";
 
 import { eq, asc, desc, and } from "drizzle-orm";
-import { getDb } from "@/db";
-import { featureFlags, systemSettings, adminAuditLogs, announcements } from "@/db/schema";
-import { auth } from "@/auth";
+import { getDb } from "@/lib/db";
+import { featureFlags, systemSettings, adminAuditLogs, announcements } from "@/lib/db/schema";
+import { auth } from "@/lib/actions/auth";
 
 // ===== ADMIN AUDIT LOG HELPER =====
 

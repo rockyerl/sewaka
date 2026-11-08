@@ -5,11 +5,11 @@ import {
   createDocument,
   updateDocument,
   deleteDocument,
-} from "../queries/document-queries";
+} from "../hooks/document-queries";
 import {
   createDocumentSchema,
   updateDocumentSchema,
-} from "../schemas/document";
+} from "../actions/document-schema";
 
 export async function createDocumentAction(formData: FormData) {
   const input = createDocumentSchema.parse({

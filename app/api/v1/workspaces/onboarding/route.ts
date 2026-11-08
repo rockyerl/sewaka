@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { eq } from "drizzle-orm";
-import { getDb } from "@/db";
-import { weddingWorkspaces } from "@/db/schema";
-import { auth } from "@/auth";
+import { getDb } from "@/lib/db";
+import { weddingWorkspaces } from "@/lib/db/schema";
+import { auth } from "@/lib/actions/auth";
 
 export async function POST(request: NextRequest) {
   try {

@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Loader2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { showToast } from "@/components/ui/toast";
 
 interface SubscriptionCheckoutProps {
 	workspaceId: string;
@@ -63,8 +64,8 @@ export function SubscriptionCheckout({
 						// @ts-ignore - Midtrans Snap
 						window.snap.pay(data.snapToken, {
 							onSuccess: () => window.location.reload(),
-							onPending: () => alert("Pembayaran menunggu konfirmasi."),
-							onError: () => alert("Pembayaran gagal."),
+							onPending: () => showToast("Pembayaran menunggu konfirmasi.", "warning"),
+							onError: () => showToast("Pembayaran gagal.", "error"),
 							onClose: () => setLoading(false),
 						});
 					} catch (e) {

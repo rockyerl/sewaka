@@ -7,7 +7,8 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { Badge } from "@/components/ui/badge";
+import { formatCurrency } from "@/lib/utils/format-currency";
+import { StatusBadge, booleanStatusPreset } from "@/components/ui/status-badge";
 import { Card } from "@/components/ui/card";
 import {
   Dialog,
@@ -303,14 +304,6 @@ function PlanCard({
   onEdit: (plan: Plan) => void;
   onDelete: (id: string) => void;
 }) {
-  function formatCurrency(price: string) {
-    return new Intl.NumberFormat("id-ID", {
-      style: "currency",
-      currency: "IDR",
-      maximumFractionDigits: 0,
-    }).format(Number(price));
-  }
-
   return (
     <Card
       key={plan.id}
@@ -344,16 +337,7 @@ function PlanCard({
             <p className="mt-1 text-xs text-muted-foreground">{plan.description}</p>
           )}
         </div>
-        <Badge
-          variant="secondary"
-          className={`rounded-full ${
-            plan.isActive === "true"
-              ? "bg-[#edf3e9] text-[#527553]"
-              : "bg-muted text-muted-foreground"
-          }`}
-        >
-          {plan.isActive === "true" ? "Aktif" : "Nonaktif"}
-        </Badge>
+        <StatusBadge status={plan.isActive === "true"} preset={booleanStatusPreset} />
       </div>
 
       <div className="grid grid-cols-2 gap-2 text-xs">

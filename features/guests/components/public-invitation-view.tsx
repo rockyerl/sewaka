@@ -1,22 +1,53 @@
 "use client";
 
-import { useEffect, useState, useTransition } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import {
   Calendar,
   CheckCircle2,
   Clock,
   Copy,
+  Crown,
   Download,
+  Gift,
   Heart,
   MapPin,
   MessageSquare,
+  Music,
   QrCode,
   Share2,
   Sparkles,
+  Star,
+  Tv,
+  Video,
 } from "lucide-react";
 import QRCode from "qrcode";
 
 import { submitPublicRsvpAction } from "../actions/guest-actions";
+import { EventCountdown } from "./event-countdown";
+import { HeroCarousel } from "./hero-carousel";
+import { InvitationCover } from "./invitation-cover";
+import { LoveAnimation } from "./love-animation";
+import { StoryTimeline } from "./story-timeline";
+import { formatDateIndonesia } from "@/components/ui/date-badge";
+import { getBlobUrl } from "@/lib/utils/blob-url";
+import { showToast } from "@/components/ui/toast";
+
+const BLOB_HOST_PATTERN = /\.blob\.vercel-storage\.com/;
+
+/** Check if a URL is a direct audio file that can be played via HTML5 Audio API */
+function isDirectAudioUrl(url: string): boolean {
+  // Vercel Blob URLs are proxied and playable
+  if (BLOB_HOST_PATTERN.test(url)) return true;
+  // Direct audio file extensions
+  const audioExtensions = /\.(mp3|wav|ogg|m4a|aac|flac|webm)(\?.*)?$/i;
+  if (audioExtensions.test(url)) return true;
+  // YouTube, SoundCloud, and other streaming services are NOT directly playable
+  if (/^(https?:\/\/)?(www\.)?(youtube\.com|youtu\.be|soundcloud\.com)/i.test(url)) return false;
+  // If it looks like a URL but doesn't match known patterns, assume it's not a direct audio file
+  if (/^https?:\/\//i.test(url)) return false;
+  // Fallback: let it try
+  return true;
+}
 
 interface EventItem {
   id: string;
@@ -56,12 +87,44 @@ interface WorkspaceInfo {
   story: string | null;
 }
 
+interface GiftAccount {
+  type: "bank" | "ewallet";
+  name: string;
+  number: string;
+  accountName: string;
+}
+
+interface TimelineMilestone {
+  date: string;
+  title: string;
+  description: string;
+  photo_url?: string;
+}
+
 interface PublicInvitationViewProps {
   workspace: WorkspaceInfo;
   events: EventItem[];
   publicWishes: WishItem[];
   traditionInfo: TraditionInfo;
   guestName?: string;
+  isVip?: boolean;
+  custom?: {
+    couplePhotoUrl: string | null;
+    theme: string | null;
+    musicUrl: string | null;
+    story: string | null;
+    storyTimeline: TimelineMilestone[] | null;
+    galleryImageIds: string[] | null;
+    giftAccounts: GiftAccount[] | null;
+    videoUrl: string | null;
+    liveStreamUrl: string | null;
+    customFont: string | null;
+    backgroundImageUrl: string | null;
+    heroPhotoUrls: string[] | null;
+    enableAnimations: boolean;
+    enabled: boolean;
+  } | null;
+  customGalleryImages?: { id: string; title: string; fileUrl: string }[];
 }
 
 export function PublicInvitationView({
@@ -70,6 +133,9 @@ export function PublicInvitationView({
   publicWishes,
   traditionInfo,
   guestName,
+  isVip = false,
+  custom,
+  customGalleryImages = [],
 }: PublicInvitationViewProps) {
   const [isPending, startTransition] = useTransition();
   const [rsvpSubmitted, setRsvpSubmitted] = useState(false);
@@ -81,6 +147,126 @@ export function PublicInvitationView({
   // Lookup state
   const [lookupInput, setLookupInput] = useState("");
   const [lookupQrUrl, setLookupQrUrl] = useState<string | null>(null);
+
+  // Cover page state — persisted so refresh doesn't show cover again
+  const [isOpened, setIsOpened] = useState(() => {
+    if (typeof window !== "undefined") {
+      return sessionStorage.getItem("invitation-opened") === "true";
+    }
+    return false;
+  });
+  const [coverFading, setCoverFading] = useState(false);
+
+  // Music player state
+  const [musicPlaying, setMusicPlaying] = useState(false);
+  const [musicLoaded, setMusicLoaded] = useState(false);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  // Gift copy state
+  const [copiedGift, setCopiedGift] = useState<string | null>(null);
+
+  // Handle opening invitation from cover
+  const handleOpenInvitation = () => {
+    setCoverFading(true);
+    setTimeout(() => {
+      setIsOpened(true);
+      setCoverFading(false);
+      sessionStorage.setItem("invitation-opened", "true");
+    }, 600);
+  };
+
+  // Auto-play music right after cover opens (user gesture already happened)
+  useEffect(() => {
+    if (!isOpened || !custom?.musicUrl || !isDirectAudioUrl(custom.musicUrl)) return;
+    if (audioRef.current) {
+      audioRef.current.play().catch(() => {});
+      setMusicPlaying(true);
+    }
+  }, [isOpened, custom?.musicUrl]);
+
+  // Helper: Extract YouTube video ID from various URL formats
+  function extractYouTubeId(url: string): string | null {
+    const patterns = [
+      /(?:youtube\.com\/watch\?v=)([a-zA-Z0-9_-]{11})/,
+      /(?:youtu\.be\/)([a-zA-Z0-9_-]{11})/,
+      /(?:youtube\.com\/embed\/)([a-zA-Z0-9_-]{11})/,
+      /(?:youtube\.com\/shorts\/)([a-zA-Z0-9_-]{11})/,
+    ];
+    for (const pattern of patterns) {
+      const match = url.match(pattern);
+      if (match) return match[1];
+    }
+    return null;
+  }
+
+  // Helper: Share via WhatsApp
+  const shareViaWhatsApp = () => {
+    if (typeof window === "undefined") return;
+    const url = window.location.href;
+    const coupleName = workspace.coupleOne && workspace.coupleTwo
+      ? `${workspace.coupleOne} & ${workspace.coupleTwo}`
+      : workspace.name;
+    const message = `Yang Terhormat Bapak/Ibu/Saudara/i,\n\nKami mengundang Anda untuk hadir di pernikahan ${coupleName}.\n\nBuka undangan digital kami di sini:\n${url}\n\nTerima kasih atas doa dan restu Anda.`;
+    const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
+    window.open(whatsappUrl, "_blank");
+  };
+
+  // Initialize audio element when musicUrl changes
+  useEffect(() => {
+    if (!custom?.musicUrl || !isDirectAudioUrl(custom.musicUrl)) {
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current = null;
+      }
+      return;
+    }
+
+    const audio = new Audio(getBlobUrl(custom.musicUrl));
+    audio.loop = true;
+    audio.volume = 0.3;
+    audioRef.current = audio;
+
+    const onCanPlayThrough = () => {
+      setMusicLoaded(true);
+    };
+
+    const onError = () => {
+      setMusicLoaded(false);
+    };
+
+    audio.addEventListener("canplaythrough", onCanPlayThrough);
+    audio.addEventListener("error", onError);
+
+    return () => {
+      audio.pause();
+      audio.removeEventListener("canplaythrough", onCanPlayThrough);
+      audio.removeEventListener("error", onError);
+    };
+  }, [custom?.musicUrl]);
+
+  // Toggle play/pause
+  const toggleMusic = () => {
+    if (!audioRef.current) return;
+    if (musicPlaying) {
+      audioRef.current.pause();
+    } else {
+      // Browsers require user interaction before autoplay
+      audioRef.current.play().catch(() => {
+        // Autoplay blocked — user needs to click first
+      });
+    }
+    setMusicPlaying(!musicPlaying);
+  };
+
+  // Theme colors
+  const themeColors = {
+    emas: { primary: "#D4AF37", bg: "#FAF5EC", overlay: "rgba(212,175,55,0.08)" },
+    burgundy: { primary: "#5B132B", bg: "#FDF5F5", overlay: "rgba(91,19,43,0.08)" },
+    sage: { primary: "#87A96B", bg: "#F5FAF0", overlay: "rgba(135,169,107,0.08)" },
+    rose: { primary: "#C4788A", bg: "#FDF5F7", overlay: "rgba(196,120,138,0.08)" },
+    navy: { primary: "#2C3E50", bg: "#F0F2F5", overlay: "rgba(44,62,80,0.08)" },
+  };
+  const currentTheme = custom?.theme ? themeColors[custom.theme as keyof typeof themeColors] || themeColors.emas : null;
 
   // Countdown timer
   const [timeLeft, setTimeLeft] = useState<{
@@ -151,7 +337,7 @@ export function PublicInvitationView({
           setRsvpSubmitted(true);
         }
       } catch (err) {
-        alert(err instanceof Error ? err.message : "Gagal mengirim RSVP.");
+        showToast(err instanceof Error ? err.message : "Gagal mengirim RSVP.", "error");
       }
     });
   };
@@ -169,7 +355,7 @@ export function PublicInvitationView({
       : workspace.name;
 
   const weddingDateStr = workspace.weddingDate
-    ? new Date(workspace.weddingDate).toLocaleDateString("id-ID", {
+    ? formatDateIndonesia(workspace.weddingDate, {
         weekday: "long",
         day: "numeric",
         month: "long",
@@ -177,37 +363,77 @@ export function PublicInvitationView({
       })
     : "Tanggal Acara Akan Datang";
 
+  // Show cover page before invitation is opened
+  if (!isOpened) {
+    return (
+      <InvitationCover
+        coupleTitle={coupleTitle}
+        guestName={guestName}
+        onOpen={handleOpenInvitation}
+      />
+    );
+  }
+
   return (
-    <div className="min-h-screen bg-[#FDFBF7] text-[#1C1917] selection:bg-[#D4AF37]/30 selection:text-[#5B132B]">
+    <div
+      className={`min-h-screen bg-[#FDFBF7] text-[#1C1917] selection:bg-[#D4AF37]/30 selection:text-[#5B132B] transition-opacity duration-700 ${
+        coverFading ? "opacity-0" : "opacity-100"
+      }`}
+    >
       {/* Royal Background filigree pattern */}
       <div className="pointer-events-none fixed inset-0 opacity-[0.035] bg-[radial-gradient(#5B132B_1px,transparent_1px)] [background-size:16px_16px]" />
+
+      {/* VIP Premium Background overlay */}
+      {isVip && (
+        <div className="pointer-events-none fixed inset-0 bg-gradient-to-b from-[#D4AF37]/[0.04] via-transparent to-[#D4AF37]/[0.04]" />
+      )}
 
       {/* Main Container */}
       <main className="relative mx-auto max-w-2xl px-4 py-8 sm:px-6 sm:py-12">
         {/* Top Ornament / Brand Header */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center gap-2 rounded-full border border-[#D4AF37]/40 bg-[#FAF5EC] px-4 py-1.5 shadow-sm">
-            <Sparkles className="size-3.5 text-[#D4AF37]" />
-            <span className="text-[11px] font-semibold tracking-[0.2em] text-[#5B132B] uppercase">
-              Sewaka Royal Wedding
-            </span>
-            <Sparkles className="size-3.5 text-[#D4AF37]" />
-          </div>
+          {isVip ? (
+            <div className="inline-flex items-center gap-2 rounded-full border-2 border-[#D4AF37] bg-gradient-to-r from-[#FAF5EC] via-white to-[#FAF5EC] px-5 py-2 shadow-md">
+              <Crown className="size-4 text-[#D4AF37]" />
+              <span className="text-[11px] font-bold tracking-[0.2em] text-[#5B132B] uppercase">
+                Undangan VIP Eksklusif
+              </span>
+              <Crown className="size-4 text-[#D4AF37]" />
+            </div>
+          ) : (
+            <div className="inline-flex items-center gap-2 rounded-full border border-[#D4AF37]/40 bg-[#FAF5EC] px-4 py-1.5 shadow-sm">
+              <Sparkles className="size-3.5 text-[#D4AF37]" />
+              <span className="text-[11px] font-semibold tracking-[0.2em] text-[#5B132B] uppercase">
+                Sewaka Royal Wedding
+              </span>
+              <Sparkles className="size-3.5 text-[#D4AF37]" />
+            </div>
+          )}
         </div>
 
         {/* Hero Section */}
-        <div className="relative overflow-hidden rounded-3xl border border-[#E6D5B8] bg-white p-6 sm:p-10 text-center shadow-lg">
-          <div className="absolute top-0 inset-x-0 h-2 bg-gradient-to-r from-[#5B132B] via-[#D4AF37] to-[#5B132B]" />
+        <div className={`relative overflow-hidden rounded-3xl ${isVip ? 'border-2 border-[#D4AF37]/60 shadow-xl' : 'border border-[#E6D5B8] shadow-lg'} bg-white p-6 sm:p-10 text-center`}>
+          {(custom?.couplePhotoUrl || (custom?.heroPhotoUrls && custom.heroPhotoUrls.length > 0)) && (
+            <HeroCarousel
+              photoUrls={custom.heroPhotoUrls || []}
+              singlePhotoUrl={custom.couplePhotoUrl || undefined}
+            />
+          )}
+          {isVip ? (
+            <div className="absolute top-0 inset-x-0 h-2 bg-gradient-to-r from-[#5B132B] via-[#D4AF37] to-[#5B132B]" />
+          ) : (
+            <div className="absolute top-0 inset-x-0 h-2 bg-gradient-to-r from-[#5B132B] via-[#D4AF37] to-[#5B132B]" />
+          )}
 
-          <p className="mt-4 text-xs font-semibold tracking-[0.25em] text-[#A08F74] uppercase">
+          <p className={`mt-4 text-xs font-semibold tracking-[0.25em] uppercase ${custom?.couplePhotoUrl ? 'text-white/80' : 'text-[#A08F74]'}`}>
             Pernikahan Adat Nusantara
           </p>
 
-          <h1 className="mt-4 font-serif text-3xl font-medium tracking-tight text-[#5B132B] sm:text-5xl">
+          <h1 className={`mt-4 font-serif text-3xl font-medium tracking-tight sm:text-5xl ${custom?.couplePhotoUrl || (custom?.heroPhotoUrls && custom.heroPhotoUrls.length > 0) ? 'text-white' : 'text-[#5B132B]'}`} style={custom?.customFont ? { fontFamily: custom.customFont } : undefined}>
             {coupleTitle}
           </h1>
 
-          <p className="mt-3 text-sm italic text-[#786C5A] sm:text-base max-w-md mx-auto">
+          <p className={`mt-3 text-sm italic max-w-md mx-auto ${custom?.couplePhotoUrl || (custom?.heroPhotoUrls && custom.heroPhotoUrls.length > 0) ? 'text-white/90' : 'text-[#786C5A] sm:text-base'}`}>
             &ldquo;{workspace.invitationQuote || traditionInfo.tagline}&rdquo;
           </p>
 
@@ -218,19 +444,31 @@ export function PublicInvitationView({
             <span className="h-[1px] w-16 bg-[#D4AF37]/50" />
           </div>
 
-          <p className="font-serif text-lg font-medium text-[#1C1917] sm:text-xl">
+          <p className={`font-serif text-lg font-medium sm:text-xl ${custom?.couplePhotoUrl || (custom?.heroPhotoUrls && custom.heroPhotoUrls.length > 0) ? 'text-white' : 'text-[#1C1917]'}`}>
             {weddingDateStr}
           </p>
           {workspace.location && (
-            <p className="mt-1 flex items-center justify-center gap-1.5 text-xs text-[#786C5A]">
+            <p className={`mt-1 flex items-center justify-center gap-1.5 text-xs ${custom?.couplePhotoUrl || (custom?.heroPhotoUrls && custom.heroPhotoUrls.length > 0) ? 'text-white/80' : 'text-[#786C5A]'}`}>
               <MapPin className="size-3.5 text-[#D4AF37]" />
               {workspace.location}
             </p>
           )}
 
+          {/* Event Countdown */}
+          {events.length > 0 && <EventCountdown events={events} />}
+
           {/* Personalized Guest Greeting */}
           {guestName && (
-            <div className="mt-6 mx-auto max-w-md rounded-2xl border border-[#D4AF37]/60 bg-gradient-to-b from-[#FAF5EC] to-white p-5 shadow-xs text-center">
+            <div className={`mt-6 mx-auto max-w-md rounded-2xl p-5 text-center ${isVip ? 'border-2 border-[#D4AF37] bg-gradient-to-b from-[#FAF5EC] via-white to-[#FAF5EC] shadow-lg' : 'border border-[#D4AF37]/60 bg-gradient-to-b from-[#FAF5EC] to-white shadow-xs'}`}>
+              {isVip && (
+                <div className="flex items-center justify-center gap-1.5 mb-2">
+                  <Star className="size-3.5 text-[#D4AF37] fill-[#D4AF37]" />
+                  <span className="text-[10px] font-bold tracking-[0.15em] text-[#D4AF37] uppercase">
+                    Tamu VIP Terhormat
+                  </span>
+                  <Star className="size-3.5 text-[#D4AF37] fill-[#D4AF37]" />
+                </div>
+              )}
               <span className="text-[10px] font-semibold tracking-[0.2em] text-[#A08F74] uppercase">
                 Kepada Yang Terhormat Bapak/Ibu/Saudara/i:
               </span>
@@ -238,8 +476,10 @@ export function PublicInvitationView({
                 {guestName}
               </h2>
               <span className="mt-0.5 inline-block text-xs text-[#786C5A]">di Tempat</span>
-              <div className="mt-3 border-t border-[#D4AF37]/30 pt-2.5 text-xs italic text-[#786C5A] leading-relaxed">
-                Tanpa mengurangi rasa hormat, kami bermaksud mengundang Anda untuk hadir dan memberikan doa restu pada momen sakral pernikahan kami.
+              <div className={`mt-3 border-t pt-2.5 text-xs italic leading-relaxed ${isVip ? 'border-[#D4AF37]/50 text-[#5B132B]' : 'border-[#D4AF37]/30 text-[#786C5A]'}`}>
+                {isVip 
+                  ? "Sebagai tamu kehormatan, kehadiran Anda sangat kami harapkan dan menjadi kehormatan besar bagi kedua mempelai pada hari pernikahan yang sakral ini."
+                  : "Tanpa mengurangi rasa hormat, kami bermaksud mengundang Anda untuk hadir dan memberikan doa restu pada momen sakral pernikahan kami."}
               </div>
             </div>
           )}
@@ -279,25 +519,35 @@ export function PublicInvitationView({
             </div>
           )}
 
-          {/* Share button */}
-          <div className="mt-6 flex justify-center">
-            <button
-              type="button"
-              onClick={copyInvitationLink}
-              className="inline-flex items-center gap-2 rounded-full border border-[#D4AF37] bg-white px-4 py-2 text-xs font-medium text-[#5B132B] shadow-sm hover:bg-[#FAF5EC] transition-colors"
-            >
-              {copiedLink ? (
-                <>
-                  <CheckCircle2 className="size-3.5 text-emerald-600" />
-                  <span>Tautan Berhasil Disalin!</span>
-                </>
-              ) : (
-                <>
-                  <Share2 className="size-3.5 text-[#D4AF37]" />
-                  <span>Bagikan Undangan Ini</span>
-                </>
-              )}
-            </button>
+          {/* Share buttons */}
+          <div className="mt-6 flex flex-col items-center gap-3">
+            <div className="flex gap-3">
+              <button
+                type="button"
+                onClick={copyInvitationLink}
+                className="inline-flex items-center gap-2 rounded-full border border-[#D4AF37] bg-white px-4 py-2 text-xs font-medium text-[#5B132B] shadow-sm hover:bg-[#FAF5EC] transition-colors"
+              >
+                {copiedLink ? (
+                  <>
+                    <CheckCircle2 className="size-3.5 text-emerald-600" />
+                    <span>Tautan Disalin!</span>
+                  </>
+                ) : (
+                  <>
+                    <Share2 className="size-3.5 text-[#D4AF37]" />
+                    <span>Salin Link</span>
+                  </>
+                )}
+              </button>
+              <button
+                type="button"
+                onClick={shareViaWhatsApp}
+                className="inline-flex items-center gap-2 rounded-full border border-[#25D366] bg-white px-4 py-2 text-xs font-medium text-[#128C7E] shadow-sm hover:bg-[#F0FFF4] transition-colors"
+              >
+                <span className="text-[14px]">📱</span>
+                <span>Kirim via WhatsApp</span>
+              </button>
+            </div>
           </div>
         </div>
 
@@ -356,7 +606,7 @@ export function PublicInvitationView({
                         <>
                           <p className="mt-1 flex items-center gap-1.5 text-xs text-[#786C5A]">
                             <Calendar className="size-3.5 text-[#D4AF37]" />
-                            {new Date(evt.eventDate).toLocaleDateString("id-ID", {
+                            {formatDateIndonesia(evt.eventDate, {
                               weekday: "long",
                               day: "numeric",
                               month: "long",
@@ -365,7 +615,7 @@ export function PublicInvitationView({
                           </p>
                           <p className="mt-1 flex items-center gap-1.5 text-xs text-[#786C5A]">
                             <Clock className="size-3.5 text-[#D4AF37]" />
-                            {new Date(evt.eventDate).toLocaleTimeString("id-ID", {
+                            {formatDateIndonesia(evt.eventDate, {
                               hour: "2-digit",
                               minute: "2-digit",
                             })}{" "}
@@ -646,7 +896,7 @@ export function PublicInvitationView({
                   <div className="flex items-center justify-between">
                     <p className="font-semibold text-[#5B132B]">{wish.name}</p>
                     <span className="text-[10px] text-[#A08F74]">
-                      {new Date(wish.createdAt).toLocaleDateString("id-ID", {
+                      {formatDateIndonesia(wish.createdAt, {
                         day: "numeric",
                         month: "short",
                       })}
@@ -655,6 +905,156 @@ export function PublicInvitationView({
                   <p className="mt-2 text-[#554D41] leading-relaxed italic">
                     &ldquo;{wish.wishes}&rdquo;
                   </p>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Story Section — Timeline takes precedence, falls back to plain text */}
+        {custom?.storyTimeline && custom.storyTimeline.length > 0 ? (
+          <StoryTimeline milestones={custom.storyTimeline} />
+        ) : custom?.story ? (
+          <div className="rounded-3xl border border-[#E6D5B8] bg-white p-6 sm:p-8 shadow-lg">
+            <p className="text-[10px] font-bold tracking-[0.2em] text-[#A08F74] uppercase text-center">
+              Cerita Cinta Kami
+            </p>
+            <div className="mt-4 whitespace-pre-line text-sm leading-relaxed text-[#786C5A] text-center max-w-lg mx-auto">
+              {custom.story}
+            </div>
+          </div>
+        ) : null}
+
+        {/* Gallery Section */}
+        {customGalleryImages.length > 0 && (
+          <div className="rounded-3xl border border-[#E6D5B8] bg-white p-6 sm:p-8 shadow-lg">
+            <p className="text-[10px] font-bold tracking-[0.2em] text-[#A08F74] uppercase text-center">
+              Galeri Foto
+            </p>
+            <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-3">
+              {customGalleryImages.map(img => (
+                <div key={img.id} className="aspect-square overflow-hidden rounded-xl">
+                  <img src={getBlobUrl(img.fileUrl)} alt={img.title} className="size-full object-cover" />
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Video Section */}
+        {custom?.videoUrl && (() => {
+          const videoId = extractYouTubeId(custom.videoUrl!);
+          if (!videoId) return null;
+          return (
+            <div className="mt-6 rounded-3xl border border-[#E6D5B8] bg-white p-6 sm:p-8 shadow-lg">
+              <div className="text-center mb-6">
+                <span className="inline-grid size-8 place-items-center rounded-full bg-[#FAF5EC] text-[#D4AF37] mx-auto mb-2">
+                  <Video className="size-4" />
+                </span>
+                <p className="text-[10px] font-bold tracking-[0.2em] text-[#A08F74] uppercase">
+                  Video Kenangan
+                </p>
+                <h2 className="mt-1 font-serif text-2xl font-medium text-[#5B132B]">
+                  Momen Berharga Kami
+                </h2>
+              </div>
+              <div className="relative w-full" style={{ paddingBottom: "56.25%" }}>
+                <iframe
+                  src={`https://www.youtube.com/embed/${videoId}`}
+                  title="Video Kenangan"
+                  allowFullScreen
+                  className="absolute inset-0 w-full h-full rounded-2xl"
+                />
+              </div>
+            </div>
+          );
+        })()}
+
+        {/* Live Stream Section */}
+        {custom?.liveStreamUrl && (
+          <div className="mt-6 rounded-3xl border border-[#E6D5B8] bg-white p-6 sm:p-8 shadow-lg text-center">
+            <div className="text-center mb-4">
+              <span className="inline-grid size-8 place-items-center rounded-full bg-[#FAF5EC] text-[#D4AF37] mx-auto mb-2">
+                <Tv className="size-4" />
+              </span>
+              <p className="text-[10px] font-bold tracking-[0.2em] text-[#A08F74] uppercase">
+                Live Streaming
+              </p>
+              <h2 className="mt-1 font-serif text-2xl font-medium text-[#5B132B]">
+                Saksikan Secara Online
+              </h2>
+              <p className="mt-2 text-xs text-[#786C5A]">
+                Tidak bisa hadir secara langsung? Saksikan momen sakral kami melalui live streaming berikut.
+              </p>
+            </div>
+            <a
+              href={custom.liveStreamUrl}
+              target="_blank"
+              rel="noreferrer"
+              className="mt-4 inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-[#5B132B] to-[#3D0B1C] px-6 py-3 text-sm font-medium text-[#D4AF37] shadow-md hover:opacity-95 transition-all"
+            >
+              <Video className="size-4" />
+              Tonton Live Stream
+            </a>
+          </div>
+        )}
+
+        {/* Gift Section */}
+        {custom?.giftAccounts && custom.giftAccounts.length > 0 && (
+          <div className="mt-6 rounded-3xl border border-[#E6D5B8] bg-white p-6 sm:p-8 shadow-lg">
+            <div className="text-center mb-6">
+              <span className="inline-grid size-8 place-items-center rounded-full bg-[#FAF5EC] text-[#D4AF37] mx-auto mb-2">
+                <Gift className="size-4" />
+              </span>
+              <p className="text-[10px] font-bold tracking-[0.2em] text-[#A08F74] uppercase">
+                Kado Digital
+              </p>
+              <h2 className="mt-1 font-serif text-2xl font-medium text-[#5B132B]">
+                Amplop Digital
+              </h2>
+              <p className="mt-1 text-xs text-[#786C5A]">
+                Doa restu Anda merupakan karunia yang sangat berarti bagi kami. Namun jika Anda ingin memberikan tanda kasih, Anda bisa mengirimkannya melalui:
+              </p>
+            </div>
+            <div className="space-y-3">
+              {custom.giftAccounts.map((account, idx) => (
+                <div
+                  key={idx}
+                  className="rounded-2xl border border-[#E6D5B8]/70 bg-[#FAF5EC] p-4"
+                >
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="flex-1">
+                      <p className="text-xs font-semibold text-[#5B132B] uppercase tracking-wider">
+                        {account.type === "bank" ? "🏦 Transfer Bank" : "📱 E-Wallet"}
+                      </p>
+                      <p className="mt-1 text-sm font-medium text-[#1C1917]">{account.name}</p>
+                      <p className="mt-1 font-mono text-base font-bold text-[#5B132B] tracking-wider">
+                        {account.number}
+                      </p>
+                      <p className="mt-0.5 text-xs text-[#786C5A]">a.n. {account.accountName}</p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        navigator.clipboard.writeText(account.number);
+                        setCopiedGift(account.number);
+                        setTimeout(() => setCopiedGift(null), 2000);
+                      }}
+                      className="inline-flex items-center gap-1.5 rounded-lg border border-[#D4AF37] bg-white px-3 py-1.5 text-xs font-medium text-[#5B132B] hover:bg-[#FAF5EC] shrink-0"
+                    >
+                      {copiedGift === account.number ? (
+                        <>
+                          <CheckCircle2 className="size-3.5 text-emerald-600" />
+                          <span>Tersalin!</span>
+                        </>
+                      ) : (
+                        <>
+                          <Copy className="size-3.5 text-[#D4AF37]" />
+                          <span>Salin</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
                 </div>
               ))}
             </div>
@@ -671,6 +1071,32 @@ export function PublicInvitationView({
           </p>
         </footer>
       </main>
+
+      {/* Love Animation */}
+      <LoveAnimation enabled={custom?.enableAnimations || false} />
+
+      {/* Music Player — only show for direct audio URLs */}
+      {custom?.musicUrl && isDirectAudioUrl(custom.musicUrl) && (
+        <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end gap-2">
+          {!musicLoaded && (
+            <div className="rounded-full bg-[#5B132B]/80 px-3 py-1.5 text-[10px] font-medium text-white shadow-sm">
+              Memuat musik...
+            </div>
+          )}
+          <button
+            type="button"
+            onClick={toggleMusic}
+            className={`grid size-12 place-items-center rounded-full shadow-lg transition-all ${
+              musicPlaying
+                ? "bg-[#D4AF37] text-[#5B132B] animate-pulse"
+                : "bg-[#5B132B] text-[#D4AF37] hover:opacity-90"
+            }`}
+            title={musicPlaying ? "Jeda musik" : "Putar musik"}
+          >
+            <Music className="size-5" />
+          </button>
+        </div>
+      )}
     </div>
   );
 }

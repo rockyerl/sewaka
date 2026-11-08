@@ -1,9 +1,9 @@
 "use server";
 
 import { eq } from "drizzle-orm";
-import { getDb } from "@/db";
-import { vendors, vendorQuotations } from "@/db/schema";
-import { auth } from "@/auth";
+import { getDb } from "@/lib/db";
+import { vendors, vendorQuotations } from "@/lib/db/schema";
+import { auth } from "@/lib/actions/auth";
 
 /**
  * Get vendor comparison data (VND-06)

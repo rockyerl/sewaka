@@ -1,9 +1,9 @@
 "use server";
 
 import { eq, and } from "drizzle-orm";
-import { getDb } from "@/db";
-import { subscriptions, subscriptionPlans, weddingWorkspaces } from "@/db/schema";
-import { auth } from "@/auth";
+import { getDb } from "@/lib/db";
+import { subscriptions, subscriptionPlans, weddingWorkspaces } from "@/lib/db/schema";
+import { auth } from "@/lib/actions/auth";
 import { revalidatePath } from "next/cache";
 
 const FREE_TRIAL_DAYS = 14;

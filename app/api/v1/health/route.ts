@@ -1,7 +1,7 @@
 import { sql } from "drizzle-orm";
 
-import { getDb } from "@/db";
-import { logger } from "@/lib/logger";
+import { getDb } from "@/lib/db";
+import { logger } from "@/lib/utils/logger";
 
 export const instant = false;
 

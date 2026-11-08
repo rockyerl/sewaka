@@ -6,6 +6,9 @@ import { BarChart3, Check, X, ChevronDown, ChevronUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { StatusBadge, quotationStatusPreset } from "@/components/ui/status-badge";
+import { formatCurrency } from "@/lib/utils/format-currency";
+import { getCategoryLabel } from "@/lib/constants/wedding-categories";
 
 interface VendorComparisonData {
 	vendor: {
@@ -59,27 +62,11 @@ export function VendorComparison({ workspaceId, vendors, onClose }: VendorCompar
 		);
 	}
 
-	const formatCurrency = (amount: string) => {
-		return new Intl.NumberFormat("id-ID", {
-			style: "currency",
-			currency: "IDR",
-			minimumFractionDigits: 0,
-		}).format(Number(amount));
-	};
-
-	const statusBadge = (status: string) => {
-		const map: Record<string, { label: string; cls: string }> = {
-			BOOKED: { label: "Dibooking", cls: "bg-[#edf3e9] text-[#527553]" },
-			CONTACTED: { label: "Dihubungi", cls: "bg-[#fff4e5] text-[#9b7922]" },
-			SHORTLISTED: { label: "Shortlist", cls: "bg-muted text-muted-foreground" },
-		};
-		const entry = map[status] ?? map.SHORTLISTED;
-		return (
-			<Badge variant="secondary" className={`rounded-full text-[10px] ${entry.cls}`}>
-				{entry.label}
-			</Badge>
-		);
-	};
+	const vendorStatusPreset = {
+		BOOKED: { label: "Dibooking", cls: "bg-[#edf3e9] text-[#527553]" },
+		CONTACTED: { label: "Dihubungi", cls: "bg-[#fff4e5] text-[#9b7922]" },
+		SHORTLISTED: { label: "Shortlist", cls: "bg-muted text-muted-foreground" },
+	} as const;
 
 	return (
 		<div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-xs overflow-y-auto">
@@ -94,10 +81,10 @@ export function VendorComparison({ workspaceId, vendors, onClose }: VendorCompar
 							<h3 className="font-serif text-lg font-semibold text-[#5B132B]">
 								Perbandingan Vendor
 							</h3>
-							<p className="text-xs text-muted-foreground">
-								{vendors.length} vendor dalam kategori{" "}
-								{vendors[0]?.vendor.category ?? "-"}
-							</p>
+ 						<p className="text-xs text-muted-foreground">
+ 							{vendors.length} vendor dalam kategori{" "}
+ 							{getCategoryLabel(vendors[0]?.vendor.category ?? "-")}
+ 						</p>
 						</div>
 					</div>
 					<button
@@ -147,7 +134,7 @@ export function VendorComparison({ workspaceId, vendors, onClose }: VendorCompar
 										)}
 									</td>
 									<td className="px-4 py-3 text-center">
-										{statusBadge(v.status)}
+										<StatusBadge status={v.status} preset={vendorStatusPreset} />
 									</td>
 									<td className="px-4 py-3 text-center">
 										{v.lowestQuote ? (
@@ -214,22 +201,7 @@ export function VendorComparison({ workspaceId, vendors, onClose }: VendorCompar
 														<span className="font-semibold text-sm">
 															{formatCurrency(q.amount)}
 														</span>
-														<Badge
-															variant="secondary"
-															className={`rounded-full text-[10px] ${
-																q.status === "ACCEPTED"
-																	? "bg-[#edf3e9] text-[#527553]"
-																	: q.status === "REJECTED"
-																	? "bg-[#f4e9e9] text-[#9b4a4a]"
-																	: "bg-muted text-muted-foreground"
-															}`}
-														>
-															{q.status === "ACCEPTED"
-																? "Diterima"
-																: q.status === "REJECTED"
-																? "Ditolak"
-																: "Menunggu"}
-														</Badge>
+														<StatusBadge status={q.status} preset={quotationStatusPreset} />
 													</div>
 													{q.description && (
 														<p className="mt-1 text-[11px] text-muted-foreground">

@@ -125,7 +125,7 @@ export function SectionCard({
   children: React.ReactNode;
 }) {
   return (
-    <Card className="mb-5 gap-5 rounded-xl border-border/80 bg-card p-5 shadow-sm shadow-stone-900/[0.025] sm:p-6">
+    <Card className="mb-5 gap-5 overflow-hidden rounded-2xl border-border/80 bg-gradient-to-br from-card to-muted/20 p-5 shadow-sm sm:p-6">
       <div>
         <p className="mb-1.5 text-[10px] font-semibold tracking-[0.14em] text-[#a08f74]">
           {eyebrow}
@@ -137,10 +137,17 @@ export function SectionCard({
   );
 }
 
-export function EmptyState({ message }: { message: string }) {
+export function EmptyState({ message, icon: Icon }: { message: string; icon?: LucideIcon }) {
   return (
-    <p className="mt-4 rounded-lg bg-muted/60 p-4 text-sm text-muted-foreground">
-      {message}
-    </p>
+    <div className="mt-4 rounded-xl border-2 border-dashed border-border/50 bg-muted/30 p-8 text-center">
+      {Icon && (
+        <div className="mx-auto grid size-12 place-items-center rounded-xl bg-muted/60">
+          <Icon className="size-6 text-muted-foreground" />
+        </div>
+      )}
+      <p className="mt-3 text-sm text-muted-foreground">
+        {message}
+      </p>
+    </div>
   );
 }

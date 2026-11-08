@@ -1,11 +1,12 @@
 import { eq, asc } from "drizzle-orm";
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isToday, startOfWeek, endOfWeek } from "date-fns";
 import { id } from "date-fns/locale";
-import { CalendarDays } from "lucide-react";
+import { CalendarDays, ArrowRight } from "lucide-react";
+import Link from "next/link";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { weddingEvents, tasks } from "@/db/schema";
-import { withWorkspace } from "@/db/with-workspace";
+import { weddingEvents, tasks } from "@/lib/db/schema";
+import { withWorkspace } from "@/lib/db/with-workspace";
 
 interface CalendarEvent {
   id: string;
@@ -104,9 +105,14 @@ export async function CalendarView() {
   return (
     <section>
       <div className="mb-4 flex items-center justify-between">
-        <h2 className="font-display text-lg font-semibold text-primary">
-          Kalender Persiapan
-        </h2>
+        <div>
+          <h2 className="font-display text-lg font-semibold text-primary">
+            Kalender Persiapan
+          </h2>
+          <p className="mt-0.5 text-xs text-muted-foreground">
+            Acara dan tugas pernikahanmu dalam satu pandangan.
+          </p>
+        </div>
         <div className="flex items-center gap-2">
           <Badge
             variant="secondary"
@@ -115,6 +121,12 @@ export async function CalendarView() {
             <CalendarDays className="h-3 w-3" />
             {formatDateId(now)}
           </Badge>
+          <Link
+            href="/events"
+            className="inline-flex items-center gap-1 text-xs font-medium text-[#5B132B] hover:underline"
+          >
+            Rangkaian Acara <ArrowRight className="h-3.5 w-3.5" />
+          </Link>
         </div>
       </div>
 
@@ -162,13 +174,14 @@ export async function CalendarView() {
 
                 {/* Events */}
                 {dayEvents.slice(0, 2).map((event) => (
-                  <div
+                  <Link
                     key={event.id}
-                    className="mb-0.5 truncate rounded bg-[#5b132b]/10 px-1.5 py-0.5 text-[10px] font-medium text-[#5b132b]"
+                    href={`/events?date=${dayKey}`}
+                    className="mb-0.5 block truncate rounded bg-[#5b132b]/10 px-1.5 py-0.5 text-[10px] font-medium text-[#5b132b] hover:bg-[#5b132b]/20 transition-colors"
                     title={event.name}
                   >
                     {event.name}
-                  </div>
+                  </Link>
                 ))}
 
                 {/* Tasks */}

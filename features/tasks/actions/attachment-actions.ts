@@ -1,13 +1,13 @@
 "use server";
 
-import { auth } from "@/auth";
+import { auth } from "@/lib/actions/auth";
 import { revalidatePath } from "next/cache";
 import { eq, asc } from "drizzle-orm";
 
-import { getDb } from "@/db";
-import { taskAttachments } from "@/db/schema";
-import { deleteFile } from "@/lib/storage";
-import { checkStorageLimit, SubscriptionLimitError } from "@/lib/subscription-check";
+import { getDb } from "@/lib/db";
+import { taskAttachments } from "@/lib/db/schema";
+import { deleteFile } from "@/lib/utils/storage";
+import { checkStorageLimit, SubscriptionLimitError } from "@/lib/utils/subscription-check";
 
 export async function uploadTaskAttachmentAction(
   data: { taskId: string; workspaceId: string; fileName: string; fileUrl: string; fileSize: number; mimeType: string },

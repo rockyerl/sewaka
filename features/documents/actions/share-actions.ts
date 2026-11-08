@@ -1,13 +1,13 @@
 "use server";
 
-import { auth } from "@/auth";
+import { auth } from "@/lib/actions/auth";
 import { revalidatePath } from "next/cache";
 import { eq } from "drizzle-orm";
 import { randomUUID } from "node:crypto";
 import { z } from "zod";
 
-import { getDb } from "@/db";
-import { documentShares, documents } from "@/db/schema";
+import { getDb } from "@/lib/db";
+import { documentShares, documents } from "@/lib/db/schema";
 
 export async function createDocumentShareAction(documentId: string, workspaceId: string) {
   const session = await auth();

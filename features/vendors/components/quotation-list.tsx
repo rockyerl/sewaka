@@ -1,10 +1,12 @@
-import { Plus, Trash2, Check, X, CalendarDays } from "lucide-react";
-import { format } from "date-fns";
+import { Plus, Trash2, Check, X } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { ConfirmSubmitButton } from "@/components/confirm-submit-button";
+import { ConfirmSubmitButton } from "@/components/forms/confirm-submit-button";
+import { StatusBadge, quotationStatusPreset } from "@/components/ui/status-badge";
+import { DateBadge } from "@/components/ui/date-badge";
+import { formatCurrency } from "@/lib/utils/format-currency";
 
 import {
   createQuotationAction,
@@ -12,34 +14,11 @@ import {
   deleteQuotationAction,
   createVendorPaymentAction,
   deletePaymentAction,
-} from "@/features/vendors/actions";
+} from "@/features/vendors/actions/quotation-actions";
 import {
   listQuotationsByVendor,
   listPaymentsByVendor,
-} from "@/features/vendors/queries";
-
-function quotationStatusBadge(status: string) {
-  const map: Record<string, { label: string; cls: string }> = {
-    ACCEPTED: { label: "Diterima", cls: "bg-[#edf3e9] text-[#527553]" },
-    REJECTED: { label: "Ditolak", cls: "bg-[#f4e9e9] text-[#9b4a4a]" },
-    PENDING: { label: "Menunggu", cls: "bg-[#fff4e5] text-[#9b7922]" },
-  };
-  const entry = map[status] ?? map.PENDING;
-  return (
-    <Badge variant="secondary" className={`rounded-full text-[10px] ${entry.cls}`}>
-      {entry.label}
-    </Badge>
-  );
-}
-
-function formatCurrency(amount: string | number) {
-  const num = typeof amount === "string" ? parseFloat(amount) : amount;
-  return new Intl.NumberFormat("id-ID", {
-    style: "currency",
-    currency: "IDR",
-    minimumFractionDigits: 0,
-  }).format(num);
-}
+} from "@/features/vendors/hooks/quotation-queries";
 
 export async function VendorQuotationSection({
   workspaceId,
@@ -82,17 +61,14 @@ export async function VendorQuotationSection({
                   <p className="truncate text-xs font-medium">
                     {q.quotationNumber || "Penawaran"}
                   </p>
-                  {quotationStatusBadge(q.status)}
+                  <StatusBadge status={q.status} preset={quotationStatusPreset} />
                 </div>
                 <div className="mt-0.5 flex items-center gap-2 text-xs text-muted-foreground">
                   <span className="font-medium text-foreground">
                     {formatCurrency(q.amount)}
                   </span>
                   {q.quotedDate && (
-                    <span className="inline-flex items-center gap-1">
-                      <CalendarDays className="size-3" />
-                      {format(new Date(q.quotedDate), "dd MMM yyyy")}
-                    </span>
+                    <DateBadge date={q.quotedDate} />
                   )}
                 </div>
                 {q.description && (
@@ -233,10 +209,7 @@ export async function VendorPaymentSection({
                   <span className="font-medium text-foreground">
                     {formatCurrency(p.amount)}
                   </span>
-                  <span className="inline-flex items-center gap-1">
-                    <CalendarDays className="size-3" />
-                    {format(new Date(p.paymentDate), "dd MMM yyyy")}
-                  </span>
+                  <DateBadge date={p.paymentDate} />
                 </div>
                 {p.note && (
                   <p className="mt-0.5 truncate text-[10px] text-muted-foreground">

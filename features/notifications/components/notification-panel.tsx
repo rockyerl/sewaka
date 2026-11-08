@@ -1,10 +1,11 @@
 import { Bell, Check } from "lucide-react";
-import { format } from "date-fns";
 
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { EmptyState } from "@/components/shared/page-components";
+import { formatDateIndonesia } from "@/components/ui/date-badge";
 
-import { listNotifications, getUnreadCount } from "@/features/notifications/queries/notification-queries";
+import { listNotifications, getUnreadCount } from "@/features/notifications/hooks/notification-queries";
 import { markNotificationReadAction, markAllNotificationReadAction } from "@/features/notifications/actions/notification-actions";
 
 function notificationTypeIcon(type: string) {
@@ -84,7 +85,7 @@ export async function NotificationPanel() {
                   {n.message}
                 </p>
                 <p className="text-[9px] text-muted-foreground mt-0.5">
-                  {format(new Date(n.createdAt), "dd MMM yyyy, HH:mm")}
+                  {formatDateIndonesia(n.createdAt, { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" })}
                 </p>
               </div>
               {n.read === "UNREAD" && (
@@ -99,12 +100,7 @@ export async function NotificationPanel() {
           ))}
         </div>
       ) : (
-        <div className="rounded-lg bg-muted/60 p-6 text-center">
-          <Bell className="mx-auto size-5 text-muted-foreground" />
-          <p className="mt-2 text-xs text-muted-foreground">
-            Belum ada notifikasi.
-          </p>
-        </div>
+        <EmptyState message="Belum ada notifikasi." icon={Bell} />
       )}
     </Card>
   );

@@ -1,12 +1,12 @@
 "use server";
 
-import { auth } from "@/auth";
+import { auth } from "@/lib/actions/auth";
 import { revalidatePath } from "next/cache";
 import { eq } from "drizzle-orm";
 import { z } from "zod";
 
-import { getDb } from "@/db";
-import { weddingConcepts } from "@/db/schema";
+import { getDb } from "@/lib/db";
+import { weddingConcepts } from "@/lib/db/schema";
 
 export const updateWeddingConceptSchema = z.object({
   theme: z.string().max(100).optional(),

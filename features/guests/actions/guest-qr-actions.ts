@@ -1,11 +1,11 @@
 "use server";
 
 import { eq } from "drizzle-orm";
-import { getDb } from "@/db";
-import { guests } from "@/db/schema";
-import { auth } from "@/auth";
+import { getDb } from "@/lib/db";
+import { guests } from "@/lib/db/schema";
+import { auth } from "@/lib/actions/auth";
 import { revalidatePath } from "next/cache";
-import { requireFeature, SubscriptionLimitError } from "@/lib/subscription-check";
+import { requireFeature, SubscriptionLimitError } from "@/lib/utils/subscription-check";
 
 /**
  * Check in guest by invitation code (GST-08)

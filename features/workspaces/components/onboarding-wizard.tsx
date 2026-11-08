@@ -7,6 +7,7 @@ import { ArrowLeft, ArrowRight, Check, Heart, CalendarDays, MapPin, Users, Flowe
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { formatDateIndonesia } from "@/components/ui/date-badge";
 
 type OnboardingStep = {
   id: number;
@@ -279,7 +280,7 @@ export function OnboardingWizard({ workspaceId }: { workspaceId: string }) {
                   {formData.weddingDate && (
                     <p>
                       <span className="text-muted-foreground">Tanggal:</span>{" "}
-                      {new Date(formData.weddingDate).toLocaleDateString("id-ID", {
+                      {formatDateIndonesia(formData.weddingDate, {
                         day: "numeric",
                         month: "long",
                         year: "numeric",

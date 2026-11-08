@@ -1,9 +1,9 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { addMember, updateMemberRole, removeMember } from "../queries/member-queries";
-import { inviteMemberSchema, updateMemberRoleSchema } from "../schemas/member";
-import { requireFeature, SubscriptionLimitError } from "@/lib/subscription-check";
+import { addMember, updateMemberRole, removeMember } from "../hooks/member-queries";
+import { inviteMemberSchema, updateMemberRoleSchema } from "../actions/member-schema";
+import { requireFeature, SubscriptionLimitError } from "@/lib/utils/subscription-check";
 
 /**
  * Invite a new member to the workspace by email (COL-02)

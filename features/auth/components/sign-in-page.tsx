@@ -10,7 +10,7 @@ import {
   registerAction,
   signInWithEmailAndPasswordAction,
   signInWithGoogleAction,
-} from "../actions";
+} from "../actions/auth-actions";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 

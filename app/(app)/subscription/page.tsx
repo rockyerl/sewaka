@@ -1,10 +1,10 @@
-import { getActivePlans } from "@/features/subscription/queries/subscription-plan-queries";
-import { SubscriptionPageClient } from "./subscription-page-client";
+import { getActivePlans } from "@/features/subscription/hooks/subscription-plan-queries";
+import { SubscriptionPageClient } from "@/features/subscription/components/subscription-page-client";
 
 export const instant = false;
 
 export default async function SubscriptionPage() {
-  const { getAllWorkspaces } = await import("@/lib/workspace-cache");
+  const { getAllWorkspaces } = await import("@/lib/utils/workspace-cache");
   const [workspaces, plans] = await Promise.all([
     getAllWorkspaces(),
     getActivePlans(),

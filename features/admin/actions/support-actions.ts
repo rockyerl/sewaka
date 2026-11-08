@@ -1,9 +1,9 @@
 "use server";
 
-import { auth } from "@/auth";
-import { getDb } from "@/db";
+import { auth } from "@/lib/actions/auth";
+import { getDb } from "@/lib/db";
 import { eq, and, desc } from "drizzle-orm";
-import { supportTickets, supportTicketMessages } from "@/db/schema";
+import { supportTickets, supportTicketMessages } from "@/lib/db/schema";
 import { z } from "zod";
 
 const createSupportTicketSchema = z.object({

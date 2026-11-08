@@ -1,10 +1,10 @@
 "use server";
 
 import { eq, and, lte, asc, gte } from "drizzle-orm";
-import { getDb } from "@/db";
-import { notifications, tasks, expenses, budgets, weddingEvents } from "@/db/schema";
-import { sendEmail } from "@/lib/email";
-import { logger } from "@/lib/logger";
+import { getDb } from "@/lib/db";
+import { notifications, tasks, expenses, budgets, weddingEvents } from "@/lib/db/schema";
+import { sendEmail } from "@/lib/email/email";
+import { logger } from "@/lib/utils/logger";
 
 /**
  * Schedule task reminders for tasks due within 24 hours (TSK-08)

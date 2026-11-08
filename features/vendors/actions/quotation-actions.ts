@@ -9,12 +9,12 @@ import {
   deletePayment,
   listQuotationsByVendor,
   listPaymentsByVendor,
-} from "../queries/quotation-queries";
+} from "../hooks/quotation-queries";
 import {
   createQuotationSchema,
   updateQuotationStatusSchema,
   createVendorPaymentSchema,
-} from "../schemas/quotation";
+} from "../actions/quotation-schema";
 
 export async function getVendorQuotationsAction(vendorId: string, workspaceId: string) {
   return listQuotationsByVendor(vendorId);
@@ -66,10 +66,16 @@ export async function createVendorPaymentAction(formData: FormData) {
 
   await createVendorPayment(input);
   revalidatePath("/vendors");
+  revalidatePath("/budget");
+  revalidatePath("/budget/financial");
+  revalidatePath("/dashboard");
 }
 
 export async function deletePaymentAction(formData: FormData) {
   const paymentId = formData.get("paymentId") as string;
   await deletePayment(paymentId);
   revalidatePath("/vendors");
+  revalidatePath("/budget");
+  revalidatePath("/budget/financial");
+  revalidatePath("/dashboard");
 }

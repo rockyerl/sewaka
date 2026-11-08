@@ -2,13 +2,14 @@
 
 import { useState } from "react";
 import Image from "next/image";
-import { format } from "date-fns";
-import { id } from "date-fns/locale";
 import { Camera, Image as ImagePlus, Loader2, Trash2, Upload, X } from "lucide-react";
-import { ConfirmSubmitButton } from "@/components/confirm-submit-button";
+import { formatDateIndonesia } from "@/components/ui/date-badge";
+import { ConfirmSubmitButton } from "@/components/forms/confirm-submit-button";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { uploadImageAction, deleteImageAction } from "@/features/gallery/actions";
+import { EmptyState } from "@/components/shared/page-components";
+import { uploadImageAction, deleteImageAction } from "@/features/gallery/actions/gallery-actions";
+import { getBlobUrl } from "@/lib/utils/blob-url";
 
 function formatFileSize(bytes: number) {
   if (bytes < 1024) return bytes + " B";
@@ -148,12 +149,7 @@ export function GalleryPageContent({
         </p>
 
         {images.length === 0 ? (
-          <Card className="rounded-xl border-border/60 bg-card p-8 text-center">
-            <Camera className="mx-auto size-8 text-muted-foreground" />
-            <p className="mt-3 text-sm text-muted-foreground">
-              Belum ada foto. Upload foto referensi pernikahanmu di sini.
-            </p>
-          </Card>
+          <EmptyState message="Belum ada foto. Upload foto referensi pernikahanmu di sini." icon={Camera} />
         ) : (
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
             {images.map((image) => (
@@ -163,7 +159,7 @@ export function GalleryPageContent({
               >
                 <div className="aspect-square relative">
                   <Image
-                    src={image.fileUrl}
+                    src={getBlobUrl(image.fileUrl)}
                     alt={image.title}
                     fill
                     className="object-cover"
@@ -175,7 +171,7 @@ export function GalleryPageContent({
                 <div className="absolute bottom-0 left-0 right-0 translate-y-full p-3 transition-transform group-hover:translate-y-0">
                   <p className="truncate text-xs font-medium text-white">{image.title}</p>
                   <p className="text-[10px] text-white/70">
-                    {format(new Date(image.createdAt), "d MMM yyyy", { locale: id })}
+                    {formatDateIndonesia(image.createdAt, { day: "numeric", month: "short", year: "numeric" })}
                   </p>
                 </div>
                 <form

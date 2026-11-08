@@ -1,5 +1,5 @@
 import { getAnnouncements } from "@/features/admin/actions/admin-feature-actions";
-import AnnouncementsClient from "./announcements-client";
+import AnnouncementsClient from "@/features/admin/components/announcements-client";
 
 export default async function AnnouncementsPage() {
   const announcements = await getAnnouncements();

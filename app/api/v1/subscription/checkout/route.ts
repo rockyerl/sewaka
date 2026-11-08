@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createSubscriptionCheckout } from "@/features/subscription/actions/subscription-actions";
-import { rateLimit, getIpFromRequest } from "@/lib/rate-limit";
+import { rateLimit, getIpFromRequest } from "@/lib/utils/rate-limit";
 
 export async function POST(request: NextRequest) {
   const ip = getIpFromRequest(request);

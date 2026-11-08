@@ -1,14 +1,14 @@
-import { ArrowRight, CalendarDays, Image, ListChecks, MapPin, UsersRound, Wallet } from "lucide-react";
+import { ArrowRight, CalendarDays, FileText, ListChecks, UsersRound, Wallet } from "lucide-react";
 import Link from "next/link";
 import { Card } from "@/components/ui/card";
 
 const quickActions = [
-  { title: "Tambah Tugas", description: "Checklist persiapan", href: "/tasks", icon: ListChecks, color: "bg-[#f4e9e9] text-primary" },
+  { title: "Rangkaian Acara", description: "Jadwal & rundown pernikahan", href: "/events", icon: CalendarDays, color: "bg-[#e9f5f0] text-[#4a9b7a]" },
   { title: "Catat Pengeluaran", description: "Anggaran & biaya", href: "/budget", icon: Wallet, color: "bg-[#f5efd9] text-[#9b7922]" },
   { title: "Tambah Tamu", description: "Daftar undangan", href: "/guests", icon: UsersRound, color: "bg-[#e9f0f5] text-[#4a7a9b]" },
-  { title: "Foto Referensi", description: "Galeri & moodboard", href: "/gallery", icon: Image, color: "bg-[#f0e9f5] text-[#7a4a9b]" },
-  { title: "Rundown Acara", description: "Jadwal hari H", href: "/wedding-day", icon: CalendarDays, color: "bg-[#e9f5f0] text-[#4a9b7a]" },
-  { title: "Lokasi & Acara", description: "Akad & resepsi", href: "/events", icon: MapPin, color: "bg-[#f5e9e9] text-[#9b4a4a]" },
+  { title: "Tambah Tugas", description: "Checklist persiapan", href: "/tasks", icon: ListChecks, color: "bg-[#f4e9e9] text-primary" },
+  { title: "Dokumen Penting", description: "Kontrak & bukti bayar", href: "/documents", icon: FileText, color: "bg-[#f0e9f5] text-[#7a4a9b]" },
+  { title: "Vendor & Kontrak", description: "Kelola vendor pilihan", href: "/vendors", icon: UsersRound, color: "bg-[#f5e9e9] text-[#9b4a4a]" },
 ];
 
 export function QuickActions() {

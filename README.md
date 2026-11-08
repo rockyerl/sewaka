@@ -44,7 +44,24 @@ seserahan, rundown adat, dan ensiklopedia budaya.
 - **QR Code Generation** — generate QR code untuk setiap tamu
 - **Check-in Scanner** — scan QR code di hari H pernikahan
 - **Attendance Report** — laporan kehadiran dan RSVP summary
-- **Digital Invitation** — halaman undangan publik dengan RSVP
+- **Bulk WhatsApp Invite** — kirim undangan massal via WhatsApp (max 50/batch)
+
+### 💌 Digital Invitation (Premium)
+- **Cover Page Animation** — halaman "Buka Undangan" full-screen dengan nama tamu personal
+- **Love Story Timeline** — timeline visual perjalanan cinta dengan foto dan milestone
+- **Hero Photo Carousel** — slider multiple foto couple dengan auto-slide
+- **Custom Font & Background** — 5 pilihan Google Fonts dan custom background image
+- **Love Animation** — animasi floating hearts saat scroll (toggleable)
+- **Event Countdown** — countdown real-time per event, highlight event terdekat
+- **Cashless Gift (Kado Digital)** — terima kado digital via bank transfer/e-wallet
+- **Video Gallery** — embed YouTube video kenangan
+- **Live Streaming** — tautan live streaming untuk tamu yang tidak bisa hadir
+- **Share WhatsApp** — bagikan undangan via WhatsApp dengan pesan personal
+- **5 Tema Warna** — emas, burgundy, sage, rose, navy
+- **Musik Latar** — audio player dengan auto-play setelah buka undangan
+- **RSVP & Ucapan** — tamu bisa konfirmasi kehadiran dan kirim doa restu
+- **QR Check-in** — tamu VIP dengan badge eksklusif dan QR code check-in
+- **Tradisi Adat** — section budaya Nusantara (keunggulan unik Sewaka!)
 
 ### 📄 Documents & Gallery
 - **Document Upload** — upload dan kelola file dokumen (50MB max)

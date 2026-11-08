@@ -1,6 +1,6 @@
-import { listWorkspaceImages } from "@/features/gallery/queries";
+import { listWorkspaceImages } from "@/features/gallery/hooks/gallery-queries";
 import { GalleryPageContent } from "@/features/gallery/components/gallery-page";
-import { PageHeader } from "@/components/shared";
+import { PageHeader } from "@/components/shared/page-components";
 
 export const instant = false;
 
@@ -9,7 +9,7 @@ export default async function GalleryPage({
 }: {
   searchParams?: Promise<{ workspaceId?: string }>;
 }) {
-  const { getCurrentWorkspace } = await import("@/lib/workspace-cache");
+  const { getCurrentWorkspace } = await import("@/lib/utils/workspace-cache");
   const resolvedSearchParams = await (searchParams ?? Promise.resolve({}));
   const workspaceIdFromQuery = typeof resolvedSearchParams === "object" && resolvedSearchParams !== null
     ? (resolvedSearchParams as { workspaceId?: string }).workspaceId

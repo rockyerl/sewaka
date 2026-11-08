@@ -3,15 +3,20 @@
 import { and, eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 
-import { budgetCategories, budgets, expenses } from "@/db/schema";
-import { withWorkspace } from "@/db/with-workspace";
+import { budgetCategories, budgetEntries, budgets, expenses } from "@/lib/db/schema";
+import { withWorkspace } from "@/lib/db/with-workspace";
 
 import {
   budgetCategoryFormSchema,
+  budgetEntryFormSchema,
   budgetFormSchema,
+  deleteBudgetEntrySchema,
+  deleteCategorySchema,
   deleteExpenseSchema,
   expenseFormSchema,
-} from "../schemas/budget";
+  updateExpenseSchema,
+} from "../actions/budget-schema";
+import { getCategoryLabel } from "@/lib/constants/wedding-categories";
 
 const editorRoles = ["OWNER", "PARTNER", "COORDINATOR"] as const;
 
@@ -91,13 +96,113 @@ export async function createExpenseAction(formData: FormData) {
   await withWorkspace(
     { workspaceId: input.workspaceId, allowedRoles: editorRoles },
     async (transaction) => {
+      // categoryId dari form bisa berupa enum key (KATERING, DEKORASI, dll) atau UUID
+      // Jika enum key, cari budget category yang sesuai di workspace
+      let resolvedCategoryId = input.categoryId || null;
+      if (resolvedCategoryId && !resolvedCategoryId.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i)) {
+        // Ini adalah enum key, cari budget category
+        const categoryRow = await transaction
+          .select({ id: budgetCategories.id })
+          .from(budgetCategories)
+          .where(
+            and(
+              eq(budgetCategories.workspaceId, input.workspaceId),
+              eq(budgetCategories.name, resolvedCategoryId),
+            ),
+          )
+          .limit(1);
+        resolvedCategoryId = categoryRow[0]?.id || null;
+      }
+
       await transaction.insert(expenses).values({
         workspaceId: input.workspaceId,
-        categoryId: input.categoryId || null,
+        categoryId: resolvedCategoryId,
         amount: input.amount,
         note: input.note || null,
         expenseDate: input.expenseDate ?? new Date(),
       });
+    },
+  );
+
+  revalidatePath("/");
+}
+
+export async function deleteCategoryAction(formData: FormData) {
+  const input = deleteCategorySchema.parse({
+    workspaceId: formData.get("workspaceId"),
+    categoryId: formData.get("categoryId"),
+  });
+
+  await withWorkspace(
+    { workspaceId: input.workspaceId, allowedRoles: editorRoles },
+    async (transaction) => {
+      const deleted = await transaction
+        .delete(budgetCategories)
+        .where(
+          and(
+            eq(budgetCategories.id, input.categoryId),
+            eq(budgetCategories.workspaceId, input.workspaceId),
+          ),
+        )
+        .returning({ id: budgetCategories.id });
+
+      if (deleted.length === 0) {
+        throw new Error("Kategori tidak ditemukan di workspace ini.");
+      }
+    },
+  );
+
+  revalidatePath("/");
+}
+
+export async function updateExpenseAction(formData: FormData) {
+  const input = updateExpenseSchema.parse({
+    workspaceId: formData.get("workspaceId"),
+    expenseId: formData.get("expenseId"),
+    categoryId: String(formData.get("categoryId") ?? "") || undefined,
+    amount: formData.get("amount"),
+    note: String(formData.get("note") ?? "") || undefined,
+    expenseDate: String(formData.get("expenseDate") ?? "") || undefined,
+  });
+
+  await withWorkspace(
+    { workspaceId: input.workspaceId, allowedRoles: editorRoles },
+    async (transaction) => {
+      // categoryId dari form bisa berupa enum key (KATERING, DEKORASI, dll) atau UUID
+      let resolvedCategoryId = input.categoryId || null;
+      if (resolvedCategoryId && !resolvedCategoryId.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i)) {
+        const categoryRow = await transaction
+          .select({ id: budgetCategories.id })
+          .from(budgetCategories)
+          .where(
+            and(
+              eq(budgetCategories.workspaceId, input.workspaceId),
+              eq(budgetCategories.name, resolvedCategoryId),
+            ),
+          )
+          .limit(1);
+        resolvedCategoryId = categoryRow[0]?.id || null;
+      }
+
+      const updated = await transaction
+        .update(expenses)
+        .set({
+          categoryId: resolvedCategoryId,
+          amount: input.amount,
+          note: input.note || null,
+          expenseDate: input.expenseDate ?? new Date(),
+        })
+        .where(
+          and(
+            eq(expenses.id, input.expenseId),
+            eq(expenses.workspaceId, input.workspaceId),
+          ),
+        )
+        .returning({ id: expenses.id });
+
+      if (updated.length === 0) {
+        throw new Error("Pengeluaran tidak ditemukan di workspace ini.");
+      }
     },
   );
 
@@ -130,4 +235,59 @@ export async function deleteExpenseAction(formData: FormData) {
   );
 
   revalidatePath("/");
+}
+
+export async function addBudgetEntryAction(formData: FormData) {
+  const input = budgetEntryFormSchema.parse({
+    workspaceId: formData.get("workspaceId"),
+    amount: formData.get("amount"),
+    entryDate: formData.get("entryDate"),
+    description: String(formData.get("description") ?? "") || undefined,
+  });
+
+  await withWorkspace(
+    { workspaceId: input.workspaceId, allowedRoles: editorRoles },
+    async (transaction) => {
+      await transaction.insert(budgetEntries).values({
+        workspaceId: input.workspaceId,
+        amount: input.amount,
+        entryDate: input.entryDate,
+        description: input.description || null,
+      });
+    },
+  );
+
+  revalidatePath("/budget");
+  revalidatePath("/budget/financial");
+  revalidatePath("/dashboard");
+}
+
+export async function deleteBudgetEntryAction(formData: FormData) {
+  const input = deleteBudgetEntrySchema.parse({
+    workspaceId: formData.get("workspaceId"),
+    entryId: formData.get("entryId"),
+  });
+
+  await withWorkspace(
+    { workspaceId: input.workspaceId, allowedRoles: editorRoles },
+    async (transaction) => {
+      const deleted = await transaction
+        .delete(budgetEntries)
+        .where(
+          and(
+            eq(budgetEntries.id, input.entryId),
+            eq(budgetEntries.workspaceId, input.workspaceId),
+          ),
+        )
+        .returning({ id: budgetEntries.id });
+
+      if (deleted.length === 0) {
+        throw new Error("Entri anggaran tidak ditemukan di workspace ini.");
+      }
+    },
+  );
+
+  revalidatePath("/budget");
+  revalidatePath("/budget/financial");
+  revalidatePath("/dashboard");
 }

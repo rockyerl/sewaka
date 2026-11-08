@@ -7,10 +7,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 
-import {
-	sendEmailVerificationAction,
-	verifyEmailAction,
-} from "@/features/auth/actions";
+import { sendEmailVerificationAction, verifyEmailAction } from "@/features/auth/actions/email-verification-actions";
 
 export function VerifyEmailPageContent() {
 	const [step, setStep] = useState<"request" | "verify" | "success">("request");

@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { eq, and } from "drizzle-orm";
-import { getDb } from "@/db";
-import { guests } from "@/db/schema";
-import { rateLimit, getIpFromRequest } from "@/lib/rate-limit";
-import { logger } from "@/lib/logger";
+import { getDb } from "@/lib/db";
+import { guests } from "@/lib/db/schema";
+import { rateLimit, getIpFromRequest } from "@/lib/utils/rate-limit";
+import { logger } from "@/lib/utils/logger";
 
 export async function POST(request: NextRequest) {
   const ip = getIpFromRequest(request);

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@/auth";
-import { addMember } from "@/features/workspaces/queries/member-queries";
-import { requireFeature, SubscriptionLimitError } from "@/lib/subscription-check";
+import { auth } from "@/lib/actions/auth";
+import { addMember } from "@/features/workspaces/hooks/member-queries";
+import { requireFeature, SubscriptionLimitError } from "@/lib/utils/subscription-check";
 
 /**
  * POST /api/v1/workspaces/invite

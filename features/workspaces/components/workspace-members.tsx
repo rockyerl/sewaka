@@ -7,11 +7,12 @@ import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { ConfirmSubmitButton } from "@/components/confirm-submit-button";
+import { ConfirmSubmitButton } from "@/components/forms/confirm-submit-button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { EmptyState } from "@/components/shared/page-components";
 
-import { inviteMemberAction, updateMemberRoleAction, removeMemberAction } from "@/features/workspaces/actions";
+import { inviteMemberAction, updateMemberRoleAction, removeMemberAction } from "@/features/workspaces/actions/member-actions";
 
 interface WorkspaceMember {
   id: string;
@@ -170,12 +171,7 @@ export function WorkspaceMembersSection({
           })}
         </div>
       ) : (
-        <div className="mt-4 rounded-lg bg-muted/60 p-6 text-center">
-          <Users className="mx-auto size-6 text-muted-foreground" />
-          <p className="mt-2 text-sm text-muted-foreground">
-            Belum ada anggota. Undang pasangan atau keluarga untuk berkolaborasi.
-          </p>
-        </div>
+        <EmptyState message="Belum ada anggota. Undang pasangan atau keluarga untuk berkolaborasi." icon={Users} />
       )}
 
       {canEdit && (

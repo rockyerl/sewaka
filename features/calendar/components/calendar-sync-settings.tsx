@@ -6,6 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Calendar, Loader2, CheckCircle2, XCircle, RefreshCw } from "lucide-react";
+import { formatDateIndonesia } from "@/components/ui/date-badge";
+import { showToast } from "@/components/ui/toast";
 
 interface CalendarSyncSettingsProps {
   workspaceId: string;
@@ -61,7 +63,7 @@ export function CalendarSyncSettings({ workspaceId }: CalendarSyncSettingsProps)
     try {
       const result = await syncEventsToCalendar(workspaceId);
       setLastSyncAt(new Date());
-      alert(`Berhasil menyinkronkan ${result.syncedEvents} acara!`);
+      showToast(`Berhasil menyinkronkan ${result.syncedEvents} acara!`, "success");
     } catch (err) {
       setError(String(err));
     } finally {
@@ -104,7 +106,7 @@ export function CalendarSyncSettings({ workspaceId }: CalendarSyncSettingsProps)
         {lastSyncAt && (
           <div className="rounded-md bg-muted p-3">
             <p className="text-xs text-muted-foreground">
-              Terakhir disinkronkan: {lastSyncAt.toLocaleString("id-ID")}
+              Terakhir disinkronkan: {formatDateIndonesia(lastSyncAt, { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" })}
             </p>
           </div>
         )}

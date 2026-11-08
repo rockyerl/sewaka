@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Gift, Loader2, CheckCircle2 } from "lucide-react";
+import { formatDateIndonesia } from "@/components/ui/date-badge";
 
 interface FreeTrialBannerProps {
   workspaceId: string;
@@ -47,7 +48,7 @@ export function FreeTrialBanner({ workspaceId, isInTrial, daysRemaining, trialEn
                 Sisa <strong>{daysRemaining} hari</strong> free trial
                 {trialEndsAt && (
                   <span className="block text-xs">
-                    Berakhir pada {new Date(trialEndsAt).toLocaleDateString("id-ID", {
+                    Berakhir pada {formatDateIndonesia(trialEndsAt, {
                       day: "numeric",
                       month: "long",
                       year: "numeric",

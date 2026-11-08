@@ -1,12 +1,5 @@
-import type { BudgetOverview } from "../queries";
-
-function formatCurrency(value: string) {
-  return new Intl.NumberFormat("id-ID", {
-    style: "currency",
-    currency: "IDR",
-    maximumFractionDigits: 0,
-  }).format(Number(value));
-}
+import { formatCurrency } from "@/lib/utils/format-currency";
+import type { BudgetOverview } from "../hooks/budget-queries";
 
 export function BudgetSummary({ budget }: { budget: BudgetOverview }) {
   return (

@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/utils/utils";
 import { Geist, Cinzel } from "next/font/google";
-import { ErrorBoundary } from "@/core/error-boundary";
-import { ThemeProvider } from "@/shared/providers/theme-provider";
-import { ServiceWorkerRegister } from "@/components/service-worker-register";
-import { WebVitalsMonitor } from "@/components/web-vitals-monitor";
+import { ErrorBoundary } from "@/components/utilities/error-boundary";
+import { ServiceWorkerRegister } from "@/components/utilities/service-worker-register";
+import { WebVitalsMonitor } from "@/components/utilities/web-vitals-monitor";
+import { ToastContainer } from "@/components/ui/toast";
 
 const geist = Geist({ subsets: ["latin"], variable: "--font-geist-sans", preload: false, display: "swap" });
 const cinzel = Cinzel({
@@ -63,13 +63,12 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         >
           Langsung ke konten utama
         </a>
-        <ThemeProvider>
-          <ErrorBoundary>
-            {children}
-            <ServiceWorkerRegister />
-            <WebVitalsMonitor />
-          </ErrorBoundary>
-        </ThemeProvider>
+        <ErrorBoundary>
+          {children}
+          <ToastContainer />
+          <ServiceWorkerRegister />
+          <WebVitalsMonitor />
+        </ErrorBoundary>
       </body>
     </html>
   );

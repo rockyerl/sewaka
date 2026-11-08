@@ -1,5 +1,5 @@
 import { Suspense } from "react";
-import { AppLayout } from "@/components/app-layout";
+import { AppLayout } from "@/components/layout/app-layout";
 
 function AppLayoutLoading() {
   return (
@@ -34,13 +34,13 @@ async function AppLayoutPage({
   searchParams?: Promise<{ asUser?: string }>;
 }) {
   const { redirect } = await import("next/navigation");
-  const { auth } = await import("@/auth");
-  const { getDb } = await import("@/db");
-  const { users } = await import("@/db/schema");
+  const { auth } = await import("@/lib/actions/auth");
+  const { getDb } = await import("@/lib/db");
+  const { users } = await import("@/lib/db/schema");
   const { eq } = await import("drizzle-orm");
-  const { WorkspaceSetup } = await import("@/features/workspaces/components");
-  const { listMyWorkspaces } = await import("@/features/workspaces/queries");
-  const { listNotifications } = await import("@/features/notifications/queries/notification-queries");
+  const { WorkspaceSetup } = await import("@/features/workspaces/components/workspace-setup");
+  const { listMyWorkspaces } = await import("@/features/workspaces/hooks/workspace-queries");
+  const { listNotifications } = await import("@/features/notifications/hooks/notification-queries");
 
   const session = await auth();
   const sessionUser = session?.user;

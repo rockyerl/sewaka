@@ -1,5 +1,5 @@
 import { Suspense } from "react";
-import { AdminSidebar } from "@/components/admin-sidebar";
+import { AdminSidebar } from "@/components/layout/admin-sidebar";
 
 function AdminLayoutLoading() {
   return (
@@ -22,9 +22,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
 async function AdminLayoutPage({ children }: { children: React.ReactNode }) {
   const { redirect } = await import("next/navigation");
-  const { auth } = await import("@/auth");
-  const { getDb } = await import("@/db");
-  const { users } = await import("@/db/schema");
+  const { auth } = await import("@/lib/actions/auth");
+  const { getDb } = await import("@/lib/db");
+  const { users } = await import("@/lib/db/schema");
   const { eq } = await import("drizzle-orm");
 
   const session = await auth();

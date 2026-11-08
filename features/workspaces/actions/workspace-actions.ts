@@ -1,10 +1,10 @@
 "use server";
 
-import { auth } from "@/auth";
+import { auth } from "@/lib/actions/auth";
 import { revalidatePath } from "next/cache";
 
-import { createWorkspace } from "../queries";
-import { createWorkspaceSchema } from "../schemas/workspace";
+import { createWorkspace } from "../hooks/workspace-queries";
+import { createWorkspaceSchema } from "../actions/workspace-schema";
 
 export async function createWorkspaceAction(formData: FormData) {
   const session = await auth();

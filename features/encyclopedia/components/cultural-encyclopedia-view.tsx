@@ -15,9 +15,11 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { FilterPills } from "@/components/ui/filter-pills";
+import { showToast } from "@/components/ui/toast";
 
 import { importUbarampeToTasksAction } from "../actions/encyclopedia-actions";
-import type { RitualArticle } from "@/lib/cultural-encyclopedia";
+import type { RitualArticle } from "@/lib/constants/cultural-encyclopedia";
 
 interface CulturalEncyclopediaViewProps {
   workspaceId: string;
@@ -67,11 +69,12 @@ export function CulturalEncyclopediaView({
       try {
         await importUbarampeToTasksAction(fd);
         setImportedRituals((prev) => new Set([...prev, article.id]));
-        alert(
-          `✓ ${article.ubarampe.length} perlengkapan ubarampe telah berhasil ditambahkan ke daftar checklist tugas pernikahan Anda!`
+        showToast(
+          `✓ ${article.ubarampe.length} perlengkapan ubarampe telah berhasil ditambahkan ke daftar checklist tugas pernikahan Anda!`,
+          "success"
         );
       } catch (err) {
-        alert(err instanceof Error ? err.message : "Gagal menambahkan tugas.");
+        showToast(err instanceof Error ? err.message : "Gagal menambahkan tugas.", "error");
       }
     });
   };
@@ -99,28 +102,17 @@ export function CulturalEncyclopediaView({
       {/* Toolbar Filters */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-xl border border-border/70 bg-card p-4">
         {/* Tradition selector */}
-        <div className="flex items-center gap-2 overflow-x-auto pb-1">
-          <span className="text-xs font-semibold text-muted-foreground mr-1">Tradisi:</span>
-          {[
+        <FilterPills
+          label="Tradisi"
+          items={[
             { id: "ALL", label: "Semua Adat" },
             { id: "JAWA", label: "Adat Jawa (Paes Ageng)" },
             { id: "SUNDA", label: "Adat Sunda (Siger)" },
             { id: "MINANG", label: "Adat Minang (Suntiang)" },
-          ].map((tab) => (
-            <button
-              key={tab.id}
-              type="button"
-              onClick={() => setSelectedTradition(tab.id)}
-              className={`rounded-full px-3 py-1 text-xs font-medium transition-colors whitespace-nowrap ${
-                selectedTradition === tab.id
-                  ? "bg-[#5B132B] text-white"
-                  : "bg-muted text-muted-foreground hover:bg-muted/80"
-              }`}
-            >
-              {tab.label}
-            </button>
-          ))}
-        </div>
+          ]}
+          activeId={selectedTradition}
+          onActiveChange={setSelectedTradition}
+        />
 
         {/* Search */}
         <div className="relative w-full sm:w-64 shrink-0">

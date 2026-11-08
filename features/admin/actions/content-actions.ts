@@ -1,9 +1,9 @@
 "use server";
 
-import { auth } from "@/auth";
-import { getDb } from "@/db";
+import { auth } from "@/lib/actions/auth";
+import { getDb } from "@/lib/db";
 import { eq, and, desc } from "drizzle-orm";
-import { adminContents } from "@/db/schema";
+import { adminContents } from "@/lib/db/schema";
 import { z } from "zod";
 
 const createAdminContentSchema = z.object({

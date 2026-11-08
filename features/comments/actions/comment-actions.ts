@@ -1,12 +1,12 @@
 "use server";
 
-import { auth } from "@/auth";
+import { auth } from "@/lib/actions/auth";
 import { revalidatePath } from "next/cache";
 import { eq, and, asc } from "drizzle-orm";
 import { z } from "zod";
 
-import { getDb } from "@/db";
-import { comments, users } from "@/db/schema";
+import { getDb } from "@/lib/db";
+import { comments, users } from "@/lib/db/schema";
 
 export const createCommentSchema = z.object({
   targetId: z.string().uuid(),

@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { markAsRead, markAllAsRead } from "../queries/notification-queries";
+import { markAsRead, markAllAsRead } from "../hooks/notification-queries";
 
 export async function markNotificationReadAction(formData: FormData) {
   const notificationId = formData.get("notificationId") as string;

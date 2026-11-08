@@ -14,9 +14,11 @@ import {
 
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { FilterPills } from "@/components/ui/filter-pills";
+import { showToast } from "@/components/ui/toast";
 
 import { bookmarkCuratedVendorAction } from "../actions/curated-vendor-actions";
-import type { CuratedVendor } from "../schemas/curated-vendor";
+import type { CuratedVendor } from "../actions/curated-vendor-schema";
 
 interface CuratedVendorDirectoryProps {
   workspaceId: string;
@@ -63,7 +65,7 @@ export function CuratedVendorDirectory({
         await bookmarkCuratedVendorAction(fd);
         setSavedIds((prev) => new Set([...prev, vendor.id]));
       } catch (err) {
-        alert(err instanceof Error ? err.message : "Gagal menyimpan vendor.");
+        showToast(err instanceof Error ? err.message : "Gagal menyimpan vendor.", "error");
       }
     });
   };
@@ -101,56 +103,35 @@ export function CuratedVendorDirectory({
       {/* Filters Toolbar */}
       <div className="flex flex-col gap-3 rounded-xl border border-border/70 bg-card p-4">
         {/* Tradition pills */}
-        <div className="flex items-center gap-2 overflow-x-auto pb-1">
-          <span className="text-xs font-semibold text-muted-foreground mr-1">Tradisi:</span>
-          {[
+        <FilterPills
+          label="Tradisi"
+          items={[
             { id: "ALL", label: "Semua Adat" },
             { id: "JAWA", label: "Adat Jawa (Paes Ageng/Solo)" },
             { id: "SUNDA", label: "Adat Sunda (Siger)" },
             { id: "MINANG", label: "Adat Minang (Suntiang)" },
             { id: "NASIONAL", label: "Nasional & Modifikasi" },
-          ].map((tab) => (
-            <button
-              key={tab.id}
-              type="button"
-              onClick={() => setSelectedTradition(tab.id)}
-              className={`rounded-full px-3 py-1 text-xs font-medium transition-colors whitespace-nowrap ${
-                selectedTradition === tab.id
-                  ? "bg-[#5B132B] text-white"
-                  : "bg-muted text-muted-foreground hover:bg-muted/80"
-              }`}
-            >
-              {tab.label}
-            </button>
-          ))}
-        </div>
+          ]}
+          activeId={selectedTradition}
+          onActiveChange={setSelectedTradition}
+        />
 
         {/* Category pills and Search */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2 border-t border-border/50">
-          <div className="flex items-center gap-1.5 overflow-x-auto pb-1">
-            <span className="text-xs font-semibold text-muted-foreground mr-1">Kategori:</span>
-            {[
+          <FilterPills
+            label="Kategori"
+            variant="rounded"
+            items={[
               { id: "ALL", label: "Semua" },
               { id: "PEMAES", label: "Pemaes / MUA" },
               { id: "SANGGAR", label: "Sanggar Busana" },
               { id: "PRANATACARA", label: "Pranatacara / MC" },
               { id: "MUSIK", label: "Musik Tradisional" },
               { id: "CATERING", label: "Catering Adat" },
-            ].map((cat) => (
-              <button
-                key={cat.id}
-                type="button"
-                onClick={() => setSelectedCategory(cat.id)}
-                className={`rounded-lg px-2.5 py-1 text-xs transition-colors whitespace-nowrap ${
-                  selectedCategory === cat.id
-                    ? "bg-[#D4AF37]/20 border border-[#D4AF37] text-[#5B132B] font-semibold"
-                    : "border border-border text-muted-foreground hover:bg-muted"
-                }`}
-              >
-                {cat.label}
-              </button>
-            ))}
-          </div>
+            ]}
+            activeId={selectedCategory}
+            onActiveChange={setSelectedCategory}
+          />
 
           <div className="relative w-full sm:w-64 shrink-0">
             <Search className="absolute left-3 top-2.5 size-3.5 text-muted-foreground" />

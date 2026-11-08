@@ -3,11 +3,11 @@
 import { headers } from "next/headers";
 import { eq } from "drizzle-orm";
 import { hash } from "bcryptjs";
-import { getDb } from "@/db";
-import { users, userCredentials, verificationTokens } from "@/db/schema";
-import { sendEmail, generateResetToken } from "@/lib/email";
-import { passwordResetTemplate } from "@/lib/email-templates";
-import { rateLimit } from "@/lib/rate-limit";
+import { getDb } from "@/lib/db";
+import { users, userCredentials, verificationTokens } from "@/lib/db/schema";
+import { sendEmail, generateResetToken } from "@/lib/email/email";
+import { passwordResetTemplate } from "@/lib/email/email-templates";
+import { rateLimit } from "@/lib/utils/rate-limit";
 
 export type AuthActionResult = {
   success?: boolean;
