@@ -26,6 +26,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import { BrandLogo } from "@/components/ui/brand-logo";
 import { signOutAction } from "@/lib/actions/auth-actions";
 
 export interface AdminNavItem {
@@ -110,12 +111,7 @@ export function AdminSidebar({ sessionUser }: AdminSidebarProps) {
         href="/admin/dashboard"
         aria-label="Sewaka Admin, beranda"
       >
-        <span className="grid size-9 place-items-center rounded-full border border-[#d6bd70] text-[#b5973f]">
-          <Shield className="size-4" strokeWidth={2} />
-        </span>
-        <span className="font-serif text-xl tracking-tight text-primary">
-          sewaka<span className="text-[#c5a849]">.</span>
-        </span>
+        <BrandLogo className="h-8 w-auto" />
         <Badge
           variant="secondary"
           className="ml-1 h-5 rounded-full bg-[#D4AF37]/20 px-2 text-[10px] font-semibold text-[#D4AF37]"
@@ -190,12 +186,7 @@ export function AdminSidebar({ sessionUser }: AdminSidebarProps) {
           className="flex items-center gap-2.5"
           href="/admin/dashboard"
         >
-          <span className="grid size-8 place-items-center rounded-full border border-[#d6bd70] text-[#b5973f]">
-            <Shield className="size-3.5" strokeWidth={2} />
-          </span>
-          <span className="font-serif text-lg tracking-tight text-primary">
-            sewaka<span className="text-[#c5a849]">.</span>
-          </span>
+          <BrandLogo className="h-7 w-auto" />
           <Badge
             variant="secondary"
             className="h-5 rounded-full bg-[#D4AF37]/20 px-1.5 text-[9px] font-semibold text-[#D4AF37]"

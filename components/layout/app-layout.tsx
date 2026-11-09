@@ -10,6 +10,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { AppSidebar, ALL_NAV_ITEMS, type AppSidebarProps } from "@/components/layout/app-sidebar";
 import { NotificationCenter, type NotificationItem } from "@/components/notifications/notification-center";
+import { BrandLogo } from "@/components/ui/brand-logo";
 
 export interface AppLayoutProps extends AppSidebarProps {
   children: ReactNode;
@@ -49,11 +50,11 @@ export function AppLayout({
           >
             <div className="flex items-center justify-between border-b border-border p-4">
               <Link
-                className="font-serif text-xl tracking-tight text-primary"
+              className="flex items-center"
                 href="/dashboard"
                 onClick={() => setMobileMenuOpen(false)}
               >
-                sewaka<span className="text-[#c5a849]">.</span>
+                <BrandLogo className="h-7 w-auto" />
               </Link>
               <button
                 type="button"
@@ -135,10 +136,10 @@ export function AppLayout({
         <header className="sticky top-0 z-20 flex h-16 items-center justify-between border-b border-border bg-background/90 px-5 pl-[72px] backdrop-blur-md sm:px-8 sm:pl-8 lg:px-11 lg:pl-11 print:hidden">
           <div className="flex items-center gap-3">
             <Link
-              className="font-serif text-xl tracking-tight text-primary md:hidden"
+              className="flex items-center md:hidden"
               href="/dashboard"
             >
-              sewaka<span className="text-[#c5a849]">.</span>
+              <BrandLogo className="h-7 w-auto" />
             </Link>
           </div>
           <div className="flex items-center gap-2.5 sm:gap-4">

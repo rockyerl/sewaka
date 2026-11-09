@@ -3,9 +3,9 @@
  * Cache-first strategy for static assets, network-first for API calls
  */
 
-const CACHE_NAME = 'sewaka-v1';
-const STATIC_CACHE = 'sewaka-static';
-const API_CACHE = 'sewaka-api';
+const CACHE_NAME = 'sewaka-v2';
+const STATIC_CACHE = 'sewaka-static-v2';
+const API_CACHE = 'sewaka-api-v2';
 
 // Critical routes to cache
 const CRITICAL_ROUTES = [
@@ -149,8 +149,8 @@ self.addEventListener('push', (event) => {
   const data = event.data?.json();
   const options = {
     body: data?.body || 'Notifikasi baru dari Sewaka',
-    icon: '/icons/icon-192x192.svg',
-    badge: '/icons/icon-72x72.svg',
+    icon: '/icons/icon-192x192.png',
+    badge: '/icons/icon-72x72.png',
     vibrate: [100, 50, 100],
     data: data?.url || '/',
     actions: [

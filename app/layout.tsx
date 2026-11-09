@@ -25,9 +25,12 @@ export const metadata: Metadata = {
     "Rencanakan hari istimewa dengan tenang bersama Sewaka, ruang persiapan pernikahan yang menghormati tradisi Nusantara.",
   manifest: "/manifest.json",
   icons: {
-    apple: [
-      { url: "/icons/icon-192x192.svg", sizes: "192x192" },
+    icon: [
+      { url: "/icons/favicon.png", sizes: "32x32", type: "image/png" },
+      { url: "/icons/icon-192x192.png", sizes: "192x192", type: "image/png" },
+      { url: "/icons/icon-512x512.png", sizes: "512x512", type: "image/png" },
     ],
+    apple: [{ url: "/icons/apple-touch-icon.png", sizes: "180x180", type: "image/png" }],
   },
   appleWebApp: {
     capable: true,

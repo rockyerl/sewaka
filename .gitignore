@@ -208,6 +208,14 @@ temp/
 *.mov
 *.avi
 *.mp3
+
+# Sewaka brand assets and generated app icons
+!public/brand/
+!public/brand/*.png
+!public/icons/
+!public/icons/*.png
+!app/icon.png
+!app/apple-icon.png
 *.wav
 *.flac
 

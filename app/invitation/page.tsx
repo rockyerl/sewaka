@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { BrandLogo, BrandSymbol } from "@/components/ui/brand-logo";
 
 export default function InvitationIndexPage() {
   return (
@@ -6,26 +7,8 @@ export default function InvitationIndexPage() {
       <div className="w-full max-w-md text-center">
         {/* Logo */}
         <div className="mb-8 flex flex-col items-center gap-3">
-          <div className="grid size-14 place-items-center rounded-full border-2 border-[#D4AF37] bg-[#FAF5EC]">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="28"
-              height="28"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="#D4AF37"
-              strokeWidth="1.6"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="text-[#D4AF37]"
-            >
-              <path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2z" />
-              <path d="M8 12l3 3 5-5" />
-            </svg>
-          </div>
-          <h1 className="font-serif text-2xl tracking-tight text-[#5B132B]">
-            sewaka<span className="text-[#D4AF37]">.</span>
-          </h1>
+          <BrandSymbol size={64} />
+          <BrandLogo className="h-10 w-auto" />
         </div>
 
         {/* Card */}

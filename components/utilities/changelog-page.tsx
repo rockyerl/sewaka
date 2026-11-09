@@ -5,6 +5,7 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import { BrandSymbol } from "@/components/ui/brand-logo";
 
 export function ChangelogPage() {
   const changes = [
@@ -33,9 +34,7 @@ export function ChangelogPage() {
       <main className="mx-auto max-w-[800px] px-4 py-10 sm:px-8 sm:py-16">
         {/* Header */}
         <div className="mb-10 text-center">
-          <span className="inline-grid size-12 place-items-center rounded-full border border-[#d6bd70] text-[#b5973f]">
-            <Flower2 className="size-6" strokeWidth={1.6} />
-          </span>
+          <BrandSymbol className="mx-auto" size={48} />
           <h1 className="mt-4 font-serif text-3xl font-normal tracking-tight sm:text-4xl">
             Changelog
           </h1>

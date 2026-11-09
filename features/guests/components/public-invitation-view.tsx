@@ -27,6 +27,7 @@ import { InvitationCover } from "./invitation-cover";
 import { formatDateIndonesia } from "@/components/ui/date-badge";
 import { getBlobUrl } from "@/lib/utils/blob-url";
 import { showToast } from "@/components/ui/toast";
+import { BrandLogo } from "@/components/ui/brand-logo";
 
 // Code splitting for heavy components — lazy load after invitation opens
 const HeroCarousel = React.lazy(() => import("./hero-carousel").then(m => ({ default: m.HeroCarousel })));
@@ -1085,9 +1086,7 @@ export function PublicInvitationView({
 
         {/* Footer */}
         <footer className="mt-12 text-center pb-8">
-          <p className="font-serif text-xs font-medium text-[#5B132B]">
-            Sewaka Wedding Platform
-          </p>
+          <BrandLogo className="mx-auto h-6 w-auto" />
           <p className="text-[10px] text-[#A08F74]">
             Kemewahan Tradisi, Keabadian Cinta
           </p>

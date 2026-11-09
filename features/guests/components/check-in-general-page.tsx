@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import { CheckCircle2, XCircle, Loader2, Flower2, QrCode, Search } from "lucide-react";
+import { CheckCircle2, XCircle, Loader2, QrCode, Search } from "lucide-react";
+import { BrandLogo } from "@/components/ui/brand-logo";
 import { formatDateIndonesia } from "@/components/ui/date-badge";
 import { publicCheckInAction } from "@/features/guests/actions/check-in-action";
 
@@ -66,13 +67,8 @@ export default function CheckInGeneralPage() {
     <div className="min-h-screen bg-[#FDFBF7] flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         {/* Brand */}
-        <div className="text-center mb-6">
-          <span className="inline-grid size-10 place-items-center rounded-full bg-[#FAF5EC] border border-[#E6D5B8] text-[#5B132B] mx-auto mb-2">
-            <Flower2 className="size-5" strokeWidth={1.6} />
-          </span>
-          <span className="font-serif text-lg tracking-tight text-[#5B132B]">
-            sewaka<span className="text-[#c5a849]">.</span>
-          </span>
+        <div className="mb-6 flex justify-center">
+          <BrandLogo className="h-9 w-auto" />
         </div>
 
         <div className="rounded-3xl border border-[#E6D5B8] bg-white p-8 text-center shadow-sm">
@@ -252,9 +248,11 @@ export default function CheckInGeneralPage() {
         </div>
 
         {/* Footer */}
-        <p className="mt-6 text-center text-[10px] text-muted-foreground/60">
-          Powered by sewaka. — Undangan Pernikahan Adat Nusantara
-        </p>
+        <div className="mt-6 grid justify-items-center gap-1.5 text-[10px] text-muted-foreground/60">
+          <span>Powered by</span>
+          <BrandLogo className="h-5 w-auto" />
+          <span>Undangan Pernikahan Adat Nusantara</span>
+        </div>
       </div>
     </div>
   );

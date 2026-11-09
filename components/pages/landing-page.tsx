@@ -3,8 +3,9 @@
 import Link from "next/link";
 import { useEffect, useRef, useState, type ReactNode, type MouseEvent } from "react";
 import {
-  Flower2, ListChecks, Wallet, Store, Users, CalendarDays, ScrollText, Crown, ArrowRight, Check,
+  ListChecks, Wallet, Store, Users, CalendarDays, ScrollText, Crown, ArrowRight, Check,
 } from "lucide-react";
+import { BrandLogo } from "@/components/ui/brand-logo";
 
 /* Brand: Royal Maroon #5B132B · Heritage Gold #D4AF37 · Ivory Silk #FDFBF7
    Deep Ebony #1C1917 · Sandstone Soft #F3EFE6 */
@@ -39,6 +40,122 @@ const plans = [
 const REGISTER = "/auth/signin?mode=register";
 
 const css = `
+/* Sewaka editorial hero — scoped, no additional dependencies. */
+@keyframes sw-float-note{0%,100%{transform:translateY(0) rotate(-3deg)}50%{transform:translateY(-9px) rotate(-2deg)}}
+@keyframes sw-orbit-breathe{0%,100%{opacity:.25;transform:scale(1)}50%{opacity:.55;transform:scale(1.035)}}
+@keyframes sw-panel-enter{from{opacity:0;transform:translateY(9px)}to{opacity:1;transform:translateY(0)}}
+@keyframes sw-bar-grow{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+.sw-hero{position:relative;isolation:isolate;overflow:hidden;background:#FDFBF7}
+.sw-hero::before{content:"";position:absolute;inset:0 0 0 52%;z-index:-2;background:radial-gradient(ellipse at 60% 40%,#792a43 0%,#5b132b 45%,#380c1b 100%)}
+.sw-hero-glow{position:absolute;z-index:-1;right:5%;top:12%;width:400px;height:400px;filter:blur(80px);border-radius:50%;background:#d4af3726;animation:sw-drift 18s ease-in-out infinite;pointer-events:none}
+.sw-heritage-pattern{position:absolute;z-index:-1;right:-40px;top:0;height:100%;width:48%;stroke:#d4af37;stroke-width:.6;opacity:.11;pointer-events:none}
+.sw-hero-layout{max-width:1280px;margin:auto;display:grid;grid-template-columns:1.04fr 1fr;gap:70px;align-items:center;padding:72px 32px 82px}
+.sw-hero-copy{padding-bottom:10px}
+.sw-eyebrow{display:flex;align-items:center;gap:10px;font-size:10px;font-weight:650;letter-spacing:.23em;color:#80572f}
+.sw-eyebrow>span{width:26px;height:1px;background:#b68d34}
+.sw-hero h1{font-family:Georgia,'Times New Roman',serif;font-size:clamp(45px,4.8vw,68px);line-height:1.1;letter-spacing:-.045em;font-weight:400;color:#5b132b;margin:24px 0}
+.sw-hero h1 em{font-weight:400;color:#98722d}
+.sw-hero-description{font-size:14px;line-height:1.95;max-width:420px;color:#71635d}
+.sw-hero-actions{display:flex;align-items:center;flex-wrap:wrap;gap:20px;margin-top:28px}
+.sw-primary-cta{display:inline-flex;align-items:center;justify-content:center;gap:16px;background:linear-gradient(125deg,#76213e,#5b132b);padding:16px 22px;border:1px solid #8f4157;border-radius:8px;color:#fff9ed;font-size:12px;font-weight:600;box-shadow:0 8px 20px #5b132b20,inset 0 1px #ffffff25;transition:transform .25s,box-shadow .25s}
+.sw-primary-cta:hover{transform:translateY(-3px);box-shadow:0 13px 25px #5b132b30}
+.sw-secondary-cta{display:inline-flex;align-items:center;gap:9px;color:#5b132b;font-size:12px;font-weight:500}
+.sw-secondary-cta>span{display:grid;place-items:center;width:30px;height:30px;border:1px solid #caba9b;border-radius:50%;transition:background .25s}
+.sw-secondary-cta:hover>span{background:#efe6d6}
+.sw-hero-reassurance{display:flex;gap:18px;font-size:10px;color:#796e62;margin-top:16px}
+.sw-hero-reassurance>span{display:flex;align-items:center;gap:5px}
+.sw-hero-reassurance svg{color:#9b7d36}
+.sw-heritage-signature{display:flex;align-items:center;gap:15px;margin-top:38px;padding-top:24px;border-top:1px solid #d9cbb34d;max-width:400px}
+.sw-signature-mark{font-size:38px;line-height:1;color:#ab873a}
+.sw-heritage-signature strong{font:italic 16px Georgia,serif;color:#5b132b;font-weight:400}
+.sw-heritage-signature p{font-size:10px;margin-top:5px;color:#8a7b6d}
+.sw-hero-visual{min-width:0;scroll-margin-top:100px}
+.sw-stage{position:relative;padding:25px 0 48px;perspective:1200px}
+.sw-stage-label{color:#e7cd9a;font-size:8px;letter-spacing:.2em;margin:0 0 18px 14px;display:flex;gap:8px;align-items:center}
+.sw-stage-label>span{width:5px;height:5px;background:#d4af37;border-radius:50%;box-shadow:0 0 12px #e8c354}
+.sw-orbit{position:absolute;border:1px solid #d4af3755;border-radius:50%;z-index:-1;pointer-events:none;animation:sw-orbit-breathe 9s ease-in-out infinite}
+.sw-orbit-one{width:540px;height:540px;left:-28px;top:-10px}
+.sw-orbit-two{width:630px;height:630px;left:-73px;top:-55px;animation-delay:-4s}
+.sw-dashboard{position:relative;transform:rotateY(-5deg) rotateX(2deg);border:1px solid #e5cfaa;border-radius:13px;background:#fdfbf7;box-shadow:16px 27px 0 -12px #d4af3729,0 35px 75px #16030b75,inset 0 1px #fff;overflow:hidden;transition:transform .65s cubic-bezier(.2,.7,.2,1)}
+.sw-dashboard:hover,.sw-dashboard:focus-within{transform:rotateY(0) rotateX(0)}
+.sw-windowbar{height:37px;border-bottom:1px solid #e8dfd2;display:flex;align-items:center;gap:15px;padding:0 17px;background:#f1ece3;color:#8c7f71;font-size:9px}
+.sw-window-dots{font-size:19px;letter-spacing:2px;color:#baa789;line-height:0}
+.sw-demo-label{margin-left:auto;font-size:7px;letter-spacing:.08em;background:#fffaf0;border:1px solid #dacdb5;border-radius:3px;padding:3px 5px;color:#856b39}
+.sw-dash-content{padding:23px 23px 0}
+.sw-couple-row{display:flex;align-items:center;justify-content:space-between}
+.sw-couple-row p{font-size:7px;letter-spacing:.16em;color:#9b814e}
+.sw-couple-row h2{font-family:Georgia,serif;font-size:29px;color:#5b132b;line-height:1.5;font-weight:400;letter-spacing:-.035em}
+.sw-couple-row h2 em{color:#b18b3f;font-weight:400}
+.sw-couple-row>div>span{font-size:9px;color:#8e8072}
+.sw-monogram{width:55px;height:65px;border:1px solid #cfb97d;border-radius:50% 50% 5px 5px;display:flex;align-items:center;justify-content:center;font-family:Georgia,serif;font-size:18px;color:#5b132b;background:linear-gradient(150deg,#fffaf0,#e9ddc4);box-shadow:inset 0 0 0 4px #f8f2e6}
+.sw-monogram span{font-size:11px;color:#a78a45;margin:0 2px}
+.sw-date-strip{display:flex;align-items:center;gap:8px;margin-top:18px;padding:11px 10px;background:#eee6d8;border:1px solid #e8dcc6;border-radius:5px;font-size:9px;color:#766047}
+.sw-date-strip svg{color:#9d7d42}
+.sw-date-pill{margin-left:auto;color:#5b132b;font-size:8px}
+.sw-demo-tabs{display:flex;border-bottom:1px solid #e9e0d3;margin-top:19px;gap:5px}
+.sw-demo-tabs button{position:relative;display:flex;align-items:center;justify-content:center;gap:6px;flex:1;font-size:9px;padding:12px 2px;color:#877568;background:transparent;border:0;cursor:pointer;white-space:nowrap}
+.sw-demo-tabs button[aria-selected=true]{color:#5b132b;font-weight:600}
+.sw-demo-tabs button[aria-selected=true]::after{content:"";position:absolute;bottom:-1px;left:5px;right:5px;height:2px;background:#5b132b}
+.sw-panel{height:263px;padding-top:20px}
+.sw-panel-inner{animation:sw-panel-enter .45s ease both}
+.sw-panel-heading{display:flex;align-items:center;justify-content:space-between;gap:6px}
+.sw-panel-heading p{font-size:7px;letter-spacing:.12em;color:#9b814e}
+.sw-panel-heading h3{font:400 16px Georgia,serif;letter-spacing:-.01em;color:#5b132b;margin-top:5px}
+.sw-progress-number{font-family:Georgia,serif;color:#5b132b;font-size:29px;line-height:1}
+.sw-progress-number small{font-size:13px;color:#ad8f4a}
+.sw-progress-track{height:4px;background:#eee7da;border-radius:4px;overflow:hidden;margin:13px 0 12px}
+.sw-progress-track>span{display:block;height:100%;background:linear-gradient(90deg,#5b132b,#d4af37);border-radius:4px;transition:width .65s ease;animation:sw-bar-grow 1.2s ease both;transform-origin:left}
+.sw-task{display:flex;position:relative;align-items:center;gap:9px;padding:9px 0;border-bottom:1px solid #eee8dd;cursor:pointer;font-size:10px;color:#54473d}
+.sw-task input{position:absolute;opacity:0;width:16px;height:16px;left:0;cursor:pointer}
+.sw-checkbox{display:grid;place-items:center;flex-shrink:0;width:15px;height:15px;border:1px solid #c9bfae;border-radius:4px;transition:background .3s,color .3s}
+.sw-task input:focus-visible + .sw-checkbox{outline:2px solid #5b132b;outline-offset:3px}
+.sw-task-done .sw-checkbox{background:#5b132b;border-color:#5b132b;color:#f8e8b8}
+.sw-task-done>span:nth-last-child(2){color:#9d9080;text-decoration:line-through}
+.sw-task-state{margin-left:auto;font-size:8px;color:#8b7a64}
+.sw-panel-footnote{font-size:8px;line-height:1.6;color:#9b855d;margin-top:12px;display:flex;gap:6px;align-items:center}
+.sw-panel-footnote>span{width:4px;height:4px;background:#a78d4e;border-radius:50%}
+.sw-gold-icon{color:#b38b38}
+.sw-budget-total{display:grid;grid-template-columns:1fr auto;margin-top:14px;align-items:center;font-size:9px;color:#8c7760;gap:5px}
+.sw-budget-total strong{font:400 23px Georgia,serif;color:#5b132b}
+.sw-budget-total small{grid-column:1/-1;font-size:8px}
+.sw-budget-bars{display:grid;gap:10px;margin-top:15px}
+.sw-budget-bars>div>div:first-child{display:flex;justify-content:space-between;font-size:9px;color:#7f6b55;margin-bottom:4px}
+.sw-budget-bars strong{font-weight:500;color:#5b132b}
+.sw-budget-track{height:5px;background:#eee5d7;border-radius:5px;overflow:hidden}
+.sw-budget-track span{display:block;height:100%;background:#5b132b;animation:sw-bar-grow .9s ease both;transform-origin:left}
+.sw-budget-bars>div:nth-child(2) .sw-budget-track span{background:#bd9651;animation-delay:.1s}
+.sw-budget-bars>div:nth-child(3) .sw-budget-track span{background:#b85d43;animation-delay:.2s}
+.sw-rituals{display:grid;margin-top:13px;gap:14px}
+.sw-ritual{display:flex;position:relative;gap:12px}
+.sw-ritual:not(:last-child)::after{content:"";position:absolute;left:11px;top:25px;height:33px;border-left:1px solid #d8c59e}
+.sw-ritual-dot{display:grid;place-items:center;flex-shrink:0;border:1px solid #c8ad74;border-radius:50%;width:24px;height:24px;color:#93713a;font:12px Georgia,serif;background:#f4eddf}
+.sw-ritual>div{flex:1}
+.sw-ritual h4{font:15px Georgia,serif;color:#5b132b;display:flex;justify-content:space-between}
+.sw-ritual h4>span{font:8px Arial,sans-serif;color:#9c845c}
+.sw-ritual p{font-size:9px;line-height:1.6;color:#8b7969;margin-top:4px;max-width:260px}
+.sw-dash-footer{display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-top:1px solid #eae1d3;color:#9c8a73;font-size:7px;gap:5px}
+.sw-dash-footer button{display:flex;align-items:center;gap:7px;color:#7c6440;cursor:pointer;background:none;border:0;padding:4px;font-size:8px}
+.sw-floating-note{position:absolute;bottom:13px;left:-30px;display:flex;gap:12px;align-items:center;padding:17px 22px;border:1px solid #d2b773;border-radius:9px;background:linear-gradient(125deg,#f6eddb,#e4ce9b);box-shadow:0 18px 35px #25040f60;animation:sw-float-note 7s ease-in-out infinite;pointer-events:none}
+.sw-note-icon{display:grid;place-items:center;width:37px;height:37px;color:#795523;border-radius:50%;border:1px solid #c8ad73}
+.sw-floating-note small{display:block;font-size:7px;letter-spacing:.12em;color:#896b37;margin-bottom:4px}
+.sw-floating-note strong{font:400 17px/1.2 Georgia,serif;color:#5b132b}
+.sw-note-star{font-size:30px;color:#ae8c45;margin-left:14px}
+.sw-preview-caption{display:flex;align-items:center;gap:10px;color:#e6cfac;font-size:8px;position:absolute;bottom:-18px;right:0;letter-spacing:.02em}
+.sw-preview-caption>span{font-size:7px;letter-spacing:.1em;color:#bd9651}
+.sw-hero-bottom{position:relative;max-width:1280px;margin:auto;display:flex;align-items:center;justify-content:space-between;padding:22px 32px;border-top:1px solid #b5986529}
+.sw-hero-bottom>span{font-size:8px;letter-spacing:.18em;color:#9b814e}
+.sw-hero-bottom>div{display:flex;gap:28px;align-items:center;margin-left:-110px}
+.sw-hero-bottom>div>span{font:italic 20px Georgia,serif;color:#866f4c}
+.sw-hero-bottom i{color:#bca36b;font-size:12px;font-style:normal}
+.sw-hero-bottom>a{font-size:9px;color:#e6cfac;display:flex;gap:22px}
+.sw-hero button:focus-visible,.sw-hero a:focus-visible{outline:2px solid #b78f36;outline-offset:4px}
+@media(min-width:1400px){.sw-hero-layout{gap:90px;padding-top:85px;padding-bottom:95px}}
+@media(max-width:1100px){.sw-hero-layout{gap:38px;padding-left:25px;padding-right:25px}.sw-hero h1{font-size:51px}.sw-dash-content{padding:18px 17px 0}.sw-hero-actions{gap:15px}.sw-primary-cta{padding:15px}.sw-floating-note{left:-16px}.sw-couple-row h2{font-size:26px}.sw-hero-bottom>div{margin-left:0;gap:16px}}
+@media(max-width:800px){.sw-hero::before{inset:52% 0 0}.sw-hero-layout{grid-template-columns:1fr;gap:30px;padding:48px 24px 65px}.sw-hero-copy{max-width:540px;margin:auto;width:100%}.sw-hero h1{font-size:clamp(47px,8vw,66px)}.sw-hero-description{max-width:460px}.sw-hero-visual{width:100%;max-width:490px;margin:auto}.sw-stage{padding-top:25px}.sw-dashboard{transform:rotateY(-3deg)}.sw-heritage-pattern{top:52%;width:100%;height:50%}.sw-hero-glow{top:65%}.sw-hero-bottom{background:#400e20;padding:20px 24px;flex-wrap:wrap;gap:20px}.sw-hero-bottom>span{color:#c7a96a;font-size:7px}.sw-hero-bottom>div>span{color:#e6cfac;font-size:18px}.sw-hero-bottom>a{display:none}.sw-orbit-one{left:50%;transform:translateX(-50%);animation:none}.sw-orbit-two{display:none}.sw-heritage-signature{margin-top:28px}.sw-preview-caption{bottom:-20px}}
+@media(max-width:420px){.sw-hero-layout{padding-left:19px;padding-right:19px}.sw-hero h1{font-size:46px}.sw-hero-description{font-size:13px}.sw-hero-actions{gap:18px}.sw-primary-cta{font-size:11px}.sw-secondary-cta{font-size:11px}.sw-stage-label{font-size:7px;letter-spacing:.15em;margin-left:4px}.sw-dash-content{padding:16px 14px 0}.sw-couple-row h2{font-size:26px}.sw-windowbar{gap:7px;padding:0 12px}.sw-demo-label{font-size:6px}.sw-floating-note{left:-4px;padding:14px 16px}.sw-floating-note strong{font-size:15px}.sw-note-star{margin-left:5px}.sw-task{font-size:9px}.sw-panel-heading h3{font-size:15px}.sw-date-strip{font-size:8px}.sw-hero-bottom>div{gap:14px}.sw-hero-bottom{gap:13px}.sw-hero-bottom>span{font-size:6px}.sw-dash-footer{font-size:6px}.sw-hero-reassurance{font-size:9px}}
+@media(max-width:360px){.sw-hero h1{font-size:clamp(37px,12vw,42px);line-height:1.08}}
+@media(prefers-reduced-motion:reduce){.sw-hero *,.sw-hero *::before,.sw-hero *::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}.sw-dashboard{transform:none}.sw-in{opacity:1}.sw-floating-note{transform:rotate(-3deg)}}
+
 @keyframes sw-up{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:none}}
 @keyframes sw-shine{to{background-position:200% center}}
 @keyframes sw-drift{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(30px,-24px) scale(1.12)}}
@@ -106,24 +223,17 @@ function ScrollBar() {
 }
 
 function Logo() {
-  return (
-      <span className="flex items-center gap-2.5">
-      <span className="grid size-9 place-items-center rounded-full border border-[#D4AF37] text-[#b8902a]">
-        <Flower2 className="size-5" strokeWidth={1.6} />
-      </span>
-      <span className="font-serif text-[26px] tracking-tight text-[#5B132B]">sewaka<span className="text-[#D4AF37]">.</span></span>
-    </span>
-  );
+  return <BrandLogo className="h-10 w-auto max-[360px]:h-8" priority />;
 }
 
 function Header() {
   return (
       <header className="sticky top-0 z-40 border-b border-[#5B132B]/10 bg-[#FDFBF7]/80 backdrop-blur-md">
         <div className="relative mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6">
-          <Link href="/"><Logo /></Link>
-          <div className="flex items-center gap-2">
-            <Link href="/auth/signin?mode=login" className="rounded-lg px-4 py-2 text-sm text-[#1C1917] transition hover:bg-[#F3EFE6]">Masuk</Link>
-            <Link href={REGISTER} className="sw-btn rounded-lg bg-[#5B132B] px-4 py-2 text-sm font-medium text-[#FDFBF7] transition hover:bg-[#6d1a35]">Daftar Gratis</Link>
+          <Link href="/" className="shrink-0"><Logo /></Link>
+          <div className="flex shrink-0 items-center gap-2 max-[360px]:gap-1">
+            <Link href="/auth/signin?mode=login" className="rounded-lg px-4 py-2 text-sm text-[#1C1917] transition hover:bg-[#F3EFE6] max-[360px]:px-2 max-[360px]:text-xs">Masuk</Link>
+            <Link href={REGISTER} className="sw-btn whitespace-nowrap rounded-lg bg-[#5B132B] px-4 py-2 text-sm font-medium text-[#FDFBF7] transition hover:bg-[#6d1a35] max-[360px]:px-2 max-[360px]:text-xs">Daftar Gratis</Link>
           </div>
           <ScrollBar />
         </div>
@@ -160,177 +270,86 @@ function AnimatedCounter({ target, suffix = "", duration = 2000 }: { target: num
   return <span ref={ref}>{count}{suffix}</span>;
 }
 
-function HeroSection() {
-  const floatingCards = [
-    { icon: Check, text: "Seserahan selesai", delay: "0s", color: "#D4AF37" },
-    { icon: Wallet, text: "Rp 18jt tersimpan", delay: "0.3s", color: "#5B132B" },
-    { icon: CalendarDays, text: "Hari H lancar", delay: "0.6s", color: "#D4AF37" },
-  ];
 
+const demoTabs = [
+  { label: "Persiapan", icon: ListChecks },
+  { label: "Anggaran", icon: Wallet },
+  { label: "Prosesi adat", icon: CalendarDays },
+];
+const demoTasks = ["Tentukan pemaes & busana", "Siapkan perlengkapan siraman", "Konfirmasi lokasi akad", "Susun daftar seserahan"];
+
+function WeddingPreview() {
+  const [tab, setTab] = useState(0);
+  const [done, setDone] = useState([true, true, false, false]);
+  const [playing, setPlaying] = useState(true);
+  const [paused, setPaused] = useState(false);
+  const completed = done.filter(Boolean).length;
+  useEffect(() => {
+    if (!playing || paused || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const timer = window.setInterval(() => setTab(value => (value + 1) % 3), 6500);
+    return () => window.clearInterval(timer);
+  }, [playing, paused]);
+  function selectTab(index: number) { setTab(index); setPlaying(false); }
   return (
-      <section className="relative overflow-hidden py-8 sm:py-12">
-        {/* Background elements */}
-        <div className="pointer-events-none absolute inset-0">
-          <div className="absolute -right-32 -top-32 size-[28rem] rounded-full bg-[#D4AF37]/15 blur-3xl" style={{ animation: "sw-drift 14s ease-in-out infinite" }} />
-          <div className="absolute -bottom-40 -left-32 size-[28rem] rounded-full bg-[#5B132B]/8 blur-3xl" style={{ animation: "sw-drift 18s ease-in-out infinite reverse" }} />
-        </div>
-        <Petals />
-
-        <div className="relative mx-auto max-w-7xl px-4 sm:px-6">
-          <div className="grid items-center gap-12 lg:grid-cols-2">
-            {/* Left: Text Content */}
-            <div className="max-w-xl">
-              <p className="sw-in text-xs font-semibold tracking-[0.16em] text-[#a08f74]" style={{ animationDelay: ".1s" }}>
-                KEMEWAHAN TRADISI, KEABADIAN CINTA
-              </p>
-              <h1 className="sw-in font-serif text-4xl font-normal leading-tight tracking-tight text-[#5B132B] sm:text-5xl lg:text-[3.6rem]" style={{ animationDelay: ".2s" }}>
-                Pernikahan adat<br />
-                <span className="sw-gold">tanpa kebingungan</span>
-              </h1>
-              <p className="sw-in mt-6 text-base leading-relaxed text-[#1C1917]/70 sm:text-lg" style={{ animationDelay: ".4s" }}>
-                Bukan tentang fitur — ini tentang <strong className="text-[#1C1917]">hasil yang Anda dapatkan</strong>. Pasangan yang sudah menikah dengan Sewaka membuktikan: persiapan bisa tenang, terstruktur, dan menyenangkan.
-              </p>
-
-              {/* CTA Buttons */}
-              <div className="sw-in mt-8 flex flex-col items-start gap-3 sm:flex-row" style={{ animationDelay: ".6s" }}>
-                <Link href={REGISTER} className="sw-btn group inline-flex items-center gap-2 rounded-lg bg-[#5B132B] px-7 py-3 font-medium text-[#FDFBF7] shadow-[0_10px_30px_-10px_#5B132B] transition hover:-translate-y-0.5 hover:shadow-[0_16px_34px_-10px_#5B132B]">
-                  Mulai Gratis <ArrowRight className="size-4 transition group-hover:translate-x-1" />
-                </Link>
-                <Link href="#stories" className="rounded-lg border border-[#5B132B]/25 px-7 py-3 font-medium text-[#5B132B] transition hover:-translate-y-0.5 hover:border-[#D4AF37] hover:bg-[#F3EFE6]">
-                  Lihat Cerita Mereka
-                </Link>
-              </div>
-
-              {/* Stats Row */}
-              <div className="sw-in mt-10 grid grid-cols-2 gap-4 sm:grid-cols-2" style={{ animationDelay: ".8s" }}>
-                <div className="rounded-xl border border-[#5B132B]/10 bg-white/80 p-4">
-                  <div className="font-serif text-2xl tracking-tight text-[#5B132B] sm:text-3xl">
-                    <AnimatedCounter target={120} suffix="+" />
-                  </div>
-                  <div className="mt-0.5 text-xs text-[#1C1917]/65">Pasangan telah menikah</div>
-                </div>
-                <div className="rounded-xl border border-[#5B132B]/10 bg-white/80 p-4">
-                  <div className="font-serif text-2xl tracking-tight text-[#5B132B] sm:text-3xl">
-                    <AnimatedCounter target={40} suffix="%" />
-                  </div>
-                  <div className="mt-0.5 text-xs text-[#1C1917]/65">Waktu terhemat</div>
-                </div>
-                <div className="rounded-xl border border-[#5B132B]/10 bg-white/80 p-4">
-                  <div className="font-serif text-2xl tracking-tight text-[#5B132B] sm:text-3xl">
-                    Rp <AnimatedCounter target={15} suffix="jt" />
-                  </div>
-                  <div className="mt-0.5 text-xs text-[#1C1917]/65">Budget tersimpan</div>
-                </div>
-                <div className="rounded-xl border border-[#5B132B]/10 bg-white/80 p-4">
-                  <div className="font-serif text-2xl tracking-tight text-[#5B132B] sm:text-3xl">
-                    <AnimatedCounter target={0} suffix="" />
-                  </div>
-                  <div className="mt-0.5 text-xs text-[#1C1917]/65">Stres hari H</div>
-                </div>
+      <div className="sw-stage sw-in" style={{ animationDelay: ".35s" }}>
+        <div className="sw-orbit sw-orbit-one" aria-hidden="true" />
+        <div className="sw-orbit sw-orbit-two" aria-hidden="true" />
+        <div className="sw-stage-label"><span /> TRADISI TERJAGA. RENCANA TERTATA.</div>
+        <div className="sw-dashboard" onMouseEnter={() => setPaused(true)} onMouseLeave={() => setPaused(false)} onFocusCapture={() => setPaused(true)} onBlurCapture={event => { if (!event.currentTarget.contains(event.relatedTarget)) setPaused(false); }}>
+          <div className="sw-windowbar"><span className="sw-window-dots" aria-hidden="true">•••</span><span>Ruang bahagia Anda</span><span className="sw-demo-label">DEMO INTERAKTIF</span></div>
+          <div className="sw-dash-content">
+            <div className="sw-couple-row"><div><p>SEBUAH PERJALANAN MENUJU</p><h2>Alya <em>&</em> Rangga</h2><span>Adat Jawa · Yogyakarta</span></div><div className="sw-monogram" aria-hidden="true">A<span>&</span>R</div></div>
+            <div className="sw-date-strip"><CalendarDays width={15} height={15} /><span>Sabtu, 12 Desember 2026</span><span className="sw-date-pill">Hari bahagia</span></div>
+            <div className="sw-demo-tabs" role="tablist" aria-label="Jelajahi fitur Sewaka">
+              {demoTabs.map(({label, icon: Icon}, index) => <button key={label} id={`sw-tab-${index}`} role="tab" aria-selected={tab === index} aria-controls="sw-demo-panel" tabIndex={tab === index ? 0 : -1} onKeyDown={event => { const next = event.key === "ArrowRight" ? (tab + 1) % 3 : event.key === "ArrowLeft" ? (tab + 2) % 3 : event.key === "Home" ? 0 : event.key === "End" ? 2 : null; if (next !== null) { event.preventDefault(); selectTab(next); document.getElementById(`sw-tab-${next}`)?.focus(); } }} onClick={() => selectTab(index)}><Icon width={14} height={14} />{label}</button>)}
+            </div>
+            <div id="sw-demo-panel" role="tabpanel" aria-labelledby={`sw-tab-${tab}`} tabIndex={0} className="sw-panel">
+              <div className="sw-panel-inner" key={tab}>
+                {tab === 0 && <>
+                  <div className="sw-panel-heading"><div><p>SELANGKAH LEBIH DEKAT</p><h3>Rencana kecil, hari yang besar.</h3></div><span className="sw-progress-number">{Math.round(completed / 4 * 100)}<small>%</small></span></div>
+                  <div className="sw-progress-track"><span style={{ width: `${completed / 4 * 100}%` }} /></div>
+                  <div className="sw-task-list">{demoTasks.map((task, index) => <label key={task} className={done[index] ? "sw-task sw-task-done" : "sw-task"}><input type="checkbox" checked={done[index]} onChange={() => { setPlaying(false); setDone(values => values.map((value, i) => i === index ? !value : value)); }} /><span className="sw-checkbox" aria-hidden="true">{done[index] && <Check width={12} height={12} />}</span><span>{task}</span><span className="sw-task-state">{done[index] ? "Selesai" : "Menanti"}</span></label>)}</div>
+                  <p className="sw-panel-footnote"><span />{completed} dari 4 persiapan selesai · Coba centang tugas Anda</p>
+                </>}
+                {tab === 1 && <>
+                  <div className="sw-panel-heading"><div><p>SETIAP DETAIL, TERENCANA</p><h3>Tenang dalam anggaran.</h3></div><Wallet width={25} height={25} className="sw-gold-icon" /></div>
+                  <div className="sw-budget-total"><span>Alokasi anggaran</span><strong>Rp120.000.000</strong><small>Rp84.000.000 dialokasikan · 70%</small></div>
+                  <div className="sw-budget-bars">{[{label:"Venue & jamuan",value:"Rp54 jt",width:64},{label:"Busana & rias adat",value:"Rp18 jt",width:22},{label:"Dokumentasi",value:"Rp12 jt",width:14}].map(item => <div key={item.label}><div><span>{item.label}</span><strong>{item.value}</strong></div><div className="sw-budget-track"><span style={{width:`${item.width}%`}} /></div></div>)}</div>
+                  <p className="sw-panel-footnote"><span />Sisa anggaran Rp36.000.000</p>
+                </>}
+                {tab === 2 && <>
+                  <div className="sw-panel-heading"><div><p>PAHAMI MAKNA DI SETIAP LANGKAH</p><h3>Tradisi yang bercerita.</h3></div><ScrollText width={25} height={25} className="sw-gold-icon" /></div>
+                  <div className="sw-rituals">{[{time:"H−1",title:"Siraman",desc:"Doa dan penyucian diri menjelang hari pernikahan."},{time:"H−1",title:"Midodareni",desc:"Malam doa bersama dan restu keluarga."},{time:"Hari H",title:"Panggih",desc:"Pertemuan kedua mempelai setelah akad."}].map((item,index) => <div className="sw-ritual" key={item.title}><span className="sw-ritual-dot">{index + 1}</span><div><h4>{item.title}<span>{item.time}</span></h4><p>{item.desc}</p></div></div>)}</div>
+                  <p className="sw-panel-footnote">Contoh alur Jawa; sesuaikan bersama keluarga & pemandu adat.</p>
+                </>}
               </div>
             </div>
-
-            {/* Right: Visual Preview */}
-            <div className="relative hidden lg:block">
-              {/* Main dashboard mockup */}
-              <div className="sw-in relative" style={{ animationDelay: ".5s" }}>
-                {/* Browser chrome */}
-                <div className="relative overflow-hidden rounded-2xl border border-[#5B132B]/15 bg-white shadow-[0_30px_60px_-30px_#5B132B/40]">
-                  {/* Title bar */}
-                  <div className="flex items-center gap-2 border-b border-[#5B132B]/10 bg-[#F3EFE6]/60 px-4 py-3">
-                    <div className="flex gap-1.5">
-                      <span className="size-2.5 rounded-full bg-[#b42318]/40" />
-                      <span className="size-2.5 rounded-full bg-[#D4AF37]/60" />
-                      <span className="size-2.5 rounded-full bg-[#5B132B]/30" />
-                    </div>
-                    <div className="ml-4 flex-1">
-                      <div className="mx-auto h-5 w-48 rounded-md bg-white/80" />
-                    </div>
-                  </div>
-                  {/* Dashboard content mockup */}
-                  <div className="bg-gradient-to-br from-[#FDFBF7] to-[#F3EFE6]/40 p-6">
-                    {/* Header */}
-                    <div className="mb-5 flex items-center justify-between">
-                      <div>
-                        <div className="h-4 w-32 rounded bg-[#5B132B]/15" />
-                        <div className="mt-2 h-3 w-48 rounded bg-[#5B132B]/8" />
-                      </div>
-                      <div className="h-8 w-20 rounded-lg bg-[#5B132B]/20" />
-                    </div>
-                    {/* Stats cards */}
-                    <div className="mb-5 grid grid-cols-3 gap-3">
-                      <div className="rounded-lg border border-[#D4AF37]/30 bg-white/80 p-3">
-                        <div className="h-2 w-12 rounded bg-[#D4AF37]/40" />
-                        <div className="mt-2 h-4 w-16 rounded bg-[#5B132B]/20" />
-                      </div>
-                      <div className="rounded-lg border border-[#5B132B]/10 bg-white/80 p-3">
-                        <div className="h-2 w-12 rounded bg-[#5B132B]/20" />
-                        <div className="mt-2 h-4 w-16 rounded bg-[#5B132B]/15" />
-                      </div>
-                      <div className="rounded-lg border border-[#5B132B]/10 bg-white/80 p-3">
-                        <div className="h-2 w-12 rounded bg-[#5B132B]/20" />
-                        <div className="mt-2 h-4 w-16 rounded bg-[#5B132B]/15" />
-                      </div>
-                    </div>
-                    {/* Task list mockup */}
-                    <div className="space-y-2">
-                      {[80, 60, 45, 90, 30].map((w, i) => (
-                        <div key={i} className="flex items-center gap-3 rounded-lg border border-[#5B132B]/8 bg-white/60 p-2.5">
-                          <div className={`size-4 rounded-full border ${i < 3 ? "bg-[#D4AF37] border-[#D4AF37]" : "border-[#5B132B]/25"}`} />
-                          <div className="h-2.5 flex-1 rounded bg-[#5B132B]/8" style={{ width: `${w}%` }} />
-                        </div>
-                      ))}
-                    </div>
-                    {/* Progress bar */}
-                    <div className="mt-4">
-                      <div className="mb-1.5 flex justify-between">
-                        <div className="h-2 w-20 rounded bg-[#5B132B]/12" />
-                        <div className="h-2 w-10 rounded bg-[#D4AF37]/30" />
-                      </div>
-                      <div className="h-2 overflow-hidden rounded-full bg-[#5B132B]/8">
-                        <div className="h-full w-[72%] rounded-full bg-gradient-to-r from-[#5B132B] to-[#D4AF37]" />
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Floating impact cards */}
-                {floatingCards.map((card, i) => (
-                  <div
-                    key={card.text}
-                    className="sw-in absolute -right-4 -top-4 flex items-center gap-2 rounded-xl border border-white/80 bg-white/95 px-4 py-2.5 shadow-[0_10px_30px_-12px_#5B132B/30]"
-                    style={{
-                      animationDelay: `${1 + i * 0.2}s`,
-                      top: `${i * 80 + 40}px`,
-                      right: `${i === 1 ? '20px' : '0px'}`,
-                    }}
-                  >
-                    <div className="flex size-7 items-center justify-center rounded-full" style={{ backgroundColor: `${card.color}15`, color: card.color }}>
-                      <card.icon className="size-3.5" strokeWidth={2.5} />
-                    </div>
-                    <span className="text-xs font-medium text-[#1C1917]">{card.text}</span>
-                  </div>
-                ))}
-
-                {/* Floating couple avatar */}
-                <div
-                  className="sw-in absolute -bottom-4 -left-4 flex items-center gap-3 rounded-xl border border-white/80 bg-white/95 px-4 py-3 shadow-[0_10px_30px_-12px_#5B132B/30]"
-                  style={{ animationDelay: "1.4s" }}
-                >
-                  <div className="flex -space-x-2">
-                    <div className="flex size-8 items-center justify-center rounded-full border-2 border-white bg-[#5B132B] text-xs font-medium text-[#FDFBF7]">R</div>
-                    <div className="flex size-8 items-center justify-center rounded-full border-2 border-white bg-[#D4AF37] text-xs font-medium text-[#5B132B]">B</div>
-                    <div className="flex size-8 items-center justify-center rounded-full border-2 border-white bg-[#a08f74] text-xs font-medium text-white">+</div>
-                  </div>
-                  <div>
-                    <div className="text-xs font-medium text-[#1C1917]">120+ pasangan</div>
-                    <div className="text-[11px] text-[#1C1917]/55">sudah menikah</div>
-                  </div>
-                </div>
-              </div>
-            </div>
+            <div className="sw-dash-footer"><span>Ilustrasi data pasangan & perencanaan</span><button onClick={() => setPlaying(value => !value)} aria-pressed={playing}>{playing ? "Jeda animasi" : "Putar demo"}<span aria-hidden="true">{playing ? "Ⅱ" : "▷"}</span></button></div>
           </div>
         </div>
+        <div className="sw-floating-note"><span className="sw-note-icon"><Crown width={19} height={19} /></span><div><small>RUANG UNTUK TRADISI</small><strong>Adat bermakna.<br />Persiapan lebih tenang.</strong></div><span className="sw-note-star" aria-hidden="true">✧</span></div>
+        <div className="sw-preview-caption"><span>01 — 03</span> Jelajahi demo, rasakan kemudahannya <ArrowRight width={14} height={14} /></div>
+      </div>
+  );
+}
+
+function HeroSection() {
+  return (
+      <section className="sw-hero">
+        <div className="sw-hero-glow" aria-hidden="true" />
+        <svg className="sw-heritage-pattern" viewBox="0 0 600 600" fill="none" aria-hidden="true"><defs><pattern id="sw-kawung" width="80" height="80" patternUnits="userSpaceOnUse"><ellipse cx="40" cy="20" rx="16" ry="25" transform="rotate(-45 40 20)"/><ellipse cx="60" cy="40" rx="16" ry="25" transform="rotate(45 60 40)"/><ellipse cx="40" cy="60" rx="16" ry="25" transform="rotate(-45 40 60)"/><ellipse cx="20" cy="40" rx="16" ry="25" transform="rotate(45 20 40)"/></pattern></defs><rect width="600" height="600" fill="url(#sw-kawung)" /></svg>
+        <div className="sw-hero-layout">
+          <div className="sw-hero-copy">
+            <div className="sw-in sw-eyebrow" style={{animationDelay:".1s"}}><span /> DIGITAL WEDDING ASSISTANT</div>
+            <h1 className="sw-in" style={{animationDelay:".2s"}}>Cinta Anda.<br />Keagungan adat.<br /><em>Satu cerita indah.</em></h1>
+            <p className="sw-in sw-hero-description" style={{animationDelay:".35s"}}>Merangkai pernikahan adat, kini lebih tenang. Dari vendor pilihan hingga prosesi penuh makna—Sewaka menemani setiap langkah menuju hari bahagia Anda.</p>
+            <div className="sw-in sw-hero-actions" style={{animationDelay:".5s"}}><Link href={REGISTER} className="sw-btn sw-primary-cta">Rencanakan Hari Bahagia <ArrowRight width={17} height={17} /></Link><a href="#fitur-preview" className="sw-secondary-cta" onClick={() => document.getElementById("sw-tab-0")?.focus({preventScroll:true})}><span aria-hidden="true">▷</span> Jelajahi Sewaka</a></div>
+            <div className="sw-in sw-hero-reassurance" style={{animationDelay:".65s"}}><span><Check width={13} height={13} />Mulai gratis</span><span><Check width={13} height={13} />Tanpa kartu kredit</span></div>
+            <div className="sw-in sw-heritage-signature" style={{animationDelay:".8s"}}><span className="sw-signature-mark" aria-hidden="true">✧</span><div><strong>Kemewahan Tradisi, Keabadian Cinta.</strong><p>Diciptakan untuk merayakan akar budaya Anda.</p></div></div>
+          </div>
+          <div id="fitur-preview" className="sw-hero-visual"><WeddingPreview /></div>
+        </div>
+        <div className="sw-hero-bottom"><span>BERAKAR PADA TRADISI</span><div><span>Jawa</span><i>✧</i><span>Sunda</span><i>✧</i><span>Minang</span></div><a href="#features">Temukan kemudahannya <span aria-hidden="true">↓</span></a></div>
       </section>
   );
 }
@@ -431,10 +450,10 @@ function FeaturesSection() {
                     "Budget meledak karena tidak ada tracking pengeluaran",
                     "Keluarga besar bingung dengan jadwal dan tugas masing-masing",
                   ].map((item) => (
-                    <li key={item} className="flex items-start gap-2 text-sm text-[#1C1917]/70">
-                      <span className="mt-0.5 text-[#b42318]">✗</span>
-                      {item}
-                    </li>
+                      <li key={item} className="flex items-start gap-2 text-sm text-[#1C1917]/70">
+                        <span className="mt-0.5 text-[#b42318]">✗</span>
+                        {item}
+                      </li>
                   ))}
                 </ul>
               </div>
@@ -452,10 +471,10 @@ function FeaturesSection() {
                     "Tracking budget real-time — tahu persis berapa yang tersisa",
                     "Setiap orang tahu tugasnya — tidak ada yang terlewat",
                   ].map((item) => (
-                    <li key={item} className="flex items-start gap-2 text-sm text-[#1C1917]/70">
-                      <span className="mt-0.5 text-[#D4AF37]">✓</span>
-                      {item}
-                    </li>
+                      <li key={item} className="flex items-start gap-2 text-sm text-[#1C1917]/70">
+                        <span className="mt-0.5 text-[#D4AF37]">✓</span>
+                        {item}
+                      </li>
                   ))}
                 </ul>
               </div>

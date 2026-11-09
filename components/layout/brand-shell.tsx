@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
-import { Flower2 } from "lucide-react";
+import { BrandLogo } from "@/components/ui/brand-logo";
 
 /**
  * Kerangka halaman bermerek satu kolom, latar Ivory Silk: logo di atas, konten di tengah.
@@ -63,15 +63,10 @@ export function BrandShell({ children }: { children: ReactNode }) {
           >
             <Link
               href="/dashboard"
-              className="flex items-center gap-2.5 rounded-xl outline-none focus-visible:ring-2 focus-visible:ring-[#a78c49]"
+              className="flex items-center rounded-xl outline-none focus-visible:ring-2 focus-visible:ring-[#a78c49]"
               aria-label="Sewaka, beranda"
             >
-              <span className="grid size-10 place-items-center rounded-full border border-[#d6bd70] text-[#b5973f]">
-                <Flower2 className="size-5" strokeWidth={1.6} />
-              </span>
-              <span className="font-serif text-2xl tracking-tight text-[#5b132b]">
-                sewaka<span className="text-[#c5a849]">.</span>
-              </span>
+              <BrandLogo className="h-10 w-auto" />
             </Link>
           </div>
 

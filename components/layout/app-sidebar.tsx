@@ -2,7 +2,6 @@
 
 import { useMemo } from "react";
 import {
-  Flower2,
   ChevronDown,
   LayoutDashboard,
   ListChecks,
@@ -36,6 +35,7 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Card } from "@/components/ui/card";
 import { signOutAction } from "@/lib/actions/auth-actions";
+import { BrandLogo } from "@/components/ui/brand-logo";
 
 export interface NavItem {
   label: string;
@@ -163,12 +163,7 @@ export function AppSidebar({
         href="/dashboard"
         aria-label="Sewaka, beranda"
       >
-        <span className="grid size-9 place-items-center rounded-full border border-[#d6bd70] text-[#b5973f]">
-          <Flower2 className="size-5" strokeWidth={1.6} />
-        </span>
-        <span className="font-serif text-[26px] tracking-tight text-primary">
-          sewaka<span className="text-[#c5a849]">.</span>
-        </span>
+        <BrandLogo className="h-9 w-auto" priority />
       </Link>
 
 
