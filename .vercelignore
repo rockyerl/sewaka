@@ -1,0 +1,19 @@
+# Local E2E build and test output (can exceed 1 GB)
+.next-e2e/
+playwright-report/
+test-results/
+playwright/.cache/
+
+# Local tooling state
+.idea/
+.junie/sessions/
+.junie/cache/
+.neon/
+
+# Build and typecheck artifacts
+.next/
+*.tsbuildinfo
+
+# Local environment files contain secrets; configure these in Vercel instead
+.env
+.env.*
