@@ -1,13 +1,13 @@
 "use server";
 
-import { eq, and, gte, lte, notInArray } from "drizzle-orm";
+import { eq, and, gte, lte } from "drizzle-orm";
 import { getDb } from "@/lib/db";
 import { whatsappMessages, guests, weddingWorkspaces } from "@/lib/db/schema";
 import { logger } from "@/lib/utils/logger";
 
 /**
  * Cron job action: Kirim reminder WhatsApp otomatis ke tamu yang belum RSVP.
- * Berjalan setiap jam via Vercel Cron.
+ * Berjalan sekali sehari via Vercel Cron.
  * - 7 hari sebelum wedding: Kirim reminder pertama
  * - 1 hari sebelum wedding: Kirim reminder terakhir
  */
@@ -19,13 +19,14 @@ export async function sendWeddingRemindersAction(): Promise<{
 }> {
   const now = new Date();
 
-  // Hitung rentang waktu untuk reminder 7 hari (7-6 hari dari sekarang)
+  // Cron harian dapat bergeser hingga sekitar satu jam; gunakan jendela 26 jam
+  // agar perubahan waktu eksekusi tidak membuat target terlewat.
   const date7dStart = new Date(now.getTime() + 6 * 24 * 60 * 60 * 1000);
-  const date7dEnd = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+  const date7dEnd = new Date(now.getTime() + (7 * 24 + 2) * 60 * 60 * 1000);
 
-  // Hitung rentang waktu untuk reminder 1 hari (1-0 hari dari sekarang)
+  // Reminder H-1: dari sekarang sampai 26 jam ke depan.
   const date1dStart = now;
-  const date1dEnd = new Date(now.getTime() + 1 * 24 * 60 * 60 * 1000);
+  const date1dEnd = new Date(now.getTime() + 26 * 60 * 60 * 1000);
 
   let reminder7d = 0;
   let reminder1d = 0;
@@ -151,8 +152,19 @@ export async function sendWeddingRemindersAction(): Promise<{
           )
         );
 
+      const remindedMessages = await db
+        .select({ guestId: whatsappMessages.guestId })
+        .from(whatsappMessages)
+        .where(
+          and(
+            eq(whatsappMessages.workspaceId, workspace.id),
+            eq(whatsappMessages.messageType, "REMINDER_1D")
+          )
+        );
+      const remindedGuestIds = new Set(remindedMessages.map((m) => m.guestId));
+
       for (const guest of pendingGuests) {
-        if (!guest.phone) continue;
+        if (!guest.phone || remindedGuestIds.has(guest.id)) continue;
 
         const guestInviteLink = `${baseUrl}/invitation/${workspace.invitationSlug}?to=${encodeURIComponent(guest.name)}`;
         const message = `Halo ${guest.name}! Besok adalah hari pernikahan ${coupleName}. Kami sangat menantikan kehadiran Anda. Mohon konfirmasi kehadiran Anda di ${guestInviteLink}. Terima kasih!`;

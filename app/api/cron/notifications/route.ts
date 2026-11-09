@@ -1,13 +1,15 @@
 import { NextResponse } from "next/server";
+import { connection } from "next/server";
 import { runNotificationScheduler } from "@/features/notifications/actions/notification-scheduler";
 import { logger } from "@/lib/utils/logger";
+import { authorizeCron } from "@/lib/utils/cron-auth";
 
 // Cron job endpoint for Vercel Cron
-// Runs every hour to check for task reminders, budget alerts, and event reminders
-// Auth is handled by Vercel Cron secret (CRON_SECRET env var)
+// Runs daily to check for task reminders, budget alerts, and event reminders
 export const instant = false;
 
-export async function GET() {
+export async function GET(request: Request) {
+  await connection();
   // Skip during build and development — cron only runs on Vercel production
   if (process.env.VERCEL === undefined) {
     return NextResponse.json({
@@ -16,6 +18,9 @@ export async function GET() {
       data: [],
     });
   }
+
+  const authError = authorizeCron(request);
+  if (authError) return authError;
 
   try {
     const result = await runNotificationScheduler();

@@ -1,13 +1,15 @@
 import { NextResponse } from "next/server";
+import { connection } from "next/server";
 import { sendWeddingRemindersAction } from "@/features/whatsapp-rsvp/actions/whatsapp-reminder-cron-action";
 import { logger } from "@/lib/utils/logger";
+import { authorizeCron } from "@/lib/utils/cron-auth";
 
 // Cron job endpoint untuk WhatsApp reminder otomatis
-// Berjalan setiap jam untuk cek wedding dalam 7 hari dan 1 hari
-// Auth di-handle oleh Vercel Cron secret (CRON_SECRET env var)
+// Berjalan setiap hari untuk cek wedding dalam 7 hari dan 1 hari
 export const instant = false;
 
-export async function GET() {
+export async function GET(request: Request) {
+  await connection();
   // Skip during build dan development — cron hanya jalan di Vercel production
   if (process.env.VERCEL === undefined) {
     return NextResponse.json({
@@ -16,6 +18,9 @@ export async function GET() {
       data: [],
     });
   }
+
+  const authError = authorizeCron(request);
+  if (authError) return authError;
 
   try {
     const result = await sendWeddingRemindersAction();

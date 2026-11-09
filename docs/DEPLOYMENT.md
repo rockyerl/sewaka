@@ -172,7 +172,7 @@ File `vercel.json` sudah dikonfigurasi:
   "crons": [
     {
       "path": "/api/cron/notifications",
-      "schedule": "0 * * * *"
+      "schedule": "0 0 * * *"
     }
   ]
 }

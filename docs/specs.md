@@ -370,7 +370,7 @@ Role admin diset via database: `UPDATE users SET role = 'admin' WHERE id = '...'
 
 | Route | Schedule | Deskripsi |
 |-------|----------|-----------|
-| `/api/cron/notifications` | Every hour | Task reminders, budget alerts, event reminders |
+| `/api/cron/notifications` | Daily | Task reminders, budget alerts, event reminders |
 
 ---
 
@@ -548,7 +548,7 @@ npm run test:auth     # Auth tests only
   "crons": [
     {
       "path": "/api/cron/notifications",
-      "schedule": "0 * * * *"
+      "schedule": "0 0 * * *"
     }
   ]
 }
