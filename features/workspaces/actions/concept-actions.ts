@@ -5,8 +5,8 @@ import { revalidatePath } from "next/cache";
 import { eq } from "drizzle-orm";
 import { z } from "zod";
 
-import { getDb } from "@/lib/db";
 import { weddingConcepts } from "@/lib/db/schema";
+import { withWorkspace } from "@/lib/db/with-workspace";
 
 export const updateWeddingConceptSchema = z.object({
   theme: z.string().max(100).optional(),
@@ -26,7 +26,9 @@ export async function updateWeddingConceptAction(
 
   const input = updateWeddingConceptSchema.parse(data);
 
-  await getDb().transaction(async (tx) => {
+  await withWorkspace(
+    { workspaceId, allowedRoles: ["OWNER", "PARTNER", "COORDINATOR"] },
+    async (tx) => {
     const existing = await tx
       .select()
       .from(weddingConcepts)
@@ -47,17 +49,18 @@ export async function updateWeddingConceptAction(
         ...input,
       });
     }
-  });
+    },
+  );
 
   revalidatePath("/workspaces");
 }
 
 export async function getWeddingConceptAction(workspaceId: string) {
-  const result = await getDb()
+  const result = await withWorkspace({ workspaceId }, (tx) => tx
     .select()
     .from(weddingConcepts)
     .where(eq(weddingConcepts.workspaceId, workspaceId))
-    .limit(1);
+    .limit(1));
 
   return result[0] ?? null;
 }

@@ -1,6 +1,5 @@
 import { getSystemSettings, updateSystemSettingAction } from "@/features/admin/actions/admin-feature-actions";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { FormTextarea } from "@/components/ui/form-field";
 import { SubmitOutline } from "@/components/ui/submit-button";
 import { Save } from "lucide-react";
 
@@ -53,13 +52,13 @@ export async function AdminSettingsPageContent() {
                       <span className="font-mono text-xs text-muted-foreground">{setting.key}</span>
                       <p className="text-[10px] text-muted-foreground">{setting.description}</p>
                     </div>
-                    <FormTextarea
-                      name="setting-value"
-                      label=""
-                      value=""
-                      onChange={() => {}}
+                    <label htmlFor={`setting-value-${setting.id}`} className="text-xs font-medium text-muted-foreground">Nilai konfigurasi</label>
+                    <textarea
+                      id={`setting-value-${setting.id}`}
+                      name="value"
+                      defaultValue={JSON.stringify(setting.value, null, 2)}
                       rows={3}
-                      className="font-mono text-sm"
+                      className="w-full rounded-xl border border-input bg-background px-3 py-2 font-mono text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#D4AF37]"
                     />
                     <SubmitOutline>
                       <Save className="size-3.5 mr-1" />

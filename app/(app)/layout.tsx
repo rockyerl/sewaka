@@ -21,7 +21,7 @@ export default function AppLayoutRoot({
 }) {
   return (
     <Suspense fallback={<AppLayoutLoading />}>
-      <AppLayoutPage children={children} searchParams={searchParams} />
+      <AppLayoutPage searchParams={searchParams}>{children}</AppLayoutPage>
     </Suspense>
   );
 }
@@ -34,7 +34,7 @@ async function AppLayoutPage({
   searchParams?: Promise<{ asUser?: string }>;
 }) {
   const { redirect } = await import("next/navigation");
-  const { auth } = await import("@/lib/actions/auth");
+  const { getCurrentUser } = await import("@/lib/auth-cache");
   const { getDb } = await import("@/lib/db");
   const { users } = await import("@/lib/db/schema");
   const { eq } = await import("drizzle-orm");
@@ -42,8 +42,7 @@ async function AppLayoutPage({
   const { listMyWorkspaces } = await import("@/features/workspaces/hooks/workspace-queries");
   const { listNotifications } = await import("@/features/notifications/hooks/notification-queries");
 
-  const session = await auth();
-  const sessionUser = session?.user;
+  const sessionUser = await getCurrentUser();
 
   if (!sessionUser?.id) {
     redirect("/auth/signin");

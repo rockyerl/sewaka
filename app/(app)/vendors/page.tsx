@@ -1,4 +1,5 @@
 import { VendorsPageContent } from "@/features/vendors/components/vendors-page-content";
+import { connection } from "next/server";
 
 export const instant = false;
 
@@ -7,6 +8,7 @@ export default async function VendorsPage({
 }: {
   searchParams?: Promise<{ workspaceId?: string; tab?: string }>;
 }) {
+  await connection();
   const { getCurrentWorkspace } = await import("@/lib/utils/workspace-cache");
   const resolvedSearchParams = await (searchParams ?? Promise.resolve({}));
   const workspaceIdFromQuery = typeof resolvedSearchParams === "object" && resolvedSearchParams !== null

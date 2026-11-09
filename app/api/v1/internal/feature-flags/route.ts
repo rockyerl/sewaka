@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getFeatureFlags } from "@/features/admin/actions/admin-feature-actions";
+import { getFeatureFlagValues } from "@/features/admin/actions/admin-feature-actions";
 
 export const instant = false;
 
@@ -11,7 +11,7 @@ export async function GET() {
     });
   }
   try {
-    const flags = await getFeatureFlags();
+    const flags = await getFeatureFlagValues();
     const flagsMap: Record<string, boolean> = {};
     for (const flag of flags) {
       flagsMap[flag.name] = flag.isEnabled;

@@ -5,6 +5,7 @@ import type { Metadata } from "next";
 import { getPublicInvitationBySlug } from "@/features/guests/hooks/guest-queries";
 import { PublicInvitationView } from "@/features/guests/components/public-invitation-view";
 
+
 interface PageProps {
   params: Promise<{ slug: string }>;
   searchParams?: Promise<{ to?: string }>;
@@ -29,11 +30,42 @@ export async function generateMetadata({ params, searchParams }: PageProps): Pro
       : workspace.name;
 
   const titlePrefix = data.isVip ? "⭐ Undangan VIP " : "";
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://sewaka.id";
+  
   return {
     title: guestName
       ? `${titlePrefix}Undangan Spesial untuk ${guestName} | Pernikahan ${couple} - Sewaka`
       : `${titlePrefix}Pernikahan ${couple} | Undangan Adat ${traditionInfo.name} - Sewaka`,
     description: `Undangan Pernikahan Keraton & Adat ${traditionInfo.name}: ${couple}. ${workspace.invitationQuote || traditionInfo.tagline}`,
+    alternates: {
+      canonical: `/invitation/${slug}`,
+    },
+    openGraph: {
+      title: guestName
+        ? `Undangan untuk ${guestName} | ${couple}`
+        : `Pernikahan ${couple}`,
+      description: `Undangan Pernikahan Adat ${traditionInfo.name}: ${couple}. ${workspace.invitationQuote || traditionInfo.tagline}`,
+      type: "website",
+      url: `/invitation/${slug}`,
+      siteName: "Sewaka",
+      locale: "id_ID",
+      images: [
+        {
+          url: `${baseUrl}/api/og/invitation/${slug}`,
+          width: 1200,
+          height: 630,
+          alt: `Undangan Pernikahan ${couple}`,
+        },
+      ],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: guestName
+        ? `Undangan untuk ${guestName} | ${couple}`
+        : `Pernikahan ${couple}`,
+      description: `Undangan Pernikahan Adat ${traditionInfo.name}: ${couple}`,
+      images: [`${baseUrl}/api/og/invitation/${slug}`],
+    },
     other: custom?.customFont
       ? { "google-fonts": custom.customFont }
       : undefined,
@@ -51,6 +83,11 @@ async function InvitationContent({ params, searchParams }: PageProps) {
   }
 
   const { workspace, events, publicWishes, traditionInfo, isVip, custom, customGalleryImages } = data;
+
+  const couple =
+    workspace.coupleOne && workspace.coupleTwo
+      ? `${workspace.coupleOne} & ${workspace.coupleTwo}`
+      : workspace.name;
 
   // Google Fonts preload for custom font
   const fontLink = custom?.customFont
@@ -77,6 +114,31 @@ async function InvitationContent({ params, searchParams }: PageProps) {
   return (
     <>
       {fontLink && <div dangerouslySetInnerHTML={{ __html: fontLink }} />}
+      
+      {/* JSON-LD Structured Data for Wedding Event */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "Event",
+            name: `Pernikahan ${couple}`,
+            description: workspace.invitationQuote || traditionInfo.tagline,
+            eventType: "Wedding",
+            startDate: workspace.weddingDate?.toISOString(),
+            location: {
+              "@type": "Place",
+              name: workspace.location || "Lokasi akan diumumkan",
+            },
+            organizer: {
+              "@type": "Organization",
+              name: "Sewaka",
+              url: "https://sewaka.id",
+            },
+          }),
+        }}
+      />
+      
       <PublicInvitationView
       workspace={workspace}
       events={events}

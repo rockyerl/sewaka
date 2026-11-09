@@ -35,7 +35,7 @@ export async function signInWithEmailAndPasswordAction(
   try {
     const headersList = await headers();
     const ip = headersList.get("x-forwarded-for")?.split(",")[0].trim() ?? "unknown";
-    const { isLimited, retryAfter } = rateLimit({
+    const { isLimited, retryAfter } = await rateLimit({
       key: `login:${ip}`,
       limit: 5,
       windowMs: 60_000,
@@ -120,7 +120,7 @@ export async function registerAction(
   try {
     const headersList = await headers();
     const ip = headersList.get("x-forwarded-for")?.split(",")[0].trim() ?? "unknown";
-    const { isLimited, retryAfter } = rateLimit({
+    const { isLimited, retryAfter } = await rateLimit({
       key: `register:${ip}`,
       limit: 3,
       windowMs: 3_600_000,

@@ -11,14 +11,7 @@ import NextLink from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { uploadCouplePhotoAction, updateInvitationCustomAction } from "@/features/invitation-custom/actions/invitation-custom-actions";
 import { getBlobUrl } from "@/lib/utils/blob-url";
-
-const THEMES = [
-  { value: "emas", label: "Emas Klasik", color: "#D4AF37", bg: "bg-[#D4AF37]/10 border-[#D4AF37]/40" },
-  { value: "burgundy", label: "Burgundy Elegan", color: "#5B132B", bg: "bg-[#5B132B]/10 border-[#5B132B]/40" },
-  { value: "sage", label: "Sage Natural", color: "#87A96B", bg: "bg-[#87A96B]/10 border-[#87A96B]/40" },
-  { value: "rose", label: "Rose Romantis", color: "#C4788A", bg: "bg-[#C4788A]/10 border-[#C4788A]/40" },
-  { value: "navy", label: "Navy Premium", color: "#2C3E50", bg: "bg-[#2C3E50]/10 border-[#2C3E50]/40" },
-];
+import { InvitationThemeGallery, INVITATION_THEMES } from "@/features/invitation-custom/components/invitation-theme-gallery";
 
 type GiftAccount = {
   id: string;
@@ -238,7 +231,7 @@ export function InvitationCustomPage({
     }
   }, [status.type]);
 
-  const currentTheme = THEMES.find(t => t.value === theme) || THEMES[0];
+  const currentTheme = INVITATION_THEMES.find(t => t.value === theme) || INVITATION_THEMES[0];
 
   return (
     <div className="space-y-6">
@@ -368,12 +361,12 @@ export function InvitationCustomPage({
                   <div
                     className="mt-2 aspect-[16/9] rounded-lg border-2"
                     style={{
-                      backgroundColor: `${currentTheme.color}15`,
-                      borderColor: `${currentTheme.color}60`,
+                      backgroundColor: `${currentTheme.colors.primary}15`,
+                      borderColor: `${currentTheme.colors.primary}60`,
                     }}
                   >
                     <div className="flex size-full items-center justify-center">
-                      <Sparkles className={`size-6`} style={{ color: currentTheme.color }} />
+                      <Sparkles className={`size-6`} style={{ color: currentTheme.colors.primary }} />
                     </div>
                   </div>
                 </div>
@@ -395,29 +388,9 @@ export function InvitationCustomPage({
           </div>
         </SectionCard>
 
-        {/* Theme */}
-        <SectionCard eyebrow="TEMA WARNA" title="Pilih Mood Undangan">
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-            {THEMES.map(t => (
-              <button
-                key={t.value}
-                type="button"
-                onClick={() => setTheme(t.value)}
-                className={`flex items-center gap-3 rounded-xl border-2 p-3 transition-all ${
-                  theme === t.value
-                    ? `${t.bg} shadow-sm`
-                    : "border-border/50 bg-muted/20 hover:border-border"
-                }`}
-              >
-                <span
-                  className="size-6 shrink-0 rounded-full border"
-                  style={{ backgroundColor: t.color }}
-                />
-                <span className="text-sm font-medium">{t.label}</span>
-                {theme === t.value && <CheckCircle2 className="ml-auto size-4 text-[#527553]" />}
-              </button>
-            ))}
-          </div>
+        {/* Theme Gallery */}
+        <SectionCard eyebrow="TEMA UNDANGAN" title="Pilih Tema Undangan">
+          <InvitationThemeGallery selectedTheme={theme} onThemeChange={setTheme} />
           <input type="hidden" name="theme" value={theme} />
         </SectionCard>
 

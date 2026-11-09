@@ -20,6 +20,7 @@ export default function robots(): MetadataRoute.Robots {
         "/gallery",
         "/contracts",
         "/encyclopedia",
+        "/cultural-workflow",
         "/timeline",
         "/wedding-day",
         "/subscription",

@@ -366,12 +366,12 @@ declare module "lucide-react" {
 
 declare module "date-fns" {
   interface FormatOptions {
-    locale?: any;
+    locale?: unknown;
   }
   interface WeekOptions {
     weekStartsOn?: 0 | 1 | 2 | 3 | 4 | 5 | 6;
   }
-  interface EachDayOfIntervalOptions extends WeekOptions {}
+  type EachDayOfIntervalOptions = WeekOptions;
   export function format(date: Date | string, format: string, options?: FormatOptions): string;
   export function differenceInDays(a: Date | string, b: Date | string): number;
   export function differenceInCalendarDays(a: Date | string, b: Date | string): number;
@@ -396,5 +396,5 @@ declare module "date-fns" {
 }
 
 declare module "date-fns/locale" {
-  export const id: any;
+  export const id: unknown;
 }

@@ -34,74 +34,84 @@ test("curated_vendors is publicly readable by sewaka_app", async () => {
 test("cultural_seserahan_items enforces workspace RLS isolation", async () => {
   const admin = new Client({ connectionString: process.env.MIGRATION_DATABASE_URL });
   await admin.connect();
+  let userA, userB, wsA;
+  let client;
 
-  // Create test workspace and user
-  const userA = (
+  try {
+    // Create test workspace and user
+    const uniqueTag = Date.now();
+    userA = (
+      await admin.query(
+        `INSERT INTO users (email, name) VALUES ('seserahan_a_${uniqueTag}@sewaka.test', 'User A') RETURNING id`
+      )
+    ).rows[0].id;
+    userB = (
+      await admin.query(
+        `INSERT INTO users (email, name) VALUES ('seserahan_b_${uniqueTag}@sewaka.test', 'User B') RETURNING id`
+      )
+    ).rows[0].id;
+
+    wsA = (
+      await admin.query(
+        "INSERT INTO wedding_workspaces (name, cultural_tradition) VALUES ('Pernikahan Adat A', 'JAWA') RETURNING id"
+      )
+    ).rows[0].id;
+
     await admin.query(
-      "INSERT INTO users (email, name) VALUES ('seserahan_a@sewaka.test', 'User A') RETURNING id"
-    )
-  ).rows[0].id;
-  const userB = (
-    await admin.query(
-      "INSERT INTO users (email, name) VALUES ('seserahan_b@sewaka.test', 'User B') RETURNING id"
-    )
-  ).rows[0].id;
+      "INSERT INTO workspace_members (workspace_id, user_id, role) VALUES ($1, $2, 'OWNER')",
+      [wsA, userA]
+    );
 
-  const wsA = (
-    await admin.query(
-      "INSERT INTO wedding_workspaces (name, cultural_tradition) VALUES ('Pernikahan Adat A', 'JAWA') RETURNING id"
-    )
-  ).rows[0].id;
+    // App client
+    client = new Client({ connectionString: process.env.DATABASE_URL });
+    await client.connect();
 
-  await admin.query(
-    "INSERT INTO workspace_members (workspace_id, user_id, role) VALUES ($1, $2, 'OWNER')",
-    [wsA, userA]
-  );
+    // User A creates seserahan item
+    await client.query("BEGIN");
+    await client.query("SET ROLE sewaka_app");
+    await client.query("SELECT set_config('app.workspace_id', $1, true)", [wsA]);
+    await client.query("SELECT set_config('app.user_id', $1, true)", [userA]);
 
-  await admin.end();
+    const insertRes = await client.query(
+      `INSERT INTO cultural_seserahan_items 
+       (workspace_id, box_number, title, category, estimated_cost, status) 
+       VALUES ($1, 1, 'Kain Batik Tulis Sido Asih', 'BUSANA_ADAT', 3500000, 'PLANNED') 
+       RETURNING id`,
+      [wsA]
+    );
+    const itemId = insertRes.rows[0].id;
+    assert.ok(itemId, "Item should be inserted");
+    await client.query("COMMIT");
+    await client.query("RESET ROLE");
 
-  // App client
-  const client = new Client({ connectionString: process.env.DATABASE_URL });
-  await client.connect();
+    // User B (outsider) attempts to read items in workspace A
+    await client.query("BEGIN");
+    await client.query("SET ROLE sewaka_app");
+    await client.query("SELECT set_config('app.workspace_id', $1, true)", [wsA]);
+    await client.query("SELECT set_config('app.user_id', $1, true)", [userB]);
 
-  // User A creates seserahan item
-  await client.query("BEGIN");
-  await client.query("SELECT set_config('app.workspace_id', $1, true)", [wsA]);
-  await client.query("SELECT set_config('app.user_id', $1, true)", [userA]);
-
-  const insertRes = await client.query(
-    `INSERT INTO cultural_seserahan_items 
-     (workspace_id, box_number, title, category, estimated_cost, status) 
-     VALUES ($1, 1, 'Kain Batik Tulis Sido Asih', 'BUSANA_ADAT', 3500000, 'PLANNED') 
-     RETURNING id`,
-    [wsA]
-  );
-  const itemId = insertRes.rows[0].id;
-  assert.ok(itemId, "Item should be inserted");
-  await client.query("COMMIT");
-
-  // User B (outsider) attempts to read items in workspace A
-  await client.query("BEGIN");
-  await client.query("SELECT set_config('app.workspace_id', $1, true)", [wsA]);
-  await client.query("SELECT set_config('app.user_id', $1, true)", [userB]);
-
-  const readRes = await client.query(
-    "SELECT * FROM cultural_seserahan_items WHERE workspace_id = $1",
-    [wsA]
-  );
-  assert.equal(
-    readRes.rows.length,
-    0,
-    "Outsider User B should not see seserahan items of Workspace A"
-  );
-  await client.query("COMMIT");
-
-  // Cleanup
-  const cleanup = new Client({ connectionString: process.env.MIGRATION_DATABASE_URL });
-  await cleanup.connect();
-  await cleanup.query("DELETE FROM wedding_workspaces WHERE id = $1", [wsA]);
-  await cleanup.query("DELETE FROM users WHERE id IN ($1, $2)", [userA, userB]);
-  await cleanup.end();
-
-  await client.end();
+    const readRes = await client.query(
+      "SELECT * FROM cultural_seserahan_items WHERE workspace_id = $1",
+      [wsA]
+    );
+    assert.equal(
+      readRes.rows.length,
+      0,
+      "Outsider User B should not see seserahan items of Workspace A"
+    );
+    await client.query("COMMIT");
+    await client.query("RESET ROLE");
+  } finally {
+    if (client) {
+      await client.query("RESET ROLE").catch(() => {});
+      await client.end().catch(() => {});
+    }
+    if (wsA) {
+      await admin.query("DELETE FROM wedding_workspaces WHERE id = $1", [wsA]).catch(() => {});
+    }
+    if (userA || userB) {
+      await admin.query("DELETE FROM users WHERE id IN ($1, $2)", [userA, userB]).catch(() => {});
+    }
+    await admin.end().catch(() => {});
+  }
 });

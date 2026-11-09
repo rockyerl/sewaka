@@ -400,7 +400,11 @@ RootLayout (app/layout.tsx)
 │  │  ├── VendorListView
 │  │  ├── VendorDetail (app/(app)/vendors/[id]/)
 │  │  ├── QuotationForm (client)
-│  │  └── VendorComparison (client)
+│  │  ├── VendorComparison (client)
+│  │  ├── CuratedVendorDirectory (client)
+│  │  │   ├── VendorInquiryDialog (client) — kirim inquiry ke vendor
+│  │  │   └── VendorReviewDialog (client) — rating 1-5 bintang
+│  │  └── VendorInquiryList (client) — inquiry history dengan status
 │  │
 │  ┌─ Guests (app/(app)/guests/)
 │  │  ├── GuestListView
@@ -425,6 +429,19 @@ RootLayout (app/layout.tsx)
 │  │  │   ├── Background Image URL
 │  │  │   └── Animations Toggle
 │  │  └── Server Actions: updateInvitationCustom, uploadCouplePhoto
+│  │
+│  ┌─ Nikah Berkas (app/(app)/nikah-berkas/)
+│  │  └── NikahBerkasPage (client)
+│  │      ├── Progress bar per jenis nikah
+│  │      ├── Checklist dokumen dengan checkbox
+│  │      └── File upload per dokumen
+│  │
+│  ┌─ Guest Thank You (app/(app)/guest-thank-you/)
+│  │  └── GuestThankYouPage (client)
+│  │      ├── Template editor dengan placeholder
+│  │      ├── Batch generate untuk semua tamu
+│  │      ├── WhatsApp link per tamu ("Buka WA")
+│  │      └── Status tracking (PENDING, SENT, FAILED)
 │  ┌─ Documents (app/(app)/documents/)
 │  │  ├── DocumentList
 │  │  └── DocumentUploadForm (client)
@@ -440,11 +457,53 @@ RootLayout (app/layout.tsx)
 │  ┌─ Cultural Features
 │  │  ├── Seserahan (app/(app)/seserahan/)
 │  │  ├── Encyclopedia (app/(app)/encyclopedia/)
+│  │  ├── Cultural Workflow (app/(app)/cultural-workflow/)
+│  │  │  └── CulturalWorkflowGenerator (client)
+│  │  │      ├── TraditionSelector — card picker 4 tradisi
+│  │  ├── Encyclopedia (app/(app)/encyclopedia/)
+│  │  │  └── CulturalEncyclopediaView (client)
+│  │  │      ├── CTA Banner — link ke Workflow Generator (conditional)
+│  │  │      └── ImportUbarampe — set source: 'ENCYCLOPEDIA'
+│  │  │      ├── WorkflowPreview — preview rundown, seserahan, checklist
+│  │  │      └── GenerateButton — trigger server action
 │  │  └── Rundown (app/(app)/wedding-day/)
 │  │
 │  ┌─ Events & Calendar
 │  │  ├── Events (app/(app)/events/)
 │  │  └── Timeline (app/(app)/timeline/)
+│  │
+│  ┌─ WhatsApp RSVP (app/(app)/whatsapp-rsvp/)
+│  │  └── WhatsAppRSVPDashboard (client)
+│  │      ├── StatsGrid — sent, delivered, read, failed counts
+│  │      ├── MessageHistory — filter by status dan type
+│  │      ├── ManualSend — kirim pesan ke tamu individual
+│  │      └── BulkSend — kirim ke banyak tamu (max 50/batch)
+│  │
+│  ┌─ Seating Planner (app/(app)/seating-planner/)
+│  │  └── SeatingPlannerPage (client)
+│  │      ├── TableCard — meja dengan capacity tracking
+│  │      ├── GuestPicker — assign tamu ke meja
+│  │      └── TableForm — CRUD meja
+│  │
+│  ┌─ Command Center (app/(app)/command-center/)
+│  │  └── CommandCenterPage (client)
+│  │      ├── TeamStatusGrid — monitor status kru
+│  │      ├── IncidentFeed — timeline insiden
+│  │      ├── TeamForm — CRUD kru dan vendor
+│  │      └── IncidentForm — laporkan insiden
+│  │
+│  ┌─ Analytics (app/(app)/analytics/)
+│  │  └── AnalyticsDashboard (client)
+│  │      ├── RSVP chart — progress bar Hadir/Tidak/Pending
+│  │      ├── Budget chart — per kategori
+│  │      ├── Attendance chart — 7 hari terakhir
+│  │      └── Vendor table — rekomendasi kurasi
+│  │
+│  ┌─ Check-in Logs (app/(app)/check-in-logs/)
+│  │  └── CheckInLogsView (client)
+│  │      ├── Audit log table dengan filter
+│  │      ├── Stats cards — total, synced, pending, failed
+│  │      └── Export CSV
 │  │
 │  ┌─ Subscription (app/(app)/subscription/)
 │  │  ├── SubscriptionPage (client)
@@ -578,6 +637,24 @@ RootLayout (app/layout.tsx)
 - Validasi harus di application layer (sanitasi input)
 - Migration dari struktur JSON perlu manual update
 
+### Why Cultural Workflow Generator?
+
+**Decision:** Auto-generate rundown, seserahan, dan checklist dari template tradisi — bukan manual input.
+
+**Reasons:**
+- **USP (Unique Selling Point)** — tidak ada kompetitor yang punya fitur ini
+- Data foundation sudah ada: `RUNDOWN_TEMPLATES`, `CHECKLIST_TEMPLATES`, `CULTURAL_ENCYCLOPEDIA`
+- User experience: pilih tradisi → 1 klik → semua komponen ter-generate
+- Idempotent: generate ulang aman, skip jika sudah ada data
+- Reduce onboarding time: user tidak perlu isi manual dari nol
+
+**Trade-offs:**
+- Template perlu maintenance saat tradisi baru ditambahkan
+- User yang ingin custom total perlu reset dulu baru generate ulang
+- Tasks yang di-generate punya `source` column untuk track: MANUAL, CULTURAL_WORKFLOW, ENCYCLOPEDIA
+- Reset workflow hanya hapus tasks dengan source 'CULTURAL_WORKFLOW', aman untuk tasks manual
+- CTA di Encyclopedia page dan Onboarding wizard mengarah ke Workflow Generator
+
 ### Why Pure CSS for Love Animation?
 
 **Decision:** Animasi floating hearts/confetti menggunakan CSS keyframes, bukan library eksternal.
@@ -591,6 +668,96 @@ RootLayout (app/layout.tsx)
 **Trade-offs:**
 - Limited complexity — tidak bisa animasi 3D atau particle system
 - Browser compatibility — CSS animations well-supported di modern browser
+
+### Why WhatsApp URL Scheme for RSVP?
+
+**Decision:** Gunakan WhatsApp URL scheme (`https://wa.me/`) untuk MVP, bukan WhatsApp Business API.
+
+**Reasons:**
+- No cost — WhatsApp Business API memerlukan verifikasi dan biaya per conversation
+- Simple implementation — tidak perlu webhook, template approval, atau phone number verification
+- Compatible — works on all devices dengan WhatsApp installed
+- Tracking — simpan message history di `whatsapp_messages` table untuk analytics
+
+**Trade-offs:**
+- No delivery/read receipt — tidak bisa track apakah pesan terkirim/dibaca secara otomatis
+- Manual send — user harus klik link untuk buka WA dan kirim manual
+- No automation — reminder harus manual trigger, belum ada cron job
+
+### Why Polling for Command Center?
+
+**Decision:** Gunakan polling setiap 30 detik untuk update status, bukan WebSocket.
+
+**Reasons:**
+- Simple implementation — tidak perlu WebSocket server atau infrastructure tambahan
+- Sufficient for MVP — update 30 detik cukup untuk koordinasi hari-H
+- No connection issues — polling lebih toleran terhadap network interruption
+
+**Trade-offs:**
+- Not real-time — delay hingga 30 detik untuk update status
+- Bandwidth waste — polling meskipun tidak ada perubahan data
+- Can upgrade to WebSocket later — jika needed untuk production scale
+
+### Why Upstash Redis for Rate Limiting?
+
+**Decision:** Gunakan Upstash Redis untuk distributed rate limiting, bukan in-memory atau self-hosted Redis.
+
+**Reasons:**
+- Serverless-native — HTTP API, tidak perlu TCP connection pool
+- Free tier — 10,000 commands/hour, cukup untuk MVP
+- Sliding window algorithm — lebih accurate daripada fixed window
+- Graceful fallback — jika Redis unavailable, fallback ke in-memory
+- Zero downtime — tidak block user jika Redis gagal
+
+**Trade-offs:**
+- HTTP latency — ~10-50ms per command vs TCP ~1ms
+- Dependency — tambahan external service dependency
+- Can upgrade to self-hosted Redis later — jika needed untuk production scale
+
+### Why Code Splitting for Invitation Components?
+
+**Decision:** Lazy load HeroCarousel, StoryTimeline, dan LoveAnimation dengan `React.lazy()` + `Suspense`.
+
+**Reasons:**
+- Bundle size reduction — komponen berat tidak di-load saat initial page load
+- Better LCP (Largest Contentful Paint) — browser fokus render hero section dulu
+- Progressive enhancement — konten muncul lebih cepat, animasi di-load setelahnya
+- Fallback UI — Suspense skeleton memberikan feedback visual saat loading
+
+**Trade-offs:**
+- Additional network request — setiap lazy component butuh separate fetch
+- Flash of skeleton — brief skeleton display sebelum component ready
+- Complexity — perlu handle error boundaries untuk failed loads
+
+### Why Next.js Image Component?
+
+**Decision:** Ganti semua `<img>` tag dengan Next.js `<Image>` component untuk optimization otomatis.
+
+**Reasons:**
+- Automatic optimization — resize, format (WebP/AVIF), dan compression otomatis
+- Lazy loading by default — images di bawah fold tidak di-load sampai scroll
+- No layout shift — `fill` + `sizes` attributes mencegah CLS (Cumulative Layout Shift)
+- CDN caching — optimized images di-cache di Vercel Edge Network
+
+**Trade-offs:**
+- Remote patterns config — perlu whitelist hostname di `next.config.ts`
+- Build time — optimization terjadi saat build untuk static images
+- Not for data URLs — QR codes tetap pakai `<img>` karena data URL
+
+### Why Dynamic OG Images?
+
+**Decision:** Generate Open Graph images secara dynamic menggunakan `ImageResponse` dari Next.js OG.
+
+**Reasons:**
+- Personalized sharing — setiap undangan punya OG image unik dengan nama couple
+- SEO boost — social media preview meningkatkan click-through rate
+- Edge runtime — generate cepat (~100ms) tanpa server overhead
+- Consistent branding — template terstandarisasi dengan warna dan font Sewaka
+
+**Trade-offs:**
+- Edge function limit — OG image generation punya timeout ~10 detik
+- Font support — hanya system fonts atau fonts yang di-embed di edge
+- Fallback needed — jika generation gagal, OG image tidak muncul
 
 ---
 
@@ -797,7 +964,7 @@ Deploy to Production
 |-----------|---------|--------|
 | Database | Single PostgreSQL | Read replicas, connection pooling (PgBouncer) |
 | Storage | Vercel Blob | Multi-region replication |
-| Caching | Next.js cache | Redis for session cache |
+| Caching | Next.js cache | Redis for session cache & rate limiting |
 | Queue | None | BullMQ for background jobs |
 | Search | PostgreSQL full-text | Elasticsearch / Meilisearch |
 
@@ -856,3 +1023,20 @@ export function Component() {
 | **Hero Carousel** | Slider multiple foto couple di hero section dengan auto-slide |
 | **Bulk WhatsApp** | Fitur kirim undangan massal via WhatsApp (max 50/batch) |
 | **Love Animation** | Animasi floating hearts CSS saat scroll, toggleable via admin |
+| **Cultural Workflow Generator** | Fitur auto-generate rundown, seserahan, dan checklist dari template tradisi — USP utama Sewaka |
+| **Offline Check-in Queue** | LocalStorage queue untuk check-in tamu saat offline, auto-sync saat online kembali |
+| **Check-in Audit Log** | Tabel `check_in_logs` untuk track semua check-in (online/offline/sync/conflict) |
+| **WhatsApp RSVP** | Sistem tracking WhatsApp messages dengan template personalisasi dan reminder otomatis |
+| **Seating Planner** | Seat assignment dan meja management untuk wedding reception |
+| **Command Center** | Koordinasi hari-H real-time: monitor status kru dan track insiden |
+| **Public RLS Policy** | RLS policy untuk endpoint publik (check-in, RSVP) yang tidak memerlukan `app.workspace_id` context |
+| **Redis Rate Limiting** | Distributed rate limiting menggunakan Upstash Redis dengan sliding window algorithm dan graceful fallback |
+| **Task Source Tracking** | Kolom `source` di tasks table untuk track asal tugas: MANUAL, CULTURAL_WORKFLOW, ENCYCLOPEDIA |
+| **Encyclopedia CTA** | Banner di Ensiklopedia Adat yang mengarah ke Workflow Generator, muncul hanya jika workflow belum di-generate |
+| **WhatsApp Reminder Cron** | Cron job otomatis kirim reminder WhatsApp 7 hari dan 1 hari sebelum wedding |
+| **Check-in Audit Logs UI** | Admin dashboard untuk monitor audit logs check-in dengan filter dan export CSV |
+| **Dashboard Analytics** | Insight visual RSVP, budget, attendance, dan vendor recommendation |
+| **Berkas Nikah** | Modul dokumen administratif pernikahan Indonesia dengan checklist adaptif per jenis nikah (SIPIL, AGAMA, KUA) |
+| **Vendor Inquiry** | Sistem kirim inquiry ke vendor via Email, Telepon, atau WhatsApp dengan rate limiting |
+| **Vendor Review** | Rating 1-5 bintang dan review text untuk vendor, satu per workspace per vendor |
+| **Guest Thank You** | Otomatis kirim ucapan terima kasih ke tamu setelah wedding dengan template personal |

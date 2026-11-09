@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Image from "next/image";
 import { getBlobUrl } from "@/lib/utils/blob-url";
 
 interface HeroCarouselProps {
@@ -30,15 +31,22 @@ export function HeroCarousel({ photoUrls, singlePhotoUrl }: HeroCarouselProps) {
   return (
     <div className="absolute inset-0 overflow-hidden">
       {allPhotos.map((url, idx) => (
-        <img
+        <div
           key={idx}
-          src={getBlobUrl(url)}
-          alt={`Hero photo ${idx + 1}`}
-          className={`absolute inset-0 size-full object-cover transition-opacity duration-1000 ${
+          className={`absolute inset-0 transition-opacity duration-1000 ${
             idx === currentIndex ? "opacity-100" : "opacity-0"
           }`}
-          loading={idx === 0 ? "eager" : "lazy"}
-        />
+        >
+          <Image
+            src={getBlobUrl(url)}
+            alt={`Hero photo ${idx + 1}`}
+            fill
+            sizes="(max-width: 768px) 100vw, 66vw"
+            className="object-cover"
+            loading={idx === 0 ? "eager" : "lazy"}
+            priority={idx === 0}
+          />
+        </div>
       ))}
       <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/20 to-black/60" />
 

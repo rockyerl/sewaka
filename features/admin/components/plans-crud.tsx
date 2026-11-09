@@ -24,6 +24,7 @@ import {
   deletePlanAction,
 } from "@/features/admin/actions/admin-actions";
 import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 
 interface Plan {
   id: string;
@@ -380,14 +381,13 @@ function PlanCard({
 }
 
 export function PlansCRUD({ plans }: { plans: Plan[] }) {
+  const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [createOpen, setCreateOpen] = useState(false);
   const [editPlan, setEditPlan] = useState<Plan | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
   const [form, setForm] = useState<PlanForm>(emptyForm);
-  const [refreshKey, setRefreshKey] = useState(0);
-
-  const triggerRefresh = () => setRefreshKey((k) => k + 1);
+  const triggerRefresh = () => router.refresh();
 
   const openCreate = () => {
     setForm(emptyForm);
@@ -406,11 +406,15 @@ export function PlansCRUD({ plans }: { plans: Plan[] }) {
     }
 
     startTransition(async () => {
-      const fd = formToValues(form);
-      await createPlanAction(fd);
-      toast.success(`Paket "${form.name}" berhasil dibuat`);
-      setCreateOpen(false);
-      triggerRefresh();
+      try {
+        const fd = formToValues(form);
+        await createPlanAction(fd);
+        toast.success(`Paket "${form.name}" berhasil dibuat`);
+        setCreateOpen(false);
+        triggerRefresh();
+      } catch {
+        toast.error("Paket gagal dibuat. Periksa kembali nilai yang dimasukkan.");
+      }
     });
   };
 
@@ -421,11 +425,15 @@ export function PlansCRUD({ plans }: { plans: Plan[] }) {
     }
 
     startTransition(async () => {
-      const fd = formToValues(form);
-      await updatePlanAction(editPlan.id, fd);
-      toast.success(`Paket "${form.name}" berhasil diperbarui`);
-      setEditPlan(null);
-      triggerRefresh();
+      try {
+        const fd = formToValues(form);
+        await updatePlanAction(editPlan.id, fd);
+        toast.success(`Paket "${form.name}" berhasil diperbarui`);
+        setEditPlan(null);
+        triggerRefresh();
+      } catch {
+        toast.error("Paket gagal diperbarui. Periksa kembali nilai yang dimasukkan.");
+      }
     });
   };
 
@@ -433,10 +441,14 @@ export function PlansCRUD({ plans }: { plans: Plan[] }) {
     if (!deleteConfirm) return;
 
     startTransition(async () => {
-      await deletePlanAction(deleteConfirm);
-      toast.success("Paket berhasil dihapus");
-      setDeleteConfirm(null);
-      triggerRefresh();
+      try {
+        await deletePlanAction(deleteConfirm);
+        toast.success("Paket berhasil dihapus");
+        setDeleteConfirm(null);
+        triggerRefresh();
+      } catch {
+        toast.error("Paket tidak dapat dihapus selama masih dipakai langganan.");
+      }
     });
   };
 
@@ -454,7 +466,7 @@ export function PlansCRUD({ plans }: { plans: Plan[] }) {
       </div>
 
       {/* Plan Cards */}
-      <div key={refreshKey} className="grid gap-4 lg:grid-cols-2">
+      <div className="grid gap-4 lg:grid-cols-2">
         {plans.map((plan) => (
           <PlanCard
             key={plan.id}

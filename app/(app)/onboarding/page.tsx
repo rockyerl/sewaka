@@ -1,9 +1,9 @@
-import { auth } from "@/lib/actions/auth";
+import { getCurrentUser } from "@/lib/auth-cache";
 import { OnboardingWizard } from "@/features/workspaces/components/onboarding-wizard";
 
 export default async function OnboardingPage() {
   const { getAllWorkspaces } = await import("@/lib/utils/workspace-cache");
-  const session = await auth();
+  await getCurrentUser();
   const workspaces = await getAllWorkspaces();
 
   // Find workspace that needs onboarding (no couple names set)

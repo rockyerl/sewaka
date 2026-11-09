@@ -4,7 +4,7 @@ import { rateLimit, getIpFromRequest } from "@/lib/utils/rate-limit";
 
 export async function POST(request: NextRequest) {
   const ip = getIpFromRequest(request);
-  const { isLimited, retryAfter } = rateLimit({
+  const { isLimited, retryAfter } = await rateLimit({
     key: `checkout:${ip}`,
     limit: 5,
     windowMs: 60_000,

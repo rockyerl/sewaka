@@ -1,9 +1,9 @@
 "use server";
 
 import { eq } from "drizzle-orm";
-import { getDb } from "@/lib/db";
 import { documents } from "@/lib/db/schema";
 import { auth } from "@/lib/actions/auth";
+import { withWorkspace } from "@/lib/db/with-workspace";
 import { revalidatePath } from "next/cache";
 import { uploadFile, deleteFile } from "@/lib/utils/storage";
 import { checkStorageLimit, SubscriptionLimitError } from "@/lib/utils/subscription-check";
@@ -46,7 +46,12 @@ export async function uploadDocumentAction(
     return { error: "Ukuran file maksimal 50MB." };
   }
 
+  let uploadedFileUrl: string | undefined;
   try {
+    await withWorkspace(
+      { workspaceId, allowedRoles: ["OWNER", "PARTNER", "COORDINATOR"] },
+      async () => undefined,
+    );
     // Check subscription storage limit
     await checkStorageLimit(workspaceId, file.size);
 
@@ -54,12 +59,12 @@ export async function uploadDocumentAction(
     const uploadResult = await uploadFile(file, {
       pathname: `documents/${workspaceId}/${Date.now()}-${file.name.replace(/[^a-zA-Z0-9._-]/g, "")}`,
     });
+    uploadedFileUrl = uploadResult.url;
 
     // Save to database
-    const db = getDb();
-    const [doc] = await db
-      .insert(documents)
-      .values({
+    await withWorkspace(
+      { workspaceId, allowedRoles: ["OWNER", "PARTNER", "COORDINATOR"] },
+      (tx) => tx.insert(documents).values({
         workspaceId,
         name,
         category,
@@ -67,17 +72,18 @@ export async function uploadDocumentAction(
         fileSize: file.size,
         mimeType: file.type,
         uploadedById: session.user.id,
-      })
-      .returning();
+      }),
+    );
 
     revalidatePath("/documents");
     return { success: true, fileUrl: uploadResult.url };
-  } catch (error: any) {
+  } catch (error: unknown) {
+    if (uploadedFileUrl) await deleteFile(uploadedFileUrl).catch(() => undefined);
     if (error instanceof SubscriptionLimitError) {
       return { error: error.message };
     }
     return {
-      error: error?.message || "Gagal mengupload file.",
+      error: error instanceof Error ? error.message : "Gagal mengupload file.",
     };
   }
 }
@@ -91,13 +97,17 @@ export async function deleteDocumentAction(workspaceId: string, documentId: stri
     throw new Error("Unauthorized");
   }
 
-  const db = getDb();
-
-  const [doc] = await db
-    .select()
-    .from(documents)
-    .where(eq(documents.id, documentId))
-    .limit(1);
+  const [doc] = await withWorkspace(
+    { workspaceId, allowedRoles: ["OWNER", "PARTNER", "COORDINATOR"] },
+    async (tx) => {
+      const [row] = await tx.select().from(documents).where(
+        eq(documents.id, documentId),
+      ).limit(1);
+      if (row?.workspaceId !== workspaceId) return [undefined] as const;
+      if (row) await tx.delete(documents).where(eq(documents.id, documentId));
+      return [row] as const;
+    },
+  );
 
   if (!doc) {
     throw new Error("Document not found");
@@ -107,9 +117,6 @@ export async function deleteDocumentAction(workspaceId: string, documentId: stri
   if (doc.filePath) {
     await deleteFile(doc.filePath);
   }
-
-  // Delete from database
-  await db.delete(documents).where(eq(documents.id, documentId));
 
   revalidatePath("/documents");
 }

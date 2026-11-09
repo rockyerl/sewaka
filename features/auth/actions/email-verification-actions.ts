@@ -23,7 +23,7 @@ export async function sendEmailVerificationAction(email: string): Promise<AuthAc
   try {
     const headersList = await headers();
     const ip = headersList.get("x-forwarded-for")?.split(",")[0].trim() ?? "unknown";
-    const { isLimited, retryAfter } = rateLimit({
+    const { isLimited, retryAfter } = await rateLimit({
       key: `verify_email:${ip}`,
       limit: 3,
       windowMs: 3_600_000,

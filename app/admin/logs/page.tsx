@@ -1,3 +1,4 @@
+import { connection } from "next/server";
 import { AdminLogsPageContent } from "@/features/admin/components/admin-logs-page-content";
 
 export default async function AdminLogsPage({
@@ -5,6 +6,7 @@ export default async function AdminLogsPage({
 }: {
   searchParams?: Promise<{ page?: string }>;
 }) {
+  await connection();
   const resolved = await (searchParams ?? Promise.resolve({}));
   const page = Number((typeof resolved === "object" && resolved !== null ? (resolved as { page?: string }).page : undefined) ?? 1);
 

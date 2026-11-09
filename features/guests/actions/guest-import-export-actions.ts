@@ -1,8 +1,8 @@
 "use server";
 
-import { eq, and, sql, count } from "drizzle-orm";
-import { getDb } from "@/lib/db";
+import { eq } from "drizzle-orm";
 import { guests } from "@/lib/db/schema";
+import { withWorkspace } from "@/lib/db/with-workspace";
 import { auth } from "@/lib/actions/auth";
 import { revalidatePath } from "next/cache";
 import { stripHtml } from "@/lib/utils/sanitization";
@@ -28,9 +28,9 @@ export async function importGuestsAction(
     if (err instanceof SubscriptionLimitError) {
       return { success: false, imported: 0, errors: [err.message] };
     }
+    throw err;
   }
 
-  const db = getDb();
   const errors: string[] = [];
   let imported = 0;
 
@@ -91,6 +91,7 @@ export async function importGuestsAction(
         if (err instanceof SubscriptionLimitError) {
           return { success: false, imported, errors: [err.message] };
         }
+        throw err;
       }
 
       const columns = parseCsvLine(dataLines[i]);
@@ -113,14 +114,17 @@ export async function importGuestsAction(
       }
 
       try {
-        await db.insert(guests).values({
-          workspaceId,
-          name,
-          email: email || null,
-          phone: phone || null,
-          category: category || null,
-          side: side || null,
-        });
+        await withWorkspace(
+          { workspaceId, allowedRoles: ["OWNER", "PARTNER", "COORDINATOR"] },
+          (tx) => tx.insert(guests).values({
+            workspaceId,
+            name,
+            email: email || null,
+            phone: phone || null,
+            category: category || null,
+            side: side || null,
+          }),
+        );
         imported++;
       } catch (error: any) {
         errors.push(`Baris ${i + 2}: ${error?.message || "Gagal menyimpan"}`);
@@ -143,12 +147,9 @@ export async function exportGuestsAction(workspaceId: string): Promise<string> {
     throw new Error("Unauthorized");
   }
 
-  const db = getDb();
-
-  const allGuests = await db
-    .select()
-    .from(guests)
-    .where(eq(guests.workspaceId, workspaceId));
+  const allGuests = await withWorkspace({ workspaceId }, (tx) =>
+    tx.select().from(guests).where(eq(guests.workspaceId, workspaceId)),
+  );
 
   // Generate CSV with semicolon delimiter for Excel compatibility (Indonesia/Europe)
   const header = "Nama;Email;Telepon;Kategori;Pihak Mempelai;RSVP;Plus Ones";

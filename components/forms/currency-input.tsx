@@ -27,15 +27,13 @@ export function CurrencyInput({
   const hiddenRef = useRef<HTMLInputElement>(null);
   // Internal state untuk mengelola nilai yang diketik user
   const [internalRaw, setInternalRaw] = useState(() => parseInputNumber(String(value)));
+  const [prevPropValue, setPrevPropValue] = useState(value);
 
   // Sinkronkan internal state saat value prop berubah dari parent (untuk edit case)
-  useEffect(() => {
-    const newRaw = parseInputNumber(String(value));
-    setInternalRaw(newRaw);
-    if (hiddenRef.current) {
-      hiddenRef.current.value = String(newRaw);
-    }
-  }, [value]);
+  if (value !== prevPropValue) {
+    setPrevPropValue(value);
+    setInternalRaw(parseInputNumber(String(value)));
+  }
 
   const formattedValue = formatInputNumber(internalRaw);
 

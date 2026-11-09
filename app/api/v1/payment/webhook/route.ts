@@ -5,7 +5,7 @@ import { logger } from "@/lib/utils/logger";
 
 export async function POST(request: NextRequest) {
   const ip = getIpFromRequest(request);
-  const { isLimited, retryAfter } = rateLimit({
+  const { isLimited, retryAfter } = await rateLimit({
     key: `webhook:${ip}`,
     limit: 30,
     windowMs: 60_000,

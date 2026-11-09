@@ -1,14 +1,15 @@
 "use server";
 
-import { eq } from "drizzle-orm";
-import { getDb } from "@/lib/db";
-import { guests } from "@/lib/db/schema";
+import { and, eq } from "drizzle-orm";
+import { guests, checkInLogs } from "@/lib/db/schema";
 import { auth } from "@/lib/actions/auth";
+import { withWorkspace } from "@/lib/db/with-workspace";
 import { revalidatePath } from "next/cache";
 import { requireFeature, SubscriptionLimitError } from "@/lib/utils/subscription-check";
 
 /**
  * Check in guest by invitation code (GST-08)
+ * Idempotent: returns success if already checked in.
  */
 export async function checkInGuestAction(
   prevState: { success?: boolean; error?: string } | FormData | undefined,
@@ -25,45 +26,59 @@ export async function checkInGuestAction(
     return { error: "Data form tidak ditemukan." };
   }
 
-  const invitationCode = formData.get("invitationCode") as string;
-  const workspaceId = formData.get("workspaceId") as string;
+  const invitationCode = String(formData.get("invitationCode") ?? "").trim();
+  const workspaceId = String(formData.get("workspaceId") ?? "");
 
   if (!invitationCode || !workspaceId) {
     return { error: "Kode undangan diperlukan." };
   }
 
+  const session = await auth();
+  if (!session?.user?.id) return { error: "Silakan masuk terlebih dahulu." };
+
   try {
-    const db = getDb();
+    const result = await withWorkspace(
+      { workspaceId, allowedRoles: ["OWNER", "PARTNER", "COORDINATOR"] },
+      async (tx) => {
+        const [guest] = await tx.select().from(guests).where(and(
+          eq(guests.workspaceId, workspaceId),
+          eq(guests.invitationCode, invitationCode),
+        )).limit(1);
+        if (!guest) return { error: "Kode undangan tidak ditemukan." };
+        if (guest.checkedIn) return { success: true };
 
-    const [guest] = await db
-      .select()
-      .from(guests)
-      .where(eq(guests.invitationCode, invitationCode))
-      .limit(1);
+        const checkedInAt = new Date();
+        const [updated] = await tx.update(guests).set({
+          checkedIn: true,
+          checkedInAt,
+          checkedInBy: session.user.name || session.user.id,
+          checkedInDevice: "admin-panel",
+          rsvpStatus: "ACCEPTED",
+        }).where(and(
+          eq(guests.id, guest.id),
+          eq(guests.workspaceId, workspaceId),
+          eq(guests.checkedIn, false),
+        )).returning({ id: guests.id });
 
-    if (!guest) {
-      return { error: "Kode undangan tidak ditemukan." };
-    }
-
-    if (guest.checkedIn) {
-      return { error: "Tamu sudah check-in." };
-    }
-
-    await db
-      .update(guests)
-      .set({
-        checkedIn: true,
-        checkedInAt: new Date(),
-        rsvpStatus: "ACCEPTED",
-      })
-      .where(eq(guests.id, guest.id));
-
-    revalidatePath("/guests");
-    return { success: true };
-  } catch (error: any) {
-    return {
-      error: error?.message || "Gagal check-in tamu.",
-    };
+        if (!updated) return { success: true };
+        await tx.insert(checkInLogs).values({
+          guestId: guest.id,
+          workspaceId,
+          action: "CHECK_IN",
+          performedBy: session.user.name || session.user.id,
+          deviceInfo: "admin-panel",
+          invitationCode,
+          checkedInAt,
+          syncStatus: "SYNCED",
+          metadata: { guestName: guest.name },
+        });
+        return { success: true };
+      },
+    );
+    if (result.success) revalidatePath("/guests");
+    return result;
+  } catch (error: unknown) {
+    return { error: error instanceof Error ? error.message : "Gagal check-in tamu." };
   }
 }
 
@@ -84,15 +99,15 @@ export async function generateGuestQRCode(workspaceId: string, guestId: string):
     if (err instanceof SubscriptionLimitError) {
       throw err;
     }
+    throw err;
   }
 
-  const db = getDb();
-
-  const [guest] = await db
-    .select()
-    .from(guests)
-    .where(eq(guests.id, guestId))
-    .limit(1);
+  const [guest] = await withWorkspace(
+    { workspaceId, allowedRoles: ["OWNER", "PARTNER", "COORDINATOR"] },
+    (db) => db.select().from(guests).where(
+      and(eq(guests.id, guestId), eq(guests.workspaceId, workspaceId)),
+    ).limit(1),
+  );
 
   if (!guest) {
     throw new Error("Guest not found");

@@ -10,6 +10,8 @@ import {
   Search,
   Sparkles,
   Star,
+  MessageSquare,
+  Pencil,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -18,7 +20,10 @@ import { FilterPills } from "@/components/ui/filter-pills";
 import { showToast } from "@/components/ui/toast";
 
 import { bookmarkCuratedVendorAction } from "../actions/curated-vendor-actions";
+import { hasReviewedVendorAction } from "../actions/vendor-inquiry-actions";
 import type { CuratedVendor } from "../actions/curated-vendor-schema";
+import { VendorInquiryDialog } from "./vendor-inquiry-dialog";
+import { VendorReviewDialog } from "./vendor-review-dialog";
 
 interface CuratedVendorDirectoryProps {
   workspaceId: string;
@@ -36,6 +41,34 @@ export function CuratedVendorDirectory({
   const [search, setSearch] = useState<string>("");
   const [isPending, startTransition] = useTransition();
   const [savedIds, setSavedIds] = useState<Set<string>>(new Set());
+  
+  // Dialog state
+  const [showInquiryDialog, setShowInquiryDialog] = useState(false);
+  const [showReviewDialog, setShowReviewDialog] = useState(false);
+  const [selectedVendor, setSelectedVendor] = useState<{ id: string; name: string } | null>(null);
+  const [reviewedVendors, setReviewedVendors] = useState<Set<string>>(new Set());
+  
+  const openInquiry = async (vendor: CuratedVendor) => {
+    setSelectedVendor({ id: vendor.id, name: vendor.name });
+    setShowInquiryDialog(true);
+  };
+  
+  const openReview = async (vendor: CuratedVendor) => {
+    // Check if already reviewed
+    const hasReviewed = await hasReviewedVendorAction(workspaceId, vendor.id);
+    if (hasReviewed) {
+      showToast("Anda sudah memberikan review untuk vendor ini.", "warning");
+      return;
+    }
+    setSelectedVendor({ id: vendor.id, name: vendor.name });
+    setShowReviewDialog(true);
+  };
+  
+  const closeDialogs = () => {
+    setShowInquiryDialog(false);
+    setShowReviewDialog(false);
+    setSelectedVendor(null);
+  };
 
   const isAlreadySaved = (vendorName: string, id: string) => {
     return savedIds.has(id) || savedVendorNames.includes(vendorName.toLowerCase());
@@ -226,35 +259,61 @@ export function CuratedVendorDirectory({
                 </div>
 
                 {/* Actions */}
-                <div className="mt-5 flex items-center gap-2 pt-3 border-t border-border/60">
-                  <a
-                    href={`https://wa.me/${vendor.whatsappNumber}?text=${waText}`}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-xl border border-emerald-600 bg-emerald-50 px-3 py-2 text-xs font-medium text-emerald-800 hover:bg-emerald-100 transition-colors"
-                  >
-                    <MessageCircle className="size-3.5 text-emerald-600" />
-                    <span>Chat WhatsApp</span>
-                  </a>
+                <div className="mt-5 flex flex-col gap-2 pt-3 border-t border-border/60">
+                  <div className="flex items-center gap-2">
+                    <a
+                      href={`https://wa.me/${vendor.whatsappNumber}?text=${waText}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-xl border border-emerald-600 bg-emerald-50 px-3 py-2 text-xs font-medium text-emerald-800 hover:bg-emerald-100 transition-colors"
+                    >
+                      <MessageCircle className="size-3.5 text-emerald-600" />
+                      <span>Chat WhatsApp</span>
+                    </a>
 
-                  {saved ? (
-                    <span className="inline-flex items-center gap-1 rounded-xl bg-muted px-3 py-2 text-xs font-medium text-muted-foreground">
-                      <BookmarkCheck className="size-3.5 text-emerald-600" />
-                      <span>Tersimpan</span>
-                    </span>
-                  ) : (
                     <Button
                       type="button"
                       variant="outline"
                       size="sm"
-                      disabled={isPending}
-                      onClick={() => handleBookmark(vendor)}
-                      className="rounded-xl border-[#D4AF37] text-xs font-medium text-[#5B132B] hover:bg-[#FAF5EC]"
+                      onClick={() => openInquiry(vendor)}
+                      className="rounded-xl border-[#5B132B] text-xs font-medium text-[#5B132B] hover:bg-[#FAF5EC]"
                     >
-                      <BookmarkPlus className="size-3.5 mr-1 text-[#D4AF37]" />
-                      Simpan ke Vendor Saya
+                      <MessageSquare className="size-3.5 mr-1" />
+                      Kirim Inquiry
                     </Button>
-                  )}
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    {saved ? (
+                      <span className="inline-flex items-center gap-1 rounded-xl bg-muted px-3 py-2 text-xs font-medium text-muted-foreground">
+                        <BookmarkCheck className="size-3.5 text-emerald-600" />
+                        <span>Tersimpan</span>
+                      </span>
+                    ) : (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        disabled={isPending}
+                        onClick={() => handleBookmark(vendor)}
+                        className="flex-1 rounded-xl border-[#D4AF37] text-xs font-medium text-[#5B132B] hover:bg-[#FAF5EC]"
+                      >
+                        <BookmarkPlus className="size-3.5 mr-1 text-[#D4AF37]" />
+                        Simpan ke Vendor Saya
+                      </Button>
+                    )}
+
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => openReview(vendor)}
+                      className="rounded-xl border-amber-500 text-xs font-medium text-amber-700 hover:bg-amber-50"
+                    >
+                      <Pencil className="size-3.5 mr-1" />
+                      Review
+                    </Button>
+                  </div>
                 </div>
               </Card>
             );
@@ -266,6 +325,26 @@ export function CuratedVendorDirectory({
             Tidak ditemukan vendor adat untuk kriteria pencarian ini.
           </p>
         </Card>
+      )}
+
+      {/* Inquiry Dialog */}
+      {showInquiryDialog && selectedVendor && (
+        <VendorInquiryDialog
+          workspaceId={workspaceId}
+          vendorId={selectedVendor.id}
+          vendorName={selectedVendor.name}
+          onClose={closeDialogs}
+        />
+      )}
+
+      {/* Review Dialog */}
+      {showReviewDialog && selectedVendor && (
+        <VendorReviewDialog
+          workspaceId={workspaceId}
+          vendorId={selectedVendor.id}
+          vendorName={selectedVendor.name}
+          onClose={closeDialogs}
+        />
       )}
     </div>
   );

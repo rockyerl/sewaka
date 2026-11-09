@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, ArrowRight, Check, Heart, CalendarDays, MapPin, Users, Flower2, Sparkles } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, Heart, CalendarDays, MapPin, Users, Flower2, Sparkles, Wand2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -298,6 +298,19 @@ export function OnboardingWizard({ workspaceId }: { workspaceId: string }) {
                   </p>
                 </div>
               </div>
+
+              {/* CTA - Generate Workflow Adat */}
+              <a
+                href="/cultural-workflow"
+                className="inline-flex items-center gap-2 rounded-xl border-2 border-[#D4AF37]/60 bg-gradient-to-r from-[#5B132B]/5 via-[#D4AF37]/10 to-[#5B132B]/5 px-6 py-3 text-sm font-medium text-[#5B132B] transition-all hover:border-[#D4AF37] hover:shadow-md"
+              >
+                <Wand2 className="size-4 text-[#D4AF37]" />
+                Generate Workflow Adat Lengkap
+                <ArrowRight className="size-4" />
+              </a>
+              <p className="text-[11px] text-muted-foreground">
+                Dapatkan rundown, seserahan, dan checklist tugas otomatis sesuai tradisi adat Anda.
+              </p>
             </div>
           )}
         </div>

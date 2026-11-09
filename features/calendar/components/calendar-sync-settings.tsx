@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { connectGoogleCalendar, disconnectGoogleCalendar, syncEventsToCalendar, getCalendarSyncStatus } from "@/features/calendar/actions/calendar-sync-actions";
+import { useEffect, useState } from "react";
+import { disconnectGoogleCalendar, syncEventsToCalendar, getCalendarSyncStatus } from "@/features/calendar/actions/calendar-sync-actions";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -20,25 +20,26 @@ export function CalendarSyncSettings({ workspaceId }: CalendarSyncSettingsProps)
   const [isConnected, setIsConnected] = useState(false);
   const [lastSyncAt, setLastSyncAt] = useState<Date | null>(null);
 
+  useEffect(() => {
+    let active = true;
+    const callbackState = new URLSearchParams(window.location.search).get("calendar");
+    getCalendarSyncStatus(workspaceId).then((status) => {
+      if (!active) return;
+      setIsConnected(status.isConnected);
+      setLastSyncAt(status.lastSyncAt ? new Date(status.lastSyncAt) : null);
+      if (callbackState && callbackState !== "connected") {
+        setError("Google Calendar belum terhubung. Silakan coba lagi.");
+      }
+    }).catch(() => {
+      if (active) setError("Status Google Calendar tidak dapat dimuat.");
+    });
+    return () => { active = false; };
+  }, [workspaceId]);
+
   const handleConnect = async () => {
     setLoading(true);
     setError(null);
-
-    try {
-      // In a real implementation, you would redirect to Google OAuth
-      // For now, we just simulate the connection
-      await connectGoogleCalendar(
-        workspaceId,
-        "primary",
-        "dummy_token", // This would be the actual access token from OAuth
-        "dummy_refresh_token"
-      );
-      setIsConnected(true);
-    } catch (err) {
-      setError(String(err));
-    } finally {
-      setLoading(false);
-    }
+    window.location.assign(`/api/v1/calendar/google/connect?workspaceId=${encodeURIComponent(workspaceId)}`);
   };
 
   const handleDisconnect = async () => {
@@ -63,7 +64,7 @@ export function CalendarSyncSettings({ workspaceId }: CalendarSyncSettingsProps)
     try {
       const result = await syncEventsToCalendar(workspaceId);
       setLastSyncAt(new Date());
-      showToast(`Berhasil menyinkronkan ${result.syncedEvents} acara!`, "success");
+      showToast(`Berhasil menyinkronkan ${result.syncedEvents} acara dan menghapus ${result.deletedEvents} acara yang dihapus!`, "success");
     } catch (err) {
       setError(String(err));
     } finally {

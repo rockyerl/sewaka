@@ -24,9 +24,9 @@ export async function AdminDashboardPageContent() {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="font-serif text-3xl font-normal tracking-tight">Admin Dashboard</h1>
+        <h1 className="font-serif text-3xl font-normal tracking-tight">Ringkasan Platform</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Monitoring platform Sewaka.
+          Pantau operasional admin dan penggunaan fitur Sewaka.
         </p>
       </div>
 
@@ -38,19 +38,48 @@ export async function AdminDashboardPageContent() {
         <AdminStatCard label="Total Pendapatan" value={formatCurrency(stats.totalRevenue)} detail={`${stats.totalTransactions} transaksi`} />
       </section>
 
-      {/* Navigation */}
-      <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-        <AdminNavCard href="/admin/users" title="Manajemen Pengguna" description="Lihat dan kelola semua pengguna" />
-        <AdminNavCard href="/admin/workspaces" title="Manajemen Workspace" description="Lihat dan kelola workspace" />
-        <AdminNavCard href="/admin/plans" title="Paket Langganan" description="Kelola subscription plans" />
-        <AdminNavCard href="/admin/payments" title="Monitoring Pembayaran" description="Lihat semua transaksi" />
-        <AdminNavCard href="/admin/logs" title="System Logs" description="Aktivitas sistem" />
+      <section className="space-y-4" aria-labelledby="product-usage-heading">
+        <div>
+          <h2 id="product-usage-heading" className="font-serif text-xl">Penggunaan fitur</h2>
+          <p className="mt-1 text-sm text-muted-foreground">Total data yang dikelola pengguna di seluruh workspace.</p>
+        </div>
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <AdminStatCard label="Event" value={String(stats.productUsage.events)} detail="Jadwal acara pernikahan" />
+          <AdminStatCard label="Task" value={String(stats.productUsage.tasks)} detail="Tugas dalam workflow" />
+          <AdminStatCard label="Tamu" value={String(stats.productUsage.guests)} detail={`${stats.productUsage.checkedInGuests} sudah check-in`} />
+          <AdminStatCard label="Check-in" value={String(stats.productUsage.checkInLogs)} detail="Catatan audit check-in" />
+          <AdminStatCard label="Vendor" value={String(stats.productUsage.vendors)} detail="Vendor tersimpan di workspace" />
+          <AdminStatCard label="Dokumen" value={String(stats.productUsage.documents)} detail="Berkas dan checklist nikah" />
+          <AdminStatCard label="Kalender terhubung" value={String(stats.productUsage.connectedCalendars)} detail="Koneksi kalender aktif" />
+          <AdminStatCard label="Tiket terbuka" value={String(stats.productUsage.openSupportTickets)} detail="Menunggu tindak lanjut support" />
+        </div>
+      </section>
+
+      <section className="space-y-4" aria-labelledby="admin-shortcuts-heading">
+        <div>
+          <h2 id="admin-shortcuts-heading" className="font-serif text-xl">Operasional admin</h2>
+          <p className="mt-1 text-sm text-muted-foreground">Pintasan ke semua alat pengelolaan platform.</p>
+        </div>
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          <AdminNavCard href="/admin/users" title="Pengguna" description="Akun, verifikasi, dan peran admin" />
+          <AdminNavCard href="/admin/workspaces" title="Workspace" description="Workspace, pasangan, dan jadwal" />
+          <AdminNavCard href="/admin/plans" title="Paket langganan" description="Harga dan batas fitur paket" />
+          <AdminNavCard href="/admin/payments" title="Pembayaran" description="Transaksi dan status pembayaran" />
+          <AdminNavCard href="/admin/support" title="Support" description="Tiket dan tindak lanjut pengguna" />
+          <AdminNavCard href="/admin/content" title="Konten" description="Konten publik dan pemasaran" />
+          <AdminNavCard href="/admin/announcements" title="Pengumuman" description="Pesan untuk pengguna platform" />
+          <AdminNavCard href="/admin/feature-flags" title="Feature flags" description="Kontrol ketersediaan fitur" />
+          <AdminNavCard href="/admin/settings" title="Pengaturan sistem" description="Konfigurasi platform" />
+          <AdminNavCard href="/admin/audit-trail" title="Audit trail" description="Riwayat aksi admin" />
+          <AdminNavCard href="/admin/logs" title="Log sistem" description="Aktivitas dan catatan sistem" />
+        </div>
       </section>
 
       {/* Recent Users */}
       <Card className="gap-4 rounded-xl border-border/80 bg-card p-5 shadow-sm">
         <h2 className="font-medium">Pengguna Terbaru</h2>
         <div className="divide-y divide-border/60">
+          {usersData.users.length === 0 && <p className="py-4 text-sm text-muted-foreground">Belum ada pengguna.</p>}
           {usersData.users.map((user) => (
             <div key={user.id} className="flex items-center justify-between py-3">
               <div>
@@ -72,6 +101,7 @@ export async function AdminDashboardPageContent() {
       <Card className="gap-4 rounded-xl border-border/80 bg-card p-5 shadow-sm">
         <h2 className="font-medium">Transaksi Terbaru</h2>
         <div className="divide-y divide-border/60">
+          {paymentsData.payments.length === 0 && <p className="py-4 text-sm text-muted-foreground">Belum ada transaksi.</p>}
           {paymentsData.payments.map((payment) => (
             <div key={payment.id} className="flex items-center justify-between py-3">
               <div>
@@ -90,6 +120,7 @@ export async function AdminDashboardPageContent() {
       <Card className="gap-4 rounded-xl border-border/80 bg-card p-5 shadow-sm">
         <h2 className="font-medium">Log Sistem Terbaru</h2>
         <div className="divide-y divide-border/60">
+          {logsData.logs.length === 0 && <p className="py-4 text-sm text-muted-foreground">Belum ada aktivitas.</p>}
           {logsData.logs.map((log) => (
             <div key={log.id} className="flex items-center justify-between py-3">
               <div>

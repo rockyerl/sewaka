@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useTransition, useEffect } from "react";
 import {
+  ArrowRight,
   BookOpen,
   Check,
   ChevronDown,
@@ -10,6 +11,7 @@ import {
   ListPlus,
   Package,
   Search,
+  Sparkles,
 } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
@@ -19,6 +21,7 @@ import { FilterPills } from "@/components/ui/filter-pills";
 import { showToast } from "@/components/ui/toast";
 
 import { importUbarampeToTasksAction } from "../actions/encyclopedia-actions";
+import { checkWorkflowStatusAction } from "@/features/cultural-workflow/actions/cultural-workflow-actions";
 import type { RitualArticle } from "@/lib/constants/cultural-encyclopedia";
 
 interface CulturalEncyclopediaViewProps {
@@ -41,6 +44,13 @@ export function CulturalEncyclopediaView({
   );
   const [importedRituals, setImportedRituals] = useState<Set<string>>(new Set());
   const [isPending, startTransition] = useTransition();
+  const [hasWorkflow, setHasWorkflow] = useState(false);
+
+  useEffect(() => {
+    checkWorkflowStatusAction(workspaceId).then((result) => {
+      setHasWorkflow(result.hasWorkflow);
+    });
+  }, [workspaceId]);
 
   const filtered = articles.filter((a) => {
     if (selectedTradition !== "ALL" && a.tradition !== selectedTradition) {
@@ -98,6 +108,39 @@ export function CulturalEncyclopediaView({
           Pahami kedalaman makna spiritual, filosofi luhur leluhur, serta perlengkapan ubarampe di balik setiap tahapan prosesi pernikahan adat agung.
         </p>
       </div>
+
+      {/* CTA Banner - Generate Workflow */}
+      {!hasWorkflow && (
+        <a href="/cultural-workflow" className="block group">
+          <div className="relative overflow-hidden rounded-2xl border-2 border-dashed border-[#D4AF37]/60 bg-gradient-to-r from-[#5B132B]/5 via-[#D4AF37]/10 to-[#5B132B]/5 p-5 sm:p-6 transition-all hover:border-[#D4AF37] hover:shadow-md">
+            <div className="flex items-start gap-4">
+              <span className="grid size-10 shrink-0 place-items-center rounded-full bg-[#5B132B] text-[#D4AF37]">
+                <Sparkles className="size-5" />
+              </span>
+              <div className="flex-1">
+                <div className="flex items-center gap-2">
+                  <p className="text-[10px] font-bold tracking-[0.2em] text-[#5B132B] uppercase">
+                    Otomatisasi Persiapan
+                  </p>
+                  <Badge variant="outline" className="border-[#D4AF37] text-[9px] font-semibold text-[#5B132B] bg-[#FAF5EC]">
+                    Baru
+                  </Badge>
+                </div>
+                <h3 className="mt-1 font-serif text-lg font-medium text-[#5B132B] sm:text-xl">
+                  Generate Workflow Adat Lengkap
+                </h3>
+                <p className="mt-0.5 text-xs text-[#786C5A] leading-relaxed">
+                  Dari satu klik, dapatkan rundown pernikahan, daftar seserahan, dan checklist tugas yang sudah disesuaikan dengan tradisi adat Anda.
+                </p>
+                <div className="mt-3 flex items-center gap-2 text-xs font-medium text-[#5B132B] group-hover:gap-3 transition-all">
+                  <span>Coba Workflow Generator</span>
+                  <ArrowRight className="size-4" />
+                </div>
+              </div>
+            </div>
+          </div>
+        </a>
+      )}
 
       {/* Toolbar Filters */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-xl border border-border/70 bg-card p-4">

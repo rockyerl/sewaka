@@ -1,7 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
 import { Heart } from "lucide-react";
+
+const emptySubscribe = () => () => {};
 
 function TimeBlock({ value, label }: { value: number; label: string }) {
   return (
@@ -19,11 +21,10 @@ function TimeBlock({ value, label }: { value: number; label: string }) {
 }
 
 export function WeddingCountdown({ weddingDate }: { weddingDate: Date }) {
-  const [mounted, setMounted] = useState(false);
-  const [now, setNow] = useState(new Date());
+  const mounted = useSyncExternalStore(emptySubscribe, () => true, () => false);
+  const [now, setNow] = useState(() => new Date());
 
   useEffect(() => {
-    setMounted(true);
     const timer = setInterval(() => setNow(new Date()), 1000);
     return () => clearInterval(timer);
   }, []);

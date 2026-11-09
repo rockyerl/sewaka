@@ -7,7 +7,7 @@
  */
 
 import { eq, and, count, sql } from "drizzle-orm";
-import { getDb } from "@/lib/db";
+import { withWorkspace } from "@/lib/db/with-workspace";
 import {
   subscriptions,
   subscriptionPlans,
@@ -15,6 +15,9 @@ import {
   vendors,
   imageGallery,
   documents,
+  vendorContracts,
+  expenseAttachments,
+  taskAttachments,
 } from "@/lib/db/schema";
 
 /**
@@ -50,21 +53,21 @@ export class SubscriptionLimitError extends Error {
  * Defaults to "Gratis" plan if no active subscription.
  */
 export async function getSubscriptionInfo(workspaceId: string): Promise<SubscriptionInfo> {
-  const db = getDb();
-
-  const [sub] = await db
-    .select({
-      status: subscriptions.status,
-      planName: subscriptionPlans.name,
-      maxGuests: subscriptionPlans.maxGuests,
-      maxVendors: subscriptionPlans.maxVendors,
-      maxStorageBytes: subscriptionPlans.maxStorageBytes,
-      features: subscriptionPlans.features,
-    })
-    .from(subscriptions)
-    .leftJoin(subscriptionPlans, eq(subscriptions.planId, subscriptionPlans.id))
-    .where(and(eq(subscriptions.workspaceId, workspaceId), eq(subscriptions.status, "ACTIVE")))
-    .limit(1);
+  const [sub] = await withWorkspace({ workspaceId }, async (tx) =>
+    tx
+      .select({
+        status: subscriptions.status,
+        planName: subscriptionPlans.name,
+        maxGuests: subscriptionPlans.maxGuests,
+        maxVendors: subscriptionPlans.maxVendors,
+        maxStorageBytes: subscriptionPlans.maxStorageBytes,
+        features: subscriptionPlans.features,
+      })
+      .from(subscriptions)
+      .leftJoin(subscriptionPlans, eq(subscriptions.planId, subscriptionPlans.id))
+      .where(and(eq(subscriptions.workspaceId, workspaceId), eq(subscriptions.status, "ACTIVE")))
+      .limit(1),
+  );
 
   if (!sub || !sub.planName) {
     // Default "Gratis" plan limits
@@ -106,11 +109,9 @@ export async function checkGuestLimit(workspaceId: string): Promise<void> {
 
   if (info.maxGuests === null) return; // Unlimited
 
-  const db = getDb();
-  const [{ count: currentCount }] = await db
-    .select({ count: count() })
-    .from(guests)
-    .where(eq(guests.workspaceId, workspaceId));
+  const [{ count: currentCount }] = await withWorkspace({ workspaceId }, async (tx) =>
+    tx.select({ count: count() }).from(guests).where(eq(guests.workspaceId, workspaceId)),
+  );
 
   const numCount = Number(currentCount);
   if (numCount >= info.maxGuests) {
@@ -129,11 +130,9 @@ export async function checkVendorLimit(workspaceId: string): Promise<void> {
 
   if (info.maxVendors === null) return; // Unlimited
 
-  const db = getDb();
-  const [{ count: currentCount }] = await db
-    .select({ count: count() })
-    .from(vendors)
-    .where(eq(vendors.workspaceId, workspaceId));
+  const [{ count: currentCount }] = await withWorkspace({ workspaceId }, async (tx) =>
+    tx.select({ count: count() }).from(vendors).where(eq(vendors.workspaceId, workspaceId)),
+  );
 
   const numCount = Number(currentCount);
   if (numCount >= info.maxVendors) {
@@ -153,20 +152,34 @@ export async function checkStorageLimit(workspaceId: string, fileSize: number): 
 
   if (info.maxStorageBytes === null) return; // Unlimited
 
-  const db = getDb();
+  // Sum file sizes while the workspace RLS context is active.
+  const [gallerySize, docSize, contractSize, expenseAttachmentSize, taskAttachmentSize] = await withWorkspace({ workspaceId }, async (tx) =>
+    Promise.all([
+      tx
+        .select({ total: sql<number>`COALESCE(SUM(${imageGallery.fileSize}), 0)` })
+        .from(imageGallery)
+        .where(eq(imageGallery.workspaceId, workspaceId)),
+      tx
+        .select({ total: sql<number>`COALESCE(SUM(${documents.fileSize}), 0)` })
+        .from(documents)
+        .where(eq(documents.workspaceId, workspaceId)),
+      tx
+        .select({ total: sql<number>`COALESCE(SUM(${vendorContracts.fileSize}), 0)` })
+        .from(vendorContracts)
+        .where(eq(vendorContracts.workspaceId, workspaceId)),
+      tx
+        .select({ total: sql<number>`COALESCE(SUM(${expenseAttachments.fileSize}), 0)` })
+        .from(expenseAttachments)
+        .where(eq(expenseAttachments.workspaceId, workspaceId)),
+      tx
+        .select({ total: sql<number>`COALESCE(SUM(${taskAttachments.fileSize}), 0)` })
+        .from(taskAttachments)
+        .where(eq(taskAttachments.workspaceId, workspaceId)),
+    ]),
+  );
 
-  // Sum all file sizes across gallery, documents, and contracts
-  const gallerySize = await db
-    .select({ total: sql<number>`COALESCE(SUM(${imageGallery.fileSize}), 0)` })
-    .from(imageGallery)
-    .where(eq(imageGallery.workspaceId, workspaceId));
-
-  const docSize = await db
-    .select({ total: sql<number>`COALESCE(SUM(${documents.fileSize}), 0)` })
-    .from(documents)
-    .where(eq(documents.workspaceId, workspaceId));
-
-  const usedBytes = Number(gallerySize[0]?.total ?? 0) + Number(docSize[0]?.total ?? 0);
+  const usedBytes = [gallerySize, docSize, contractSize, expenseAttachmentSize, taskAttachmentSize]
+    .reduce((total, rows) => total + Number(rows[0]?.total ?? 0), 0);
   const remaining = info.maxStorageBytes - usedBytes;
 
   if (fileSize > remaining) {
@@ -245,27 +258,43 @@ export async function requireFeature(
  */
 export async function getUsageSummary(workspaceId: string) {
   const info = await getSubscriptionInfo(workspaceId);
-  const db = getDb();
-
   const [
     guestRow,
     vendorRow,
     galleryRow,
     docRow,
-  ] = await Promise.all([
-    db.select({ count: count() }).from(guests).where(eq(guests.workspaceId, workspaceId)),
-    db.select({ count: count() }).from(vendors).where(eq(vendors.workspaceId, workspaceId)),
-    db
-      .select({ total: sql<number>`COALESCE(SUM(${imageGallery.fileSize}), 0)` })
-      .from(imageGallery)
-      .where(eq(imageGallery.workspaceId, workspaceId)),
-    db
-      .select({ total: sql<number>`COALESCE(SUM(${documents.fileSize}), 0)` })
-      .from(documents)
-      .where(eq(documents.workspaceId, workspaceId)),
-  ]);
+    contractRow,
+    expenseAttachmentRow,
+    taskAttachmentRow,
+  ] = await withWorkspace({ workspaceId }, async (tx) =>
+    Promise.all([
+      tx.select({ count: count() }).from(guests).where(eq(guests.workspaceId, workspaceId)),
+      tx.select({ count: count() }).from(vendors).where(eq(vendors.workspaceId, workspaceId)),
+      tx
+        .select({ total: sql<number>`COALESCE(SUM(${imageGallery.fileSize}), 0)` })
+        .from(imageGallery)
+        .where(eq(imageGallery.workspaceId, workspaceId)),
+      tx
+        .select({ total: sql<number>`COALESCE(SUM(${documents.fileSize}), 0)` })
+        .from(documents)
+        .where(eq(documents.workspaceId, workspaceId)),
+      tx
+        .select({ total: sql<number>`COALESCE(SUM(${vendorContracts.fileSize}), 0)` })
+        .from(vendorContracts)
+        .where(eq(vendorContracts.workspaceId, workspaceId)),
+      tx
+        .select({ total: sql<number>`COALESCE(SUM(${expenseAttachments.fileSize}), 0)` })
+        .from(expenseAttachments)
+        .where(eq(expenseAttachments.workspaceId, workspaceId)),
+      tx
+        .select({ total: sql<number>`COALESCE(SUM(${taskAttachments.fileSize}), 0)` })
+        .from(taskAttachments)
+        .where(eq(taskAttachments.workspaceId, workspaceId)),
+    ]),
+  );
 
-  const usedBytes = Number(galleryRow[0]?.total ?? 0) + Number(docRow[0]?.total ?? 0);
+  const usedBytes = [galleryRow, docRow, contractRow, expenseAttachmentRow, taskAttachmentRow]
+    .reduce((total, rows) => total + Number(rows[0]?.total ?? 0), 0);
 
   return {
     plan: info.planName,

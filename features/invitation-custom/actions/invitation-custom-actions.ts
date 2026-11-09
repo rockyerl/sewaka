@@ -1,10 +1,11 @@
 "use server";
 
 import { eq } from "drizzle-orm";
-import { getDb } from "@/lib/db";
 import { invitationCustomization } from "@/lib/db/schema";
 import { auth } from "@/lib/actions/auth";
 import { revalidatePath } from "next/cache";
+import { withWorkspace } from "@/lib/db/with-workspace";
+import { checkStorageLimit } from "@/lib/utils/subscription-check";
 
 export async function updateInvitationCustomAction(formData: FormData) {
   const session = await auth();
@@ -72,15 +73,6 @@ export async function updateInvitationCustomAction(formData: FormData) {
     }
   }
 
-  const db = await getDb();
-
-  // Upsert: insert or update
-  const existing = await db
-    .select()
-    .from(invitationCustomization)
-    .where(eq(invitationCustomization.workspaceId, workspaceId))
-    .limit(1);
-
   const updateData = {
     couplePhotoUrl,
     theme,
@@ -98,17 +90,21 @@ export async function updateInvitationCustomAction(formData: FormData) {
     enabled,
   };
 
-  if (existing.length > 0) {
-    await db
-      .update(invitationCustomization)
-      .set(updateData)
-      .where(eq(invitationCustomization.workspaceId, workspaceId));
-  } else {
-    await db.insert(invitationCustomization).values({
-      workspaceId,
-      ...updateData,
-    });
-  }
+  await withWorkspace(
+    { workspaceId, allowedRoles: ["OWNER", "PARTNER", "COORDINATOR"] },
+    async (tx) => {
+      const [existing] = await tx.select({ id: invitationCustomization.id })
+        .from(invitationCustomization)
+        .where(eq(invitationCustomization.workspaceId, workspaceId))
+        .limit(1);
+      if (existing) {
+        await tx.update(invitationCustomization).set(updateData)
+          .where(eq(invitationCustomization.workspaceId, workspaceId));
+      } else {
+        await tx.insert(invitationCustomization).values({ workspaceId, ...updateData });
+      }
+    },
+  );
 
   revalidatePath("/invitation/custom");
   return { success: true };
@@ -122,6 +118,7 @@ export async function uploadCouplePhotoAction(formData: FormData) {
   const file = formData.get("file") as File;
 
   if (!file || file.size === 0) throw new Error("File tidak valid");
+  if (!workspaceId) throw new Error("Workspace tidak valid.");
 
   const allowedTypes = ["image/jpeg", "image/png", "image/webp"];
   if (!allowedTypes.includes(file.type)) {
@@ -132,6 +129,11 @@ export async function uploadCouplePhotoAction(formData: FormData) {
   if (file.size > maxSize) {
     throw new Error("Ukuran file maksimal 10MB.");
   }
+
+  await withWorkspace(
+    { workspaceId, allowedRoles: ["OWNER", "PARTNER", "COORDINATOR"] },
+    async () => checkStorageLimit(workspaceId, file.size),
+  );
 
   const { uploadFile } = await import("@/lib/utils/storage");
   const uploadResult = await uploadFile(file, {

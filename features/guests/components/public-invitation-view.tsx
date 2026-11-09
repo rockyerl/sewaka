@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useRef, useState, useTransition } from "react";
+import React, { useEffect, useRef, useState, useTransition, Suspense } from "react";
+import Image from "next/image";
 import {
   Calendar,
   CheckCircle2,
@@ -20,17 +21,17 @@ import {
   Tv,
   Video,
 } from "lucide-react";
-import QRCode from "qrcode";
-
 import { submitPublicRsvpAction } from "../actions/guest-actions";
 import { EventCountdown } from "./event-countdown";
-import { HeroCarousel } from "./hero-carousel";
 import { InvitationCover } from "./invitation-cover";
-import { LoveAnimation } from "./love-animation";
-import { StoryTimeline } from "./story-timeline";
 import { formatDateIndonesia } from "@/components/ui/date-badge";
 import { getBlobUrl } from "@/lib/utils/blob-url";
 import { showToast } from "@/components/ui/toast";
+
+// Code splitting for heavy components — lazy load after invitation opens
+const HeroCarousel = React.lazy(() => import("./hero-carousel").then(m => ({ default: m.HeroCarousel })));
+const StoryTimeline = React.lazy(() => import("./story-timeline").then(m => ({ default: m.StoryTimeline })));
+const LoveAnimation = React.lazy(() => import("./love-animation").then(m => ({ default: m.LoveAnimation })));
 
 const BLOB_HOST_PATTERN = /\.blob\.vercel-storage\.com/;
 
@@ -297,19 +298,21 @@ export function PublicInvitationView({
     return () => clearInterval(interval);
   }, [workspace.weddingDate]);
 
-  // Generate QR when guest code is obtained
+  // Generate QR when guest code is obtained (dynamic import to reduce bundle size)
   useEffect(() => {
     if (guestCode) {
-      QRCode.toDataURL(guestCode, {
-        width: 320,
-        margin: 2,
-        color: {
-          dark: "#5B132B",
-          light: "#FFFFFF",
-        },
-      })
-        .then((url) => setQrDataUrl(url))
-        .catch(console.error);
+      import("qrcode").then((QRCode) => {
+        QRCode.default.toDataURL(guestCode, {
+          width: 320,
+          margin: 2,
+          color: {
+            dark: "#5B132B",
+            light: "#FFFFFF",
+          },
+        })
+          .then((url) => setQrDataUrl(url))
+          .catch(console.error);
+      });
     }
   }, [guestCode]);
 
@@ -317,7 +320,8 @@ export function PublicInvitationView({
     e.preventDefault();
     if (!lookupInput.trim()) return;
     try {
-      const url = await QRCode.toDataURL(lookupInput.trim(), {
+      const QRCode = await import("qrcode");
+      const url = await QRCode.default.toDataURL(lookupInput.trim(), {
         width: 300,
         margin: 2,
         color: { dark: "#5B132B", light: "#FFFFFF" },
@@ -414,10 +418,14 @@ export function PublicInvitationView({
         {/* Hero Section */}
         <div className={`relative overflow-hidden rounded-3xl ${isVip ? 'border-2 border-[#D4AF37]/60 shadow-xl' : 'border border-[#E6D5B8] shadow-lg'} bg-white p-6 sm:p-10 text-center`}>
           {(custom?.couplePhotoUrl || (custom?.heroPhotoUrls && custom.heroPhotoUrls.length > 0)) && (
-            <HeroCarousel
-              photoUrls={custom.heroPhotoUrls || []}
-              singlePhotoUrl={custom.couplePhotoUrl || undefined}
-            />
+            <Suspense fallback={
+              <div className="mx-auto w-full max-w-sm rounded-2xl bg-[#FAF5EC] aspect-square animate-pulse" />
+            }>
+              <HeroCarousel
+                photoUrls={custom.heroPhotoUrls || []}
+                singlePhotoUrl={custom.couplePhotoUrl || undefined}
+              />
+            </Suspense>
           )}
           {isVip ? (
             <div className="absolute top-0 inset-x-0 h-2 bg-gradient-to-r from-[#5B132B] via-[#D4AF37] to-[#5B132B]" />
@@ -913,7 +921,14 @@ export function PublicInvitationView({
 
         {/* Story Section — Timeline takes precedence, falls back to plain text */}
         {custom?.storyTimeline && custom.storyTimeline.length > 0 ? (
-          <StoryTimeline milestones={custom.storyTimeline} />
+          <Suspense fallback={
+            <div className="rounded-3xl border border-[#E6D5B8] bg-white p-6 sm:p-8 shadow-lg">
+              <div className="h-4 w-32 bg-[#FAF5EC] mx-auto rounded mb-4 animate-pulse" />
+              <div className="h-32 bg-[#FAF5EC] rounded-2xl animate-pulse" />
+            </div>
+          }>
+            <StoryTimeline milestones={custom.storyTimeline} />
+          </Suspense>
         ) : custom?.story ? (
           <div className="rounded-3xl border border-[#E6D5B8] bg-white p-6 sm:p-8 shadow-lg">
             <p className="text-[10px] font-bold tracking-[0.2em] text-[#A08F74] uppercase text-center">
@@ -934,7 +949,14 @@ export function PublicInvitationView({
             <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-3">
               {customGalleryImages.map(img => (
                 <div key={img.id} className="aspect-square overflow-hidden rounded-xl">
-                  <img src={getBlobUrl(img.fileUrl)} alt={img.title} className="size-full object-cover" />
+                  <Image
+                    src={getBlobUrl(img.fileUrl)}
+                    alt={img.title}
+                    fill
+                    sizes="(max-width: 640px) 50vw, 33vw"
+                    className="object-cover"
+                    loading="lazy"
+                  />
                 </div>
               ))}
             </div>
@@ -1073,7 +1095,9 @@ export function PublicInvitationView({
       </main>
 
       {/* Love Animation */}
-      <LoveAnimation enabled={custom?.enableAnimations || false} />
+      <Suspense fallback={null}>
+        <LoveAnimation enabled={custom?.enableAnimations || false} />
+      </Suspense>
 
       {/* Music Player — only show for direct audio URLs */}
       {custom?.musicUrl && isDirectAudioUrl(custom.musicUrl) && (

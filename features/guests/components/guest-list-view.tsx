@@ -426,9 +426,12 @@ export function GuestListView({
   }, [guests, search, filterRsvp]);
 
   // Reset to page 1 when filters change
-  useEffect(() => {
+  const [prevFilterKey, setPrevFilterKey] = useState(`${search}-${filterRsvp}`);
+  const currentFilterKey = `${search}-${filterRsvp}`;
+  if (currentFilterKey !== prevFilterKey) {
+    setPrevFilterKey(currentFilterKey);
     setCurrentPage(1);
-  }, [search, filterRsvp]);
+  }
 
   // Paginated guests
   const totalPages = Math.ceil(filteredGuests.length / pageSize);

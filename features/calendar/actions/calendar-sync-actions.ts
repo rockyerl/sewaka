@@ -1,174 +1,222 @@
 "use server";
 
-import { eq, and } from "drizzle-orm";
-import { getDb } from "@/lib/db";
+import "server-only";
+import { and, eq } from "drizzle-orm";
 import { calendarSyncs, weddingEvents } from "@/lib/db/schema";
+import { withWorkspace } from "@/lib/db/with-workspace";
 import { auth } from "@/lib/actions/auth";
-import { getEnv } from "@/lib/utils/env";
 import { revalidatePath } from "next/cache";
+import { googleCalendarApiUrl, googleOAuthEndpoint } from "@/features/calendar/lib/oauth";
 
-/**
- * Connect to Google Calendar (CAL-06)
- * Saves the calendar sync configuration
- */
-export async function connectGoogleCalendar(workspaceId: string, calendarId: string, accessToken: string, refreshToken?: string) {
+const CALENDAR_SCOPE = "https://www.googleapis.com/auth/calendar.events";
+
+async function requireUser() {
   const session = await auth();
-  if (!session?.user?.id) {
-    throw new Error("Unauthorized");
-  }
-
-  const db = getDb();
-
-  // Check if sync already exists
-  const [existing] = await db
-    .select()
-    .from(calendarSyncs)
-    .where(
-      and(
-        eq(calendarSyncs.userId, session.user.id),
-        eq(calendarSyncs.workspaceId, workspaceId),
-        eq(calendarSyncs.provider, "GOOGLE")
-      )
-    )
-    .limit(1);
-
-  if (existing) {
-    // Update existing sync
-    await db
-      .update(calendarSyncs)
-      .set({
-        calendarId,
-        accessToken,
-        refreshToken,
-        isActive: true,
-        updatedAt: new Date(),
-      })
-      .where(eq(calendarSyncs.id, existing.id));
-  } else {
-    // Create new sync
-    await db.insert(calendarSyncs).values({
-      userId: session.user.id,
-      workspaceId,
-      provider: "GOOGLE",
-      calendarId,
-      accessToken,
-      refreshToken,
-      syncDirection: "BIDIRECTIONAL",
-      isActive: true,
-    });
-  }
-
-  revalidatePath("/settings");
-  return { success: true };
+  if (!session?.user?.id) throw new Error("Unauthorized");
+  return session.user;
 }
 
-/**
- * Disconnect from Google Calendar (CAL-06)
- */
-export async function disconnectGoogleCalendar(workspaceId: string) {
-  const session = await auth();
-  if (!session?.user?.id) {
-    throw new Error("Unauthorized");
+async function refreshAccessToken(config: {
+  id: string; workspaceId: string; userId: string; accessToken: string;
+  refreshToken: string | null; tokenExpiresAt: Date | null;
+}) {
+  if (config.tokenExpiresAt && config.tokenExpiresAt.getTime() > Date.now() + 60_000) {
+    return config.accessToken;
   }
+  if (!config.refreshToken) throw new Error("Google Calendar access expired. Reconnect the calendar.");
 
-  const db = getDb();
+  const clientId = process.env.AUTH_GOOGLE_ID;
+  const clientSecret = process.env.AUTH_GOOGLE_SECRET;
+  if (!clientId || !clientSecret) throw new Error("Google OAuth is not configured");
 
-  await db
-    .delete(calendarSyncs)
-    .where(
-      and(
-        eq(calendarSyncs.userId, session.user.id),
-        eq(calendarSyncs.workspaceId, workspaceId),
-        eq(calendarSyncs.provider, "GOOGLE")
-      )
+  const response = await fetch(googleOAuthEndpoint("token"), {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body: new URLSearchParams({
+      client_id: clientId,
+      client_secret: clientSecret,
+      refresh_token: config.refreshToken,
+      grant_type: "refresh_token",
+    }),
+    cache: "no-store",
+  });
+  if (!response.ok) {
+    await withWorkspace({ workspaceId: config.workspaceId, userId: config.userId }, (tx) =>
+      tx.update(calendarSyncs).set({ isActive: false }).where(eq(calendarSyncs.id, config.id)),
     );
+    throw new Error("Google Calendar authorization expired. Reconnect the calendar.");
+  }
+
+  const token = await response.json() as { access_token: string; expires_in: number };
+  await withWorkspace({ workspaceId: config.workspaceId, userId: config.userId }, (tx) =>
+    tx.update(calendarSyncs).set({
+      accessToken: token.access_token,
+      tokenExpiresAt: new Date(Date.now() + token.expires_in * 1000),
+      updatedAt: new Date(),
+    }).where(eq(calendarSyncs.id, config.id)),
+  );
+  return token.access_token;
+}
+
+async function calendarRequest(
+  token: string,
+  calendarId: string,
+  path: string,
+  init?: RequestInit,
+) {
+  return fetch(
+    googleCalendarApiUrl(`calendars/${encodeURIComponent(calendarId)}/${path}`),
+    {
+      ...init,
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+        ...init?.headers,
+      },
+      cache: "no-store",
+    },
+  );
+}
+
+export async function disconnectGoogleCalendar(workspaceId: string) {
+  const user = await requireUser();
+  const [config] = await withWorkspace(
+    { workspaceId, userId: user.id, allowedRoles: ["OWNER", "PARTNER"] },
+    (tx) => tx.select().from(calendarSyncs).where(and(
+      eq(calendarSyncs.userId, user.id),
+      eq(calendarSyncs.workspaceId, workspaceId),
+      eq(calendarSyncs.provider, "GOOGLE"),
+    )).limit(1),
+  );
+
+  await withWorkspace(
+    { workspaceId, userId: user.id, allowedRoles: ["OWNER", "PARTNER"] },
+    (tx) => tx.delete(calendarSyncs).where(and(
+      eq(calendarSyncs.userId, user.id),
+      eq(calendarSyncs.workspaceId, workspaceId),
+      eq(calendarSyncs.provider, "GOOGLE"),
+    )),
+  );
+
+  if (config?.refreshToken) {
+    try {
+      await fetch(googleOAuthEndpoint("revoke"), {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: new URLSearchParams({ token: config.refreshToken }),
+        cache: "no-store",
+      });
+    } catch {
+      // Local credentials are removed even when Google's revocation endpoint is unavailable.
+    }
+  }
 
   revalidatePath("/settings");
   return { success: true };
 }
 
-/**
- * Sync events to Google Calendar (CAL-06)
- * Pushes wedding events to the connected calendar
- */
-export async function syncEventsToCalendar(workspaceId: string) {
-  const session = await auth();
-  if (!session?.user?.id) {
-    throw new Error("Unauthorized");
-  }
-
-  const db = getDb();
-  const env = getEnv();
-
-  // Get calendar sync config
-  const [syncConfig] = await db
-    .select()
-    .from(calendarSyncs)
-    .where(
-      and(
-        eq(calendarSyncs.userId, session.user.id),
+/** Sync wedding event CRUD changes to the connected Google calendar. */
+export async function syncEventsToCalendar(workspaceId: string): Promise<{ success: true; syncedEvents: number; deletedEvents: number }> {
+  const user = await requireUser();
+  const { config, events } = await withWorkspace(
+    { workspaceId, userId: user.id, allowedRoles: ["OWNER", "PARTNER"] },
+    async (tx) => {
+      const [syncConfig] = await tx.select().from(calendarSyncs).where(and(
+        eq(calendarSyncs.userId, user.id),
         eq(calendarSyncs.workspaceId, workspaceId),
         eq(calendarSyncs.provider, "GOOGLE"),
-        eq(calendarSyncs.isActive, true)
-      )
-    )
-    .limit(1);
+        eq(calendarSyncs.isActive, true),
+      )).limit(1);
+      const rows = await tx.select().from(weddingEvents).where(eq(weddingEvents.workspaceId, workspaceId));
+      return { config: syncConfig, events: rows };
+    },
+  );
+  if (!config) throw new Error("No active Google Calendar connection found");
 
-  if (!syncConfig) {
-    throw new Error("No active calendar sync found");
+  const token = await refreshAccessToken(config);
+  const currentEvents = events.filter((event) => event.eventDate);
+  const currentIds = new Set(currentEvents.map((event) => event.id));
+  const listUrl = new URL(googleCalendarApiUrl(`calendars/${encodeURIComponent(config.calendarId)}/events`));
+  listUrl.searchParams.set("maxResults", "2500");
+  listUrl.searchParams.set("privateExtendedProperty", `sewakaWorkspaceId=${workspaceId}`);
+
+  const listResponse = await fetch(listUrl, {
+    headers: { Authorization: `Bearer ${token}` },
+    cache: "no-store",
+  });
+  if (!listResponse.ok) throw new Error(`Could not read Google Calendar events (${listResponse.status})`);
+  const listed = await listResponse.json() as {
+    items?: Array<{ id: string; extendedProperties?: { private?: Record<string, string> } }>;
+    nextPageToken?: string;
+  };
+  if (listed.nextPageToken) throw new Error("Calendar has more than 2500 Sewaka events; sync was stopped safely");
+
+  let deletedEvents = 0;
+  for (const item of listed.items ?? []) {
+    const sourceId = item.extendedProperties?.private?.sewakaEventId;
+    if (sourceId && !currentIds.has(sourceId)) {
+      const response = await calendarRequest(token, config.calendarId, `events/${encodeURIComponent(item.id)}`, { method: "DELETE" });
+      if (!response.ok && response.status !== 404) {
+        throw new Error(`Could not remove deleted Sewaka event (${response.status})`);
+      }
+      deletedEvents += 1;
+    }
   }
 
-  // Get all events for the workspace
-  const events = await db
-    .select()
-    .from(weddingEvents)
-    .where(eq(weddingEvents.workspaceId, workspaceId));
+  for (const event of currentEvents) {
+    const eventId = Buffer.from(event.id.replaceAll("-", "").toLowerCase(), "hex").toString("hex").slice(0, 40);
+    const resource = {
+      id: eventId,
+      summary: event.name,
+      description: event.notes ?? undefined,
+      location: event.location ?? undefined,
+      start: { dateTime: event.eventDate!.toISOString(), timeZone: "Asia/Jakarta" },
+      end: { dateTime: new Date(event.eventDate!.getTime() + 60 * 60 * 1000).toISOString(), timeZone: "Asia/Jakarta" },
+      extendedProperties: { private: { sewakaWorkspaceId: workspaceId, sewakaEventId: event.id } },
+    };
+    const existing = await calendarRequest(token, config.calendarId, `events/${eventId}`);
+    if (existing.ok) {
+      const updated = await calendarRequest(token, config.calendarId, `events/${eventId}`, {
+        method: "PUT", body: JSON.stringify(resource),
+      });
+      if (!updated.ok) throw new Error(`Could not update calendar event (${updated.status})`);
+    } else if (existing.status === 404) {
+      const created = await calendarRequest(token, config.calendarId, "events", {
+        method: "POST", body: JSON.stringify(resource),
+      });
+      if (!created.ok) throw new Error(`Could not create calendar event (${created.status})`);
+    } else {
+      throw new Error(`Could not check calendar event (${existing.status})`);
+    }
+  }
 
-  // Sync events to Google Calendar
-  // In a real implementation, you would use Google Calendar API here
-  console.log(`Syncing ${events.length} events to Google Calendar for workspace ${workspaceId}`);
-
-  // Update last sync time
-  await db
-    .update(calendarSyncs)
-    .set({ lastSyncAt: new Date() })
-    .where(eq(calendarSyncs.id, syncConfig.id));
-
-  return { success: true, syncedEvents: events.length };
+  await withWorkspace({ workspaceId, userId: user.id, allowedRoles: ["OWNER", "PARTNER"] }, (tx) =>
+    tx.update(calendarSyncs).set({ lastSyncAt: new Date() }).where(eq(calendarSyncs.id, config.id)),
+  );
+  revalidatePath("/settings");
+  return { success: true, syncedEvents: currentEvents.length, deletedEvents };
 }
 
-/**
- * Get calendar sync status
- */
 export async function getCalendarSyncStatus(workspaceId: string) {
-  const session = await auth();
-  if (!session?.user?.id) {
-    return { isConnected: false, provider: null, lastSyncAt: null };
-  }
+  const sessionUser = await auth();
+  if (!sessionUser?.user?.id) return { isConnected: false, provider: null, lastSyncAt: null };
 
-  const db = getDb();
-
-  const [syncConfig] = await db
-    .select()
+  const [syncConfig] = await withWorkspace({ workspaceId, userId: sessionUser.user.id }, (tx) => tx
+    .select({
+      provider: calendarSyncs.provider,
+      calendarId: calendarSyncs.calendarId,
+      syncDirection: calendarSyncs.syncDirection,
+      lastSyncAt: calendarSyncs.lastSyncAt,
+    })
     .from(calendarSyncs)
-    .where(
-      and(
-        eq(calendarSyncs.userId, session.user.id),
-        eq(calendarSyncs.workspaceId, workspaceId),
-        eq(calendarSyncs.isActive, true)
-      )
-    )
-    .limit(1);
+    .where(and(
+      eq(calendarSyncs.userId, sessionUser.user.id),
+      eq(calendarSyncs.workspaceId, workspaceId),
+      eq(calendarSyncs.isActive, true),
+    ))
+    .limit(1));
 
-  if (!syncConfig) {
-    return { isConnected: false, provider: null, lastSyncAt: null };
-  }
-
-  return {
-    isConnected: true,
-    provider: syncConfig.provider,
-    calendarId: syncConfig.calendarId,
-    syncDirection: syncConfig.syncDirection,
-    lastSyncAt: syncConfig.lastSyncAt,
-  };
+  return syncConfig
+    ? { isConnected: true, ...syncConfig }
+    : { isConnected: false, provider: null, lastSyncAt: null };
 }

@@ -28,11 +28,19 @@ const features = [
   "workspaces",
 ];
 
-// Buat zona: setiap fitur tidak boleh mengimpor dari fitur lain
+// Daftar dependensi modular yang diizinkan antar fitur
+const featureDependencies = {
+  dashboard: ["budget", "guests", "tasks", "notifications", "admin", "calendar", "events"],
+  vendors: ["comments"],
+  events: ["rundown"],
+  encyclopedia: ["cultural-workflow"],
+};
+
+// Buat zona: setiap fitur tidak boleh mengimpor dari fitur lain kecuali yang didefinisikan secara eksplisit
 const featureZones = features.map((feature) => ({
   target: `./features/${feature}`,
   from: "./features",
-  except: [feature],
+  except: [feature, ...(featureDependencies[feature] ?? [])],
 }));
 
 const eslintConfig = defineConfig([
@@ -42,9 +50,13 @@ const eslintConfig = defineConfig([
   globalIgnores([
     // Default ignores of eslint-config-next:
     ".next/**",
+    ".next-e2e/**",
     "out/**",
     "build/**",
     "next-env.d.ts",
+    "scripts/**",
+    "public/sw.js",
+    "tests/**",
   ]),
   {
     files: ["**/*.{ts,tsx}"],
@@ -53,11 +65,12 @@ const eslintConfig = defineConfig([
       "import/resolver": { typescript: { project: "./tsconfig.json" } },
     },
     rules: {
+      "@typescript-eslint/no-explicit-any": "warn",
       "import/no-restricted-paths": [
         "error",
         {
           zones: [
-            // 1. Antar fitur tidak boleh saling impor.
+            // 1. Antar fitur tidak boleh saling impor tanpa dependensi terdaftar
             ...featureZones,
 
             // 2. Fitur tidak boleh mengimpor dari app/

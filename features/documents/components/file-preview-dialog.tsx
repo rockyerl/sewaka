@@ -9,17 +9,18 @@ import { FileText, Image, Video, Music, Eye, Loader2 } from "lucide-react";
 
 interface FilePreviewDialogProps {
   documentId: string;
+  workspaceId: string;
   fileName: string;
   fileType: string;
   children?: React.ReactNode;
 }
 
-export function FilePreviewDialog({ documentId, fileName, fileType, children }: FilePreviewDialogProps) {
+export function FilePreviewDialog({ documentId, workspaceId, fileName, fileType, children }: FilePreviewDialogProps) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [preview, setPreview] = useState<{
-    fileUrl: string;
-    fileType: string;
+    fileUrl: string | null;
+    fileType: string | null;
     previewType: "image" | "pdf" | "text" | "video" | "audio" | "none";
     canPreview: boolean;
   } | null>(null);
@@ -30,7 +31,7 @@ export function FilePreviewDialog({ documentId, fileName, fileType, children }: 
       setError(null);
 
       try {
-        const data = await getFilePreview(documentId);
+        const data = await getFilePreview(documentId, workspaceId);
         setPreview({
           fileUrl: data.fileUrl,
           fileType: data.fileType,

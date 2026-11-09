@@ -1,7 +1,7 @@
 import "server-only";
 
 import { randomUUID } from "node:crypto";
-import { auth } from "@/lib/actions/auth";
+import { getCurrentUser } from "@/lib/auth-cache";
 import { eq, sql } from "drizzle-orm";
 import { z } from "zod";
 import { revalidatePath } from "next/cache";
@@ -14,55 +14,8 @@ import {
   workspaceMembers,
 } from "@/lib/db/schema";
 
-/**
- * Ensure a workspace has an invitation slug. If missing (legacy workspace),
- * generate one and save it to the database.
- */
-export async function ensureInvitationSlug(workspaceId: string) {
-  const db = getDb();
-  const [workspace] = await db
-    .select()
-    .from(weddingWorkspaces)
-    .where(eq(weddingWorkspaces.id, workspaceId))
-    .limit(1);
+export { ensureInvitationSlug } from "@/lib/hooks/workspace-queries";
 
-  if (!workspace) {
-    throw new Error("Workspace tidak ditemukan");
-  }
-
-  if (workspace.invitationSlug) {
-    return workspace;
-  }
-
-  // Generate slug from couple names or workspace name
-  const baseName =
-    workspace.coupleOne && workspace.coupleTwo
-      ? `${workspace.coupleOne} ${workspace.coupleTwo}`
-      : workspace.name;
-  const cleanSlug =
-    baseName
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, "-")
-      .replace(/^-+|-+$/g, "") || "pernikahan";
-  const invitationSlug = `${cleanSlug}-${workspaceId.slice(0, 6)}`;
-
-  await db
-    .update(weddingWorkspaces)
-    .set({ invitationSlug })
-    .where(eq(weddingWorkspaces.id, workspaceId));
-
-  revalidatePath("/guests");
-  revalidatePath("/dashboard");
-
-  // Return updated workspace
-  const [updated] = await db
-    .select()
-    .from(weddingWorkspaces)
-    .where(eq(weddingWorkspaces.id, workspaceId))
-    .limit(1);
-
-  return updated;
-}
 
 import {
   CULTURAL_TRADITIONS,
@@ -78,13 +31,13 @@ import type { InferSelectModel } from "drizzle-orm";
 type WeddingWorkspace = InferSelectModel<typeof weddingWorkspaces>;
 
 export async function listMyWorkspaces(): Promise<WorkspaceSummary[]> {
-  const session = await auth();
-  const userId = z.string().uuid().safeParse(session?.user?.id);
+  const sessionUser = await getCurrentUser();
+  const userId = z.string().uuid().safeParse(sessionUser?.id);
 
   if (!userId.success) {
     console.error("[listMyWorkspaces] Invalid user ID:", {
-      hasSession: !!session,
-      sessionId: session?.user?.id,
+      hasSession: !!sessionUser,
+      sessionId: sessionUser?.id,
     });
     return [];
   }
@@ -117,8 +70,8 @@ export async function listMyWorkspaces(): Promise<WorkspaceSummary[]> {
 
 export async function createWorkspace(input: z.input<typeof createWorkspaceSchema>) {
   const data = createWorkspaceSchema.parse(input);
-  const session = await auth();
-  const userId = z.string().uuid().parse(session?.user?.id);
+  const sessionUser = await getCurrentUser();
+  const userId = z.string().uuid().parse(sessionUser?.id);
   const workspaceId = randomUUID();
 
   // Generate unique URL friendly invitation slug

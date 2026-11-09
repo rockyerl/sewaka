@@ -46,6 +46,7 @@ export async function importUbarampeToTasksAction(formData: FormData) {
           description: `Perlengkapan ritual adat untuk prosesi ${input.ritualTitle}. Pastikan kondisi bersih, segar, dan sesuai pakem tradisi.`,
           status: "TODO",
           priority: "HIGH",
+          source: "ENCYCLOPEDIA",
         });
       }
     }

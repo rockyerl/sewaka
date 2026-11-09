@@ -43,7 +43,8 @@ export async function addVendorPortfolioImageAction(formData: FormData) {
 export async function deleteVendorPortfolioImageAction(formData: FormData) {
   "use server";
   const imageId = formData.get("imageId") as string;
-  await deleteVendorPortfolioImageActionInternal(imageId);
+  const workspaceId = formData.get("workspaceId") as string;
+  await deleteVendorPortfolioImageActionInternal(imageId, workspaceId);
 }
 
 async function PortfolioImageForm({ vendorId, workspaceId }: { vendorId: string; workspaceId: string }) {
@@ -163,6 +164,7 @@ export async function VendorDetailPageContent({ vendorId, workspaceId }: { vendo
                     )}
                     <form action={deleteVendorPortfolioImageAction}>
                       <input type="hidden" name="imageId" value={img.id} />
+                      <input type="hidden" name="workspaceId" value={workspaceId} />
                       <button
                         type="submit"
                         className="absolute right-1 top-1 hidden rounded-full bg-red-500 p-1 text-white hover:bg-red-600 group-hover:flex"

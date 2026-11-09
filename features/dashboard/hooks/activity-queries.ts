@@ -1,4 +1,4 @@
-import { auth } from "@/lib/actions/auth";
+import { getCurrentUser } from "@/lib/auth-cache";
 import { eq, desc } from "drizzle-orm";
 import { activityLogs, users } from "@/lib/db/schema";
 import { withWorkspace } from "@/lib/db/with-workspace";
@@ -30,8 +30,8 @@ export async function logActivity(
   entityId?: string,
   metadata?: Record<string, any>,
 ) {
-  const session = await auth();
-  const userId = session?.user?.id ?? null;
+  const sessionUser = await getCurrentUser();
+  const userId = sessionUser?.id ?? null;
 
   return withWorkspace(async (tx, workspaceId) => {
     await tx.insert(activityLogs).values({

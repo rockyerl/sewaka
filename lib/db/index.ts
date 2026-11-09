@@ -7,6 +7,7 @@ import { getEnv } from "@/lib/utils/env";
 import { logger } from "@/lib/utils/logger";
 
 import { drizzleSchema } from "./schema";
+import { getActiveDatabaseTransaction } from "./transaction-context";
 
 export type Database = NodePgDatabase<typeof drizzleSchema>;
 
@@ -18,6 +19,9 @@ type DatabaseGlobals = typeof globalThis & {
 const globalForDatabase = globalThis as DatabaseGlobals;
 
 export function getDb(): Database {
+  const activeTransaction = getActiveDatabaseTransaction();
+  if (activeTransaction) return activeTransaction;
+
   if (globalForDatabase.sewakaDb) {
     return globalForDatabase.sewakaDb;
   }

@@ -31,14 +31,14 @@ export default function CheckInPage({ params }: CheckInPageProps) {
       if ("alreadyCheckedIn" in result && result.alreadyCheckedIn) {
         setState("already");
         setGuestName(result.guest.name);
-        setCheckedInAt(result.guest.checkedInAt);
+        setCheckedInAt(result.guest.checkedInAt ? new Date(result.guest.checkedInAt) : null);
         return;
       }
 
       if ("success" in result && result.success) {
         setState("success");
         setGuestName(result.guest.name);
-        setCheckedInAt(result.guest.checkedInAt);
+        setCheckedInAt(result.guest.checkedInAt ? new Date(result.guest.checkedInAt) : null);
       }
     } catch (err) {
       setState("error");

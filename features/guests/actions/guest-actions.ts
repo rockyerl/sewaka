@@ -2,11 +2,13 @@
 
 import { and, eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
+import { randomBytes } from "node:crypto";
+import { z } from "zod";
 
 import { getDb } from "@/lib/db";
 import { guests, notifications, weddingWorkspaces, workspaceMembers } from "@/lib/db/schema";
 import { withWorkspace } from "@/lib/db/with-workspace";
-import { checkGuestLimit, SubscriptionLimitError } from "@/lib/utils/subscription-check";
+import { checkGuestLimit } from "@/lib/utils/subscription-check";
 
 import { createGuestSchema, deleteGuestSchema, updateGuestRsvpSchema } from "../actions/guest-schema";
 
@@ -25,13 +27,7 @@ export async function createGuestAction(formData: FormData) {
   });
 
   // Check subscription guest limit
-  try {
-    await checkGuestLimit(input.workspaceId);
-  } catch (err) {
-    if (err instanceof SubscriptionLimitError) {
-      throw err;
-    }
-  }
+  await checkGuestLimit(input.workspaceId);
 
   const inviteCode = `SWK-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
 
@@ -137,16 +133,22 @@ export async function deleteGuestAction(formData: FormData) {
  * Public RSVP submission from /invitation/[slug]
  */
 export async function submitPublicRsvpAction(formData: FormData) {
-  const slug = String(formData.get("slug") ?? "").trim();
-  const name = String(formData.get("name") ?? "").trim();
-  const rsvpStatus = String(formData.get("rsvpStatus") ?? "ACCEPTED") as "ACCEPTED" | "DECLINED" | "PENDING";
-  const plusOnes = Math.max(0, parseInt(String(formData.get("plusOnes") ?? "0"), 10) || 0);
-  const wishes = String(formData.get("wishes") ?? "").trim();
-  const phone = String(formData.get("phone") ?? "").trim();
-
-  if (!slug || !name) {
-    throw new Error("Nama dan slug undangan wajib diisi.");
-  }
+  const input = z.object({
+    slug: z.string().trim().min(1).max(200),
+    name: z.string().trim().min(1).max(200),
+    rsvpStatus: z.enum(["ACCEPTED", "DECLINED", "PENDING"]),
+    plusOnes: z.coerce.number().int().min(0).max(20),
+    wishes: z.string().trim().max(2000),
+    phone: z.string().trim().max(40),
+  }).parse({
+    slug: formData.get("slug"),
+    name: formData.get("name"),
+    rsvpStatus: formData.get("rsvpStatus") || "ACCEPTED",
+    plusOnes: formData.get("plusOnes") || "0",
+    wishes: formData.get("wishes") || "",
+    phone: formData.get("phone") || "",
+  });
+  const { slug, name, rsvpStatus, plusOnes, wishes, phone } = input;
 
   const db = getDb();
   const [workspace] = await db
@@ -159,7 +161,7 @@ export async function submitPublicRsvpAction(formData: FormData) {
     throw new Error("Undangan pernikahan tidak ditemukan.");
   }
 
-  const invitationCode = `SWK-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
+  const invitationCode = `SWK-${randomBytes(8).toString("hex").toUpperCase()}`;
 
   const [insertedGuest] = await db.insert(guests).values({
     workspaceId: workspace.id,
@@ -179,7 +181,11 @@ export async function submitPublicRsvpAction(formData: FormData) {
     .limit(1);
 
   if (member?.userId) {
-    const statusText = rsvpStatus === "ACCEPTED" ? "HADIR" : "TIDAK HADIR";
+    const statusText = rsvpStatus === "ACCEPTED"
+      ? "HADIR"
+      : rsvpStatus === "DECLINED"
+        ? "TIDAK HADIR"
+        : "BELUM KONFIRMASI";
     const plusText = plusOnes > 0 ? ` (+${plusOnes} pendamping)` : "";
     await db.insert(notifications).values({
       workspaceId: workspace.id,

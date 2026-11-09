@@ -1,11 +1,12 @@
 import "server-only";
 
-import { auth } from "@/lib/actions/auth";
+import { getCurrentUser } from "@/lib/auth-cache";
 import { and, eq, sql, type ExtractTablesWithRelations } from "drizzle-orm";
 import type { NodePgTransaction } from "drizzle-orm/node-postgres";
 import { z } from "zod";
 
 import { getDb } from "./index";
+import { runWithDatabaseTransaction } from "./transaction-context";
 import { drizzleSchema, workspaceMembers } from "./schema";
 
 export type WorkspaceTransaction = NodePgTransaction<
@@ -51,8 +52,8 @@ export async function withWorkspace<T>(
 ): Promise<T> {
   // Callback form: withWorkspace(async (tx, wid) => ...)
   if (typeof first === "function") {
-    const session = await auth();
-    const userId = session?.user?.id;
+    const sessionUser = await getCurrentUser();
+    const userId = sessionUser?.id;
 
     if (!userId || !identifierSchema.safeParse(userId).success) {
       throw new WorkspaceAccessError();
@@ -78,7 +79,9 @@ export async function withWorkspace<T>(
         select set_config('app.workspace_id', ${membership.workspaceId}, true)
       `);
 
-      return first(transaction, membership.workspaceId);
+      return runWithDatabaseTransaction(transaction as unknown as import("./index").Database, () =>
+        first(transaction, membership.workspaceId),
+      );
     });
   }
 
@@ -90,8 +93,8 @@ export async function withWorkspace<T>(
   if (explicitUserId) {
     userId = identifierSchema.parse(explicitUserId);
   } else {
-    const session = await auth();
-    const sessionId = session?.user?.id;
+    const sessionUser = await getCurrentUser();
+    const sessionId = sessionUser?.id;
     if (!sessionId || !identifierSchema.safeParse(sessionId).success) {
       throw new WorkspaceAccessError();
     }
@@ -149,6 +152,8 @@ export async function withWorkspace<T>(
     if (!second) {
       throw new WorkspaceAccessError();
     }
-    return second(transaction);
+    return runWithDatabaseTransaction(transaction as unknown as import("./index").Database, () =>
+      second(transaction),
+    );
   });
 }

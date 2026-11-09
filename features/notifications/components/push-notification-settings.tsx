@@ -1,24 +1,23 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState, useSyncExternalStore } from "react";
 import { subscribeToPushNotifications, unsubscribeFromPushNotifications } from "@/features/notifications/actions/push-notification-actions";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Bell, CheckCircle2, XCircle } from "lucide-react";
 
+const emptySubscribe = () => () => {};
+
 export function PushNotificationSettings() {
-  const [isSupported, setIsSupported] = useState(false);
+  const isSupported = useSyncExternalStore(
+    emptySubscribe,
+    () => "serviceWorker" in navigator && "PushManager" in window,
+    () => false,
+  );
   const [isSubscribed, setIsSubscribed] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    // Check if push notifications are supported
-    if ("serviceWorker" in navigator && "PushManager" in window) {
-      setIsSupported(true);
-    }
-  }, []);
 
   const handleSubscribe = async () => {
     setLoading(true);

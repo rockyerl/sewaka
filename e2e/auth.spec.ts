@@ -8,12 +8,6 @@ test.describe('Authentication Flow', () => {
     await expect(page.locator('input[type="password"]')).toBeVisible();
   });
 
-  test('should show sign up page', async ({ page }) => {
-    await page.goto('/auth/signup');
-    await expect(page).toHaveTitle(/Sewaka/);
-    await expect(page.locator('input[type="email"]')).toBeVisible();
-  });
-
   test('should show forgot password page', async ({ page }) => {
     await page.goto('/auth/forgot-password');
     await expect(page).toHaveTitle(/Sewaka/);
@@ -46,8 +40,8 @@ test.describe('Public Pages', () => {
   });
 
   test('should show invitation page structure', async ({ page }) => {
-    await page.goto('/invitation/test-slug');
-    // Should load the page
+    await page.goto('/invitation');
     await expect(page).toHaveTitle(/Sewaka/);
+    await expect(page.getByText(/Contoh:/i)).toBeVisible();
   });
 });

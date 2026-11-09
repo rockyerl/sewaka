@@ -10,6 +10,13 @@ import { eq } from "drizzle-orm";
 
 import { createAuthAdapter } from "@/lib/db/auth-adapter";
 
+export type SessionUser = {
+  id: string;
+  name: string | null;
+  email: string | null;
+  image: string | null;
+};
+
 export const { handlers, auth, signIn, signOut } = NextAuth(() => {
   const env = getEnv();
 

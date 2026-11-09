@@ -1,7 +1,6 @@
 "use server";
 
-import { eq, count } from "drizzle-orm";
-import { getDb } from "@/lib/db";
+import { eq } from "drizzle-orm";
 import {
   weddingWorkspaces,
   weddingEvents,
@@ -11,14 +10,12 @@ import {
   budgetEntries,
   expenses,
 } from "@/lib/db/schema";
-import { auth } from "@/lib/actions/auth";
+import { withWorkspace } from "@/lib/db/with-workspace";
 import { PDFDocument, rgb, StandardFonts } from "pdf-lib";
 
 export async function generateSummaryPdfAction(workspaceId: string) {
-  const session = await auth();
-  if (!session?.user?.id) throw new Error("Unauthorized");
-
-  const db = await getDb();
+  const { workspace, events, rundowns, guestStats, totalBudget, totalExpenses, taskStats } =
+    await withWorkspace({ workspaceId }, async (db) => {
 
   // Get workspace
   const [workspace] = await db
@@ -83,6 +80,9 @@ export async function generateSummaryPdfAction(workspaceId: string) {
     total: allTasks.length,
     completed: allTasks.filter(t => t.status === "COMPLETED").length,
   };
+
+  return { workspace, events, rundowns, guestStats, totalBudget, totalExpenses, taskStats };
+  });
 
   // Generate PDF using pdf-lib
   const pdfDoc = await PDFDocument.create();

@@ -64,44 +64,49 @@ export async function DocumentListSection({ workspaceId }: { workspaceId: string
 
       {documents.length > 0 ? (
         <div className="mt-4 divide-y divide-border/60">
-          {documents.map((doc) => (
-            <div key={doc.id} className="flex items-center justify-between py-3">
-              <div className="min-w-0 flex-1">
-                <div className="flex items-center gap-2">
-                  <FileText className="size-4 text-muted-foreground shrink-0" />
-                  <p className="truncate text-sm font-medium">{doc.name}</p>
-                  {getCategoryBadge(doc.category)}
+          {documents.map((doc) => {
+            const hasFile = doc.filePath != null && doc.filePath !== '';
+            return (
+              <div key={doc.id} className="flex items-center justify-between py-3">
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-2">
+                    <FileText className="size-4 text-muted-foreground shrink-0" />
+                    <p className="truncate text-sm font-medium">{doc.name}</p>
+                    {getCategoryBadge(doc.category)}
+                  </div>
+                  <div className="mt-1 flex items-center gap-3 text-xs text-muted-foreground">
+                    {doc.mimeType && <span>{formatMimeType(doc.mimeType)}</span>}
+                    {doc.fileSize != null && <span>{formatFileSize(doc.fileSize)}</span>}
+                    <DateText date={doc.createdAt} />
+                  </div>
                 </div>
-                <div className="mt-1 flex items-center gap-3 text-xs text-muted-foreground">
-                  <span>{formatMimeType(doc.mimeType)}</span>
-                  <span>{formatFileSize(doc.fileSize)}</span>
-                  <DateText date={doc.createdAt} />
-                </div>
-              </div>
-              <div className="flex items-center gap-2 ml-3 shrink-0">
-                <a
-                  href={`/${doc.filePath}`}
-                  download
-                  className="inline-flex items-center gap-1 rounded-lg px-2.5 py-1.5 text-xs text-muted-foreground hover:text-foreground hover:bg-muted"
-                >
-                  <Download className="size-3.5" />
-                  <span className="hidden sm:inline">Unduh</span>
-                </a>
-                {canEdit && (
-                  <form action={deleteDocumentAction}>
-                    <input type="hidden" name="documentId" value={doc.id} />
-                    <ConfirmSubmitButton
-                      confirmMessage={`Hapus dokumen "${doc.name}"?`}
-                      aria-label="Hapus dokumen"
-                      className="size-8 text-muted-foreground hover:text-destructive"
+                <div className="flex items-center gap-2 ml-3 shrink-0">
+                  {hasFile && (
+                    <a
+                      href={`/${doc.filePath}`}
+                      download
+                      className="inline-flex items-center gap-1 rounded-lg px-2.5 py-1.5 text-xs text-muted-foreground hover:text-foreground hover:bg-muted"
                     >
-                      <Trash2 className="size-3.5" />
-                    </ConfirmSubmitButton>
-                  </form>
-                )}
+                      <Download className="size-3.5" />
+                      <span className="hidden sm:inline">Unduh</span>
+                    </a>
+                  )}
+                  {canEdit && (
+                    <form action={deleteDocumentAction}>
+                      <input type="hidden" name="documentId" value={doc.id} />
+                      <ConfirmSubmitButton
+                        confirmMessage={`Hapus dokumen "${doc.name}"?`}
+                        aria-label="Hapus dokumen"
+                        className="size-8 text-muted-foreground hover:text-destructive"
+                      >
+                        <Trash2 className="size-3.5" />
+                      </ConfirmSubmitButton>
+                    </form>
+                  )}
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       ) : (
         <EmptyState message="Belum ada dokumen. Upload kontrak, bukti pembayaran, atau file penting lainnya." icon={Upload} />

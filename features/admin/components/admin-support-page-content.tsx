@@ -1,4 +1,4 @@
-import { auth } from "@/lib/actions/auth";
+import { getCurrentUser } from "@/lib/auth-cache";
 import { listAllSupportTicketsAction } from "@/features/admin/actions/support-actions";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -8,8 +8,8 @@ import { Headphones } from "lucide-react";
 import Link from "next/link";
 
 export async function AdminSupportPageContent() {
-  const session = await auth();
-  if (!session?.user?.id) return null;
+  const sessionUser = await getCurrentUser();
+  if (!sessionUser?.id) return null;
 
   const tickets = await listAllSupportTicketsAction();
 

@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import { connection } from "next/server";
 import { AdminSidebar } from "@/components/layout/admin-sidebar";
 
 function AdminLayoutLoading() {
@@ -21,14 +22,14 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 }
 
 async function AdminLayoutPage({ children }: { children: React.ReactNode }) {
+  await connection();
   const { redirect } = await import("next/navigation");
-  const { auth } = await import("@/lib/actions/auth");
+  const { getCurrentUser } = await import("@/lib/auth-cache");
   const { getDb } = await import("@/lib/db");
   const { users } = await import("@/lib/db/schema");
   const { eq } = await import("drizzle-orm");
 
-  const session = await auth();
-  const sessionUser = session?.user;
+  const sessionUser = await getCurrentUser();
 
   if (!sessionUser?.id) {
     redirect("/auth/signin");

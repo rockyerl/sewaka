@@ -1,10 +1,10 @@
-import { auth } from "@/lib/actions/auth";
+import { getCurrentUser } from "@/lib/auth-cache";
 import { listAdminContentsAction } from "@/features/admin/actions/content-actions";
 import { Badge } from "@/components/ui/badge";
 import { EmptyState } from "@/components/shared/page-components";
 import { formatDateIndonesia } from "@/components/ui/date-badge";
 import { FileText } from "lucide-react";
-import { CreateContentForm, ToggleContentActiveButton, DeleteContentButton } from "@/features/admin/components/content-form";
+import { CreateContentForm, EditContentButton, ToggleContentActiveButton, DeleteContentButton } from "@/features/admin/components/content-form";
 
 function ContentCard({ content, typeColors }: { content: any; typeColors: Record<string, string> }) {
   return (
@@ -25,6 +25,7 @@ function ContentCard({ content, typeColors }: { content: any; typeColors: Record
           </p>
         </div>
         <div className="flex items-center gap-2">
+          <EditContentButton content={content} />
           <ToggleContentActiveButton id={content.id} isActive={content.isActive} />
           <DeleteContentButton id={content.id} />
         </div>
@@ -34,8 +35,8 @@ function ContentCard({ content, typeColors }: { content: any; typeColors: Record
 }
 
 export async function AdminContentPageContent() {
-  const session = await auth();
-  if (!session?.user?.id) return null;
+  const sessionUser = await getCurrentUser();
+  if (!sessionUser?.id) return null;
 
   const contents = await listAdminContentsAction();
 

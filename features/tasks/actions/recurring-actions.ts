@@ -1,9 +1,8 @@
 "use server";
 
-import { auth } from "@/lib/actions/auth";
-import { getDb } from "@/lib/db";
 import { eq, and, desc } from "drizzle-orm";
 import { recurringTasks, tasks } from "@/lib/db/schema";
+import { withWorkspace } from "@/lib/db/with-workspace";
 import { z } from "zod";
 
 const createRecurringTaskSchema = z.object({
@@ -20,61 +19,60 @@ const createRecurringTaskSchema = z.object({
 });
 
 export async function createRecurringTaskAction(data: z.infer<typeof createRecurringTaskSchema>) {
-  const session = await auth();
-  if (!session?.user?.id) throw new Error("Unauthorized");
-
   const parsed = createRecurringTaskSchema.parse(data);
-  const db = await getDb();
-  const [result] = await db
-    .insert(recurringTasks)
-    .values(parsed)
-    .returning();
-
-  return result;
+  return withWorkspace(
+    { workspaceId: parsed.workspaceId, allowedRoles: ["OWNER", "PARTNER", "COORDINATOR"] },
+    async (tx) => {
+      const [result] = await tx.insert(recurringTasks).values(parsed).returning();
+      return result;
+    },
+  );
 }
 
-export async function updateRecurringTaskAction(id: string, data: Partial<typeof recurringTasks.$inferInsert>) {
-  const session = await auth();
-  if (!session?.user?.id) throw new Error("Unauthorized");
-
-  const db = await getDb();
-  const [result] = await db
-    .update(recurringTasks)
-    .set(data)
-    .where(eq(recurringTasks.id, id))
-    .returning();
-
-  return result;
+export async function updateRecurringTaskAction(
+  id: string,
+  workspaceId: string,
+  data: Partial<typeof recurringTasks.$inferInsert>,
+) {
+  return withWorkspace(
+    { workspaceId, allowedRoles: ["OWNER", "PARTNER", "COORDINATOR"] },
+    async (tx) => {
+      const [result] = await tx
+        .update(recurringTasks)
+        .set(data)
+        .where(and(eq(recurringTasks.id, id), eq(recurringTasks.workspaceId, workspaceId)))
+        .returning();
+      return result;
+    },
+  );
 }
 
-export async function deleteRecurringTaskAction(id: string) {
-  const session = await auth();
-  if (!session?.user?.id) throw new Error("Unauthorized");
-
-  const db = await getDb();
-  await db
-    .delete(recurringTasks)
-    .where(eq(recurringTasks.id, id));
+export async function deleteRecurringTaskAction(id: string, workspaceId: string) {
+  await withWorkspace(
+    { workspaceId, allowedRoles: ["OWNER", "PARTNER", "COORDINATOR"] },
+    async (tx) => {
+      await tx.delete(recurringTasks).where(
+        and(eq(recurringTasks.id, id), eq(recurringTasks.workspaceId, workspaceId)),
+      );
+    },
+  );
 }
 
 export async function listRecurringTasksAction(workspaceId: string) {
-  const session = await auth();
-  if (!session?.user?.id) throw new Error("Unauthorized");
-
-  const db = await getDb();
-  return db
-    .select()
-    .from(recurringTasks)
-    .where(eq(recurringTasks.workspaceId, workspaceId))
-    .orderBy(desc(recurringTasks.createdAt));
+  return withWorkspace({ workspaceId }, async (tx) =>
+    tx
+      .select()
+      .from(recurringTasks)
+      .where(eq(recurringTasks.workspaceId, workspaceId))
+      .orderBy(desc(recurringTasks.createdAt)),
+  );
 }
 
 export async function generateTasksFromRecurringAction(workspaceId: string) {
-  const session = await auth();
-  if (!session?.user?.id) throw new Error("Unauthorized");
-
-  const db = await getDb();
-  const recurring = await db
+  return withWorkspace(
+    { workspaceId, allowedRoles: ["OWNER", "PARTNER", "COORDINATOR"] },
+    async (tx) => {
+  const recurring = await tx
     .select()
     .from(recurringTasks)
     .where(and(
@@ -86,6 +84,7 @@ export async function generateTasksFromRecurringAction(workspaceId: string) {
   const now = new Date();
 
   for (const task of recurring) {
+    let taskGenerated = false;
     // Calculate next due date based on recurrence pattern
     let nextDate = task.lastGeneratedAt || task.startDate;
     if (nextDate >= now) continue;
@@ -110,7 +109,7 @@ export async function generateTasksFromRecurringAction(workspaceId: string) {
       if (task.endDate && nextDate > task.endDate) break;
 
       // Create actual task
-      await db.insert(tasks).values({
+      await tx.insert(tasks).values({
         workspaceId,
         title: task.title,
         description: task.description,
@@ -122,11 +121,12 @@ export async function generateTasksFromRecurringAction(workspaceId: string) {
       });
 
       generatedCount++;
+      taskGenerated = true;
     }
 
     // Update last generated timestamp
-    if (generatedCount > 0) {
-      await db
+    if (taskGenerated) {
+      await tx
         .update(recurringTasks)
         .set({ lastGeneratedAt: nextDate })
         .where(eq(recurringTasks.id, task.id));
@@ -134,4 +134,6 @@ export async function generateTasksFromRecurringAction(workspaceId: string) {
   }
 
   return { generatedCount };
+    },
+  );
 }

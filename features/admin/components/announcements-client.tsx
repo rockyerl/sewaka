@@ -1,14 +1,14 @@
 "use client";
 
 import { useState } from "react";
-import { createAnnouncementAction, deleteAnnouncementAction, toggleAnnouncementAction } from "@/features/admin/actions/admin-feature-actions";
+import { createAnnouncementAction, deleteAnnouncementAction, toggleAnnouncementAction, updateAnnouncementAction } from "@/features/admin/actions/admin-feature-actions";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Plus, Trash2, Eye, EyeOff } from "lucide-react";
+import { Plus, Trash2, Eye, EyeOff, Pencil } from "lucide-react";
 import { toast } from "sonner";
 import { formatDateIndonesia } from "@/components/ui/date-badge";
 import { StatusBadge, booleanStatusPreset } from "@/components/ui/status-badge";
@@ -21,36 +21,78 @@ const typeColors = {
   maintenance: "bg-gray-100 text-gray-700",
 };
 
+const emptyAnnouncementForm = { title: "", content: "", type: "info", targetAudience: "all" };
+type AnnouncementForm = typeof emptyAnnouncementForm;
+
 export default function AnnouncementsClient({ initialAnnouncements }: { initialAnnouncements: any[] }) {
   const [announcements, setAnnouncements] = useState(initialAnnouncements);
-  const [formData, setFormData] = useState({
-    title: "",
-    content: "",
-    type: "info",
-    targetAudience: "all",
-  });
+  const [editing, setEditing] = useState<null | ({ id: string } & AnnouncementForm)>(null);
+  const [createOpen, setCreateOpen] = useState(false);
+  const [formData, setFormData] = useState<AnnouncementForm>(emptyAnnouncementForm);
 
   const handleCreate = async () => {
     if (!formData.title || !formData.content) {
       toast.error("Judul dan konten wajib diisi");
       return;
     }
-    const newAnn = await createAnnouncementAction(formData);
-    setAnnouncements([newAnn, ...announcements]);
-    setFormData({ title: "", content: "", type: "info", targetAudience: "all" });
-    toast.success("Announcement berhasil dibuat");
+    try {
+      const newAnn = await createAnnouncementAction(formData);
+      setAnnouncements([newAnn, ...announcements]);
+      setFormData(emptyAnnouncementForm);
+      setCreateOpen(false);
+      toast.success("Announcement berhasil dibuat");
+    } catch {
+      toast.error("Announcement gagal dibuat");
+    }
   };
 
   const handleToggle = async (id: string, isActive: boolean) => {
-    await toggleAnnouncementAction(id, isActive);
-    setAnnouncements(announcements.map(a => a.id === id ? { ...a, isActive } : a));
-    toast.success(isActive ? "Announcement diaktifkan" : "Announcement dinonaktifkan");
+    try {
+      await toggleAnnouncementAction(id, isActive);
+      setAnnouncements(announcements.map(a => a.id === id ? { ...a, isActive } : a));
+      toast.success(isActive ? "Announcement diaktifkan" : "Announcement dinonaktifkan");
+    } catch {
+      toast.error("Status announcement gagal diperbarui");
+    }
   };
 
   const handleDelete = async (id: string) => {
-    await deleteAnnouncementAction(id);
-    setAnnouncements(announcements.filter(a => a.id !== id));
-    toast.success("Announcement berhasil dihapus");
+    if (!window.confirm("Hapus announcement ini?")) return;
+    try {
+      await deleteAnnouncementAction(id);
+      setAnnouncements(announcements.filter(a => a.id !== id));
+      toast.success("Announcement berhasil dihapus");
+    } catch {
+      toast.error("Announcement gagal dihapus");
+    }
+  };
+
+  const openEdit = (ann: any) => setEditing({
+    id: ann.id,
+    title: ann.title,
+    content: ann.content,
+    type: ann.type,
+    targetAudience: ann.targetAudience,
+  });
+
+  const handleUpdate = async () => {
+    if (!editing?.title.trim() || !editing.content.trim()) {
+      toast.error("Judul dan konten wajib diisi");
+      return;
+    }
+    try {
+      const updated = await updateAnnouncementAction(editing.id, {
+        title: editing.title.trim(),
+        content: editing.content.trim(),
+        type: editing.type,
+        targetAudience: editing.targetAudience,
+      });
+      setAnnouncements(announcements.map((item) => item.id === updated.id ? updated : item));
+      setEditing(null);
+      toast.success("Announcement berhasil diperbarui");
+    } catch {
+      toast.error("Announcement gagal diperbarui");
+    }
   };
 
   return (
@@ -60,7 +102,7 @@ export default function AnnouncementsClient({ initialAnnouncements }: { initialA
           <h1 className="text-2xl font-bold tracking-tight">Announcements</h1>
           <p className="text-muted-foreground">Broadcast pesan ke semua user</p>
         </div>
-        <Dialog>
+        <Dialog open={createOpen} onOpenChange={setCreateOpen}>
           <DialogTrigger asChild>
             <Button><Plus className="mr-2 h-4 w-4" /> Buat Announcement</Button>
           </DialogTrigger>
@@ -117,10 +159,13 @@ export default function AnnouncementsClient({ initialAnnouncements }: { initialA
                 </div>
                 <div className="flex items-center gap-2">
                   <StatusBadge status={ann.isActive} preset={booleanStatusPreset} />
-                  <Button variant="ghost" size="icon" onClick={() => handleToggle(ann.id, !ann.isActive)}>
+                  <Button variant="ghost" size="icon" aria-label={`Edit ${ann.title}`} onClick={() => openEdit(ann)}>
+                    <Pencil className="h-4 w-4" />
+                  </Button>
+                  <Button variant="ghost" size="icon" aria-label={ann.isActive ? `Nonaktifkan ${ann.title}` : `Aktifkan ${ann.title}`} onClick={() => handleToggle(ann.id, !ann.isActive)}>
                     {ann.isActive ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </Button>
-                  <Button variant="ghost" size="icon" onClick={() => handleDelete(ann.id)}>
+                  <Button variant="ghost" size="icon" aria-label={`Hapus ${ann.title}`} onClick={() => handleDelete(ann.id)}>
                     <Trash2 className="h-4 w-4 text-red-500" />
                   </Button>
                 </div>
@@ -135,6 +180,22 @@ export default function AnnouncementsClient({ initialAnnouncements }: { initialA
           </Card>
         ))}
       </div>
+
+      <Dialog open={editing !== null} onOpenChange={(open) => !open && setEditing(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit Announcement</DialogTitle>
+            <DialogDescription>Perbarui isi dan target announcement.</DialogDescription>
+          </DialogHeader>
+          {editing && <div className="space-y-4">
+            <div className="space-y-2"><Label htmlFor="edit-announcement-title">Judul</Label><Input id="edit-announcement-title" value={editing.title} onChange={(event) => setEditing({ ...editing, title: event.target.value })} /></div>
+            <div className="space-y-2"><Label htmlFor="edit-announcement-content">Konten</Label><Textarea id="edit-announcement-content" value={editing.content} onChange={(event) => setEditing({ ...editing, content: event.target.value })} rows={4} /></div>
+            <div className="space-y-2"><Label htmlFor="edit-announcement-type">Tipe</Label><select id="edit-announcement-type" value={editing.type} onChange={(event) => setEditing({ ...editing, type: event.target.value })} className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm"><option value="info">Info</option><option value="warning">Warning</option><option value="error">Error</option><option value="maintenance">Maintenance</option></select></div>
+            <div className="space-y-2"><Label htmlFor="edit-announcement-audience">Audience</Label><select id="edit-announcement-audience" value={editing.targetAudience} onChange={(event) => setEditing({ ...editing, targetAudience: event.target.value })} className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm"><option value="all">Semua User</option><option value="user">User Biasa</option><option value="admin">Admin</option></select></div>
+            <Button onClick={handleUpdate}>Simpan perubahan</Button>
+          </div>}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

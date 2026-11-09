@@ -22,6 +22,9 @@ import {
   Settings,
   Mail,
   BarChart3,
+  Wand2,
+  ListTodo,
+  MessageSquare,
   type LucideIcon,
 } from "lucide-react";
 import Link from "next/link";
@@ -51,6 +54,7 @@ export const NAV_CATEGORIES: NavCategory[] = [
     label: "UTAMA",
     items: [
       { label: "Ringkasan", icon: LayoutDashboard, href: "/dashboard" },
+      { label: "Analytics", icon: BarChart3, href: "/analytics" },
       { label: "Checklist", icon: ListChecks, href: "/tasks", countKey: "tasks" },
     ],
   },
@@ -66,8 +70,13 @@ export const NAV_CATEGORIES: NavCategory[] = [
     label: "ACARA",
     items: [
       { label: "Tamu & Undangan", icon: UsersRound, href: "/guests", countKey: "guests" },
+      { label: "WhatsApp RSVP", icon: Mail, href: "/whatsapp-rsvp" },
+      { label: "Seating Planner", icon: UsersRound, href: "/seating-planner" },
+      { label: "Audit Logs Check-in", icon: ListChecks, href: "/check-in-logs" },
       { label: "Custom Undangan", icon: Mail, href: "/invitation/custom" },
       { label: "Rangkaian Acara", icon: CalendarDays, href: "/events", countKey: "events" },
+      { label: "Command Center", icon: CalendarDays, href: "/command-center" },
+      { label: "Guest Thank You", icon: MessageSquare, href: "/guest-thank-you" },
       { label: "Galeri Foto", icon: Image, href: "/gallery" },
     ],
   },
@@ -78,6 +87,7 @@ export const NAV_CATEGORIES: NavCategory[] = [
       { label: "Kontrak Vendor", icon: ScrollText, href: "/contracts" },
       { label: "Executive Summary", icon: BarChart3, href: "/summary" },
       { label: "Ensiklopedia Adat", icon: BookOpen, href: "/encyclopedia" },
+      { label: "Workflow Adat", icon: Wand2, href: "/cultural-workflow" },
     ],
   },
   {

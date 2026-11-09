@@ -91,6 +91,7 @@ test("workspace_members RLS requires app.user_id to be set before query", async 
     await client.query("COMMIT");
 
     // 1. Without setting app.user_id, reading workspace_members returns 0 rows (denied by RLS)
+    await client.query("SET ROLE sewaka_app");
     const withoutConfig = await client.query(
       "SELECT role FROM workspace_members WHERE user_id = $1",
       [userId]
@@ -107,7 +108,9 @@ test("workspace_members RLS requires app.user_id to be set before query", async 
     assert.equal(withConfig.rows.length, 1);
     assert.equal(withConfig.rows[0].role, "OWNER");
     await client.query("ROLLBACK");
+    await client.query("RESET ROLE");
   } finally {
+    await client.query("RESET ROLE").catch(() => {});
     await client.query("DELETE FROM users WHERE id = $1", [userId]);
     await client.end();
   }

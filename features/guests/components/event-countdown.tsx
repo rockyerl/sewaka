@@ -14,11 +14,10 @@ interface EventCountdownProps {
 }
 
 export function EventCountdown({ events }: EventCountdownProps) {
-  const [tick, setTick] = useState(0);
-  const now = tick || Date.now();
+  const [now, setNow] = useState(() => Date.now());
 
   useEffect(() => {
-    const interval = setInterval(() => setTick(Date.now()), 1000);
+    const interval = setInterval(() => setNow(Date.now()), 1000);
     return () => clearInterval(interval);
   }, []);
 

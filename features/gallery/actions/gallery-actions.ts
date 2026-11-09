@@ -1,22 +1,22 @@
 "use server";
 
-import { eq, and, desc } from "drizzle-orm";
-import { getDb } from "@/lib/db";
+import { eq, and } from "drizzle-orm";
 import { imageGallery } from "@/lib/db/schema";
 import { auth } from "@/lib/actions/auth";
+import { withWorkspace } from "@/lib/db/with-workspace";
 import { revalidatePath } from "next/cache";
 import { uploadFile, deleteFile } from "@/lib/utils/storage";
-import { checkStorageLimit, SubscriptionLimitError } from "@/lib/utils/subscription-check";
+import { checkStorageLimit } from "@/lib/utils/subscription-check";
 
 export async function uploadImageAction(formData: FormData) {
   const session = await auth();
   if (!session?.user?.id) throw new Error("Unauthorized");
 
-  const workspaceId = formData.get("workspaceId") as string;
+  const workspaceId = String(formData.get("workspaceId") ?? "");
   const title = formData.get("title") as string;
   const file = formData.get("file") as File;
 
-  if (!file || file.size === 0) throw new Error("File tidak valid");
+  if (!workspaceId || !file || file.size === 0) throw new Error("Data file tidak valid");
 
   // Validate file type
   const allowedTypes = ["image/jpeg", "image/png", "image/webp", "image/gif"];
@@ -30,32 +30,36 @@ export async function uploadImageAction(formData: FormData) {
     throw new Error("Ukuran file maksimal 10MB.");
   }
 
-  // Check subscription storage limit
-  try {
-    await checkStorageLimit(workspaceId, file.size);
-  } catch (err) {
-    if (err instanceof SubscriptionLimitError) {
-      throw err;
-    }
-  }
+  await withWorkspace(
+    { workspaceId, allowedRoles: ["OWNER", "PARTNER", "COORDINATOR"] },
+    async () => checkStorageLimit(workspaceId, file.size),
+  );
 
   // Upload to Vercel Blob storage
   const uploadResult = await uploadFile(file, {
     pathname: `gallery/${workspaceId}/${Date.now()}-${file.name.replace(/[^a-zA-Z0-9._-]/g, "")}`,
   });
 
-  const db = await getDb();
-  const [image] = await db
-    .insert(imageGallery)
-    .values({
-      workspaceId,
-      title: title || file.name,
-      fileUrl: uploadResult.url,
-      fileType: file.type,
-      fileSize: file.size,
-      uploadedBy: session.user.id,
-    })
-    .returning();
+  let image;
+  try {
+    [image] = await withWorkspace(
+      { workspaceId, allowedRoles: ["OWNER", "PARTNER", "COORDINATOR"] },
+      (tx) => tx
+        .insert(imageGallery)
+        .values({
+          workspaceId,
+          title: title || file.name,
+          fileUrl: uploadResult.url,
+          fileType: file.type,
+          fileSize: file.size,
+          uploadedBy: session.user.id,
+        })
+        .returning(),
+    );
+  } catch (error) {
+    await deleteFile(uploadResult.url);
+    throw error;
+  }
 
   revalidatePath("/gallery");
   return { success: true, image };
@@ -70,28 +74,25 @@ export async function deleteImageAction(formData: FormData) {
 
   if (!imageId || !workspaceId) throw new Error("Data tidak valid");
 
-  const db = await getDb();
-  const [image] = await db
-    .select()
-    .from(imageGallery)
-    .where(
-      and(
-        eq(imageGallery.id, imageId),
-        eq(imageGallery.workspaceId, workspaceId)
-      )
-    );
+  const [image] = await withWorkspace(
+    { workspaceId, allowedRoles: ["OWNER", "PARTNER", "COORDINATOR"] },
+    async (tx) => {
+      const [row] = await tx.select().from(imageGallery).where(
+        and(eq(imageGallery.id, imageId), eq(imageGallery.workspaceId, workspaceId)),
+      ).limit(1);
+      if (row) {
+        await tx.delete(imageGallery).where(
+          and(eq(imageGallery.id, imageId), eq(imageGallery.workspaceId, workspaceId)),
+        );
+      }
+      return [row] as const;
+    },
+  );
 
   // Delete from cloud storage
   if (image && image.fileUrl) {
     await deleteFile(image.fileUrl);
   }
-
-  await db.delete(imageGallery).where(
-    and(
-      eq(imageGallery.id, imageId),
-      eq(imageGallery.workspaceId, workspaceId)
-    )
-  );
 
   revalidatePath("/gallery");
   return { success: true };
@@ -107,16 +108,13 @@ export async function updateImageTitleAction(formData: FormData) {
 
   if (!imageId || !workspaceId || !title) throw new Error("Data tidak valid");
 
-  const db = await getDb();
-  await db
-    .update(imageGallery)
-    .set({ title })
-    .where(
-      and(
-        eq(imageGallery.id, imageId),
-        eq(imageGallery.workspaceId, workspaceId)
-      )
-    );
+  await withWorkspace(
+    { workspaceId, allowedRoles: ["OWNER", "PARTNER", "COORDINATOR"] },
+    (tx) => tx
+      .update(imageGallery)
+      .set({ title })
+      .where(and(eq(imageGallery.id, imageId), eq(imageGallery.workspaceId, workspaceId))),
+  );
 
   revalidatePath("/gallery");
   return { success: true };

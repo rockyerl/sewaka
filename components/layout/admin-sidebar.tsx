@@ -5,6 +5,7 @@ import {
   Users,
   FolderOpen,
   CreditCard,
+  Banknote,
   Headphones,
   FileText,
   CheckCircle2,
@@ -40,32 +41,32 @@ export interface AdminNavCategory {
 
 export const ADMIN_NAV_CATEGORIES: AdminNavCategory[] = [
   {
-    label: "UTAMA",
+    label: "RINGKASAN",
     items: [
       { label: "Dashboard", icon: LayoutDashboard, href: "/admin/dashboard" },
     ],
   },
   {
-    label: "MANAJEMEN",
+    label: "OPERASIONAL",
     items: [
       { label: "Pengguna", icon: Users, href: "/admin/users" },
       { label: "Workspace", icon: FolderOpen, href: "/admin/workspaces" },
       { label: "Paket", icon: CreditCard, href: "/admin/plans" },
-      { label: "Pembayaran", icon: CreditCard, href: "/admin/payments" },
+      { label: "Pembayaran", icon: Banknote, href: "/admin/payments" },
       { label: "Support", icon: Headphones, href: "/admin/support" },
     ],
   },
   {
-    label: "KONTEN & PENGATURAN",
+    label: "KONTEN & PRODUK",
     items: [
       { label: "Konten", icon: FileText, href: "/admin/content" },
-      { label: "Announcements", icon: Bell, href: "/admin/announcements" },
+      { label: "Pengumuman", icon: Bell, href: "/admin/announcements" },
       { label: "Feature Flags", icon: CheckCircle2, href: "/admin/feature-flags" },
       { label: "Pengaturan", icon: Settings, href: "/admin/settings" },
     ],
   },
   {
-    label: "AUDIT & LOGS",
+    label: "AUDIT & LOG SISTEM",
     items: [
       { label: "Audit Trail", icon: Shield, href: "/admin/audit-trail" },
       { label: "Logs", icon: ScrollText, href: "/admin/logs" },

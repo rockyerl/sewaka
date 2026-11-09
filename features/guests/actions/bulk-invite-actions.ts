@@ -1,9 +1,9 @@
 "use server";
 
-import { inArray } from "drizzle-orm";
-import { getDb } from "@/lib/db";
-import { guests } from "@/lib/db/schema";
+import { and, eq, inArray } from "drizzle-orm";
+import { guests, weddingWorkspaces } from "@/lib/db/schema";
 import { auth } from "@/lib/actions/auth";
+import { withWorkspace } from "@/lib/db/with-workspace";
 
 interface BulkInviteResult {
   success: boolean;
@@ -31,49 +31,40 @@ export async function bulkWaInviteAction(guestIds: string[]): Promise<BulkInvite
     return { success: false, total: 0, links: [], error: "Pilih minimal 1 tamu." };
   }
 
-  const db = await getDb();
+  return withWorkspace(async (tx, workspaceId) => {
+    const guestRows = await tx
+      .select({ id: guests.id, name: guests.name, phone: guests.phone })
+      .from(guests)
+      .where(and(inArray(guests.id, guestIds), eq(guests.workspaceId, workspaceId)));
 
-  // Fetch guest details — RLS filters by current workspace
-  const guestRows = await db
-    .select({
-      id: guests.id,
-      name: guests.name,
-      phone: guests.phone,
-      workspaceId: guests.workspaceId,
-    })
-    .from(guests)
-    .where(inArray(guests.id, guestIds));
+    if (guestRows.length === 0) {
+      return { success: false, total: 0, links: [], error: "Tidak ada tamu ditemukan." };
+    }
 
-  // Get workspace info for invitation slug
-  if (guestRows.length === 0) {
-    return { success: false, total: 0, links: [], error: "Tidak ada tamu ditemukan." };
-  }
+    const [workspace] = await tx
+      .select({ invitationSlug: weddingWorkspaces.invitationSlug, coupleOne: weddingWorkspaces.coupleOne, coupleTwo: weddingWorkspaces.coupleTwo, name: weddingWorkspaces.name })
+      .from(weddingWorkspaces)
+      .where(eq(weddingWorkspaces.id, workspaceId))
+      .limit(1);
 
-  const workspaceId = guestRows[0].workspaceId;
+    if (!workspace?.invitationSlug) {
+      return { success: false, total: 0, links: [], error: "Slug undangan belum tersedia." };
+    }
 
-  // Get invitation slug from workspace
-  const { getCurrentWorkspace } = await import("@/lib/utils/workspace-cache");
-  const workspace = await getCurrentWorkspace(workspaceId);
-  if (!workspace?.invitationSlug) {
-    return { success: false, total: 0, links: [], error: "Slug undangan belum tersedia." };
-  }
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
+    const coupleName = workspace.coupleOne && workspace.coupleTwo
+      ? `${workspace.coupleOne} & ${workspace.coupleTwo}`
+      : workspace.name;
+    const links = guestRows.map((guest) => {
+      const inviteLink = `${baseUrl}/invitation/${workspace.invitationSlug}?to=${encodeURIComponent(guest.name)}`;
+      const message = `Yang Terhormat Bpk/Ibu ${guest.name},\n\nKami mengundang Anda untuk hadir di pernikahan ${coupleName}.\n\nBuka undangan digital kami di sini:\n${inviteLink}\n\nTerima kasih atas doa dan restu Anda.`;
+      return {
+        name: guest.name,
+        phone: guest.phone || "-",
+        link: `https://wa.me/${guest.phone ? guest.phone.replace(/[^0-9]/g, "") : ""}?text=${encodeURIComponent(message)}`,
+      };
+    });
 
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
-  const coupleName = workspace.coupleOne && workspace.coupleTwo
-    ? `${workspace.coupleOne} & ${workspace.coupleTwo}`
-    : workspace.name;
-
-  const links = guestRows.map((guest) => {
-    const inviteLink = `${baseUrl}/invitation/${workspace.invitationSlug}?to=${encodeURIComponent(guest.name)}`;
-    const message = `Yang Terhormat Bpk/Ibu ${guest.name},\n\nKami mengundang Anda untuk hadir di pernikahan ${coupleName}.\n\nBuka undangan digital kami di sini:\n${inviteLink}\n\nTerima kasih atas doa dan restu Anda.`;
-    const waLink = `https://wa.me/${guest.phone ? guest.phone.replace(/[^0-9]/g, "") : ""}?text=${encodeURIComponent(message)}`;
-
-    return {
-      name: guest.name,
-      phone: guest.phone || "-",
-      link: waLink,
-    };
+    return { success: true, total: links.length, links };
   });
-
-  return { success: true, total: links.length, links };
 }

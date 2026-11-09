@@ -1,11 +1,10 @@
 import { Search } from "lucide-react";
+import Link from "next/link";
+import { revalidatePath } from "next/cache";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { DateText } from "@/components/ui/date-badge";
 import { AdminPageHeader } from "@/components/shared/admin-components";
-import { FormField } from "@/components/ui/form-field";
-import { SubmitOutline } from "@/components/ui/submit-button";
-import { PaginationBar } from "@/components/ui/pagination";
 import { listAdminUsers, updateUserRole as updateUserRoleInternal } from "@/features/admin/actions/admin-actions";
 
 export async function setRoleAction(formData: FormData) {
@@ -13,6 +12,7 @@ export async function setRoleAction(formData: FormData) {
   const userId = formData.get("userId") as string;
   const newRole = formData.get("newRole") as "user" | "admin";
   await updateUserRoleInternal(userId, newRole);
+  revalidatePath("/admin/users");
 }
 
 async function SetRoleForm({ userId, currentRole }: { userId: string; currentRole: string }) {
@@ -45,18 +45,18 @@ export async function AdminUsersPageContent({
 
       {/* Search */}
       <form className="flex gap-2">
-        <FormField
-          name="search-input"
-          label=""
-          icon={Search}
-          placeholder="Cari nama atau email..."
-          value=""
-          onChange={() => {}}
-          className="flex-1"
-        />
-        <SubmitOutline className="h-9 rounded-xl whitespace-nowrap">
-          Cari
-        </SubmitOutline>
+        <label className="sr-only" htmlFor="user-search">Cari pengguna</label>
+        <div className="relative flex-1">
+          <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
+          <input
+            id="user-search"
+            name="search"
+            defaultValue={search}
+            placeholder="Cari nama atau email..."
+            className="h-10 w-full rounded-xl border border-input bg-background pl-9 pr-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          />
+        </div>
+        <button type="submit" className="h-10 rounded-xl border border-input px-4 text-sm font-medium hover:bg-muted">Cari</button>
       </form>
 
       {/* Users List */}
@@ -84,12 +84,15 @@ export async function AdminUsersPageContent({
           ))}
         </div>
 
-        <PaginationBar
-          currentPage={data.pagination.page}
-          totalPages={data.pagination.totalPages}
-          onPageChange={() => {}}
-          totalItems={data.pagination.total}
-        />
+        {data.pagination.totalPages > 1 && (
+          <div className="flex items-center justify-between pt-4">
+            <p className="text-xs text-muted-foreground">Halaman {data.pagination.page} dari {data.pagination.totalPages}</p>
+            <div className="flex gap-2">
+              {data.pagination.page > 1 && <Link className="rounded-lg border px-3 py-1 text-xs hover:bg-muted" href={`/admin/users?${new URLSearchParams({ ...(search ? { search } : {}), page: String(data.pagination.page - 1) })}`}>Sebelumnya</Link>}
+              {data.pagination.page < data.pagination.totalPages && <Link className="rounded-lg border px-3 py-1 text-xs hover:bg-muted" href={`/admin/users?${new URLSearchParams({ ...(search ? { search } : {}), page: String(data.pagination.page + 1) })}`}>Selanjutnya</Link>}
+            </div>
+          </div>
+        )}
       </Card>
     </div>
   );

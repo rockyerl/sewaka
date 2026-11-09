@@ -27,7 +27,7 @@ export async function forgotPasswordAction(
   try {
     const headersList = await headers();
     const ip = headersList.get("x-forwarded-for")?.split(",")[0].trim() ?? "unknown";
-    const { isLimited, retryAfter } = rateLimit({
+    const { isLimited, retryAfter } = await rateLimit({
       key: `forgot_password:${ip}`,
       limit: 3,
       windowMs: 3_600_000,

@@ -5,7 +5,7 @@ import { revalidatePath } from "next/cache";
 
 import { vendors } from "@/lib/db/schema";
 import { withWorkspace } from "@/lib/db/with-workspace";
-import { checkVendorLimit, SubscriptionLimitError } from "@/lib/utils/subscription-check";
+import { checkVendorLimit } from "@/lib/utils/subscription-check";
 
 import { createVendorSchema, deleteVendorSchema, updateVendorStatusSchema } from "../actions/vendor-schema";
 
@@ -23,13 +23,7 @@ export async function createVendorAction(formData: FormData) {
   });
 
   // Check subscription vendor limit
-  try {
-    await checkVendorLimit(input.workspaceId);
-  } catch (err) {
-    if (err instanceof SubscriptionLimitError) {
-      throw err;
-    }
-  }
+  await checkVendorLimit(input.workspaceId);
 
   await withWorkspace(
     { workspaceId: input.workspaceId, allowedRoles: editorRoles },

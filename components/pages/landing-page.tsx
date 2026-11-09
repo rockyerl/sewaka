@@ -377,7 +377,7 @@ function CaseStudiesSection() {
                     </div>
                     {/* Quote */}
                     <blockquote className="flex-1 text-sm leading-relaxed text-[#1C1917]/75 italic">
-                      "{cs.quote}"
+                      &ldquo;{cs.quote}&rdquo;
                     </blockquote>
                     {/* Author */}
                     <div className="mt-6 flex items-center gap-3 pt-4 border-t border-[#5B132B]/10">

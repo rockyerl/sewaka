@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { MessageSquare, Send, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -8,6 +8,15 @@ import { Card } from "@/components/ui/card";
 import { EmptyState } from "@/components/shared/page-components";
 import { createCommentAction, getCommentsAction, deleteCommentAction } from "@/features/comments/actions/comment-actions";
 import { formatDistanceToNow } from "date-fns";
+
+interface CommentItem {
+  id: string;
+  content: string;
+  parentId: string | null;
+  createdAt: Date;
+  userName: string | null;
+  userId: string | null;
+}
 
 export function CommentsSection({
   workspaceId,
@@ -18,7 +27,7 @@ export function CommentsSection({
   targetId: string;
   targetType: "TASK" | "EVENT" | "DOCUMENT" | "VENDOR";
 }) {
-  const [comments, setComments] = useState<any[]>([]);
+  const [comments, setComments] = useState<CommentItem[]>([]);
   const [content, setContent] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -43,7 +52,7 @@ export function CommentsSection({
 
   async function handleDelete(commentId: string) {
     try {
-      await deleteCommentAction(commentId);
+      await deleteCommentAction(commentId, workspaceId);
       await loadComments();
     } catch (err) {
       console.error(err);
@@ -51,9 +60,11 @@ export function CommentsSection({
   }
 
   // Load comments on mount
-  useState(() => {
-    loadComments();
-  });
+  useEffect(() => {
+    getCommentsAction(workspaceId, targetId, targetType)
+      .then(setComments)
+      .catch((err) => console.error(err));
+  }, [workspaceId, targetId, targetType]);
 
   const parentComments = comments.filter((c) => !c.parentId);
   const childComments = comments.filter((c) => c.parentId);

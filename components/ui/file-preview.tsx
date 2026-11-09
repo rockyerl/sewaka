@@ -10,11 +10,11 @@ import { Badge } from "@/components/ui/badge";
  * Gunakan untuk menampilkan dokumen, foto, atau video dengan preview inline.
  */
 
-function getFileIcon(type: string) {
-  if (type.startsWith("image/")) return Image;
-  if (type.startsWith("video/")) return Video;
-  if (type === "application/pdf") return FileText;
-  return File;
+function renderFileIcon(type: string, className?: string) {
+  if (type.startsWith("image/")) return <Image className={className} />;
+  if (type.startsWith("video/")) return <Video className={className} />;
+  if (type === "application/pdf") return <FileText className={className} />;
+  return <File className={className} />;
 }
 
 function getFileTypeLabel(type: string) {
@@ -37,7 +37,6 @@ export function FilePreview({
   fileSize?: number;
   onDownload?: () => void;
 }) {
-  const Icon = getFileIcon(fileType);
   const typeLabel = getFileTypeLabel(fileType);
 
   const formatFileSize = (bytes?: number) => {
@@ -51,7 +50,7 @@ export function FilePreview({
     <Card className="gap-4 rounded-xl border-border/80 bg-card p-4 shadow-sm">
       <div className="flex items-start gap-4">
         <div className="grid size-12 shrink-0 place-items-center rounded-xl bg-muted/60">
-          <Icon className="size-6 text-muted-foreground" />
+          {renderFileIcon(fileType, "size-6 text-muted-foreground")}
         </div>
 
         <div className="min-w-0 flex-1">

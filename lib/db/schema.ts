@@ -2,6 +2,7 @@ import { relations, sql, type SQLWrapper } from "drizzle-orm";
 import {
   boolean,
   check,
+  date,
   foreignKey,
   index,
   integer,
@@ -411,6 +412,7 @@ export const tasks = pgTable(
     categoryId: uuid("category_id").references(() => taskCategories.id, {
       onDelete: "set null",
     }),
+    source: text("source").default("MANUAL"),
     createdAt: createdAt(),
     updatedAt: updatedAt(),
   },
@@ -422,6 +424,7 @@ export const tasks = pgTable(
     ),
     index("tasks_assigned_to_id_idx").on(table.assignedToId),
     index("tasks_category_id_idx").on(table.categoryId),
+    index("tasks_workspace_source_idx").on(table.workspaceId, table.source),
     foreignKey({
       name: "tasks_assignee_workspace_member_fk",
       columns: [table.workspaceId, table.assignedToId],
@@ -625,6 +628,8 @@ export const guests = pgTable(
     wishes: text("wishes"),
     checkedIn: boolean("checked_in").notNull().default(false),
     checkedInAt: timestamp("checked_in_at", { withTimezone: true, mode: "date" }),
+    checkedInBy: text("checked_in_by"),
+    checkedInDevice: text("checked_in_device"),
     isVip: boolean("is_vip").notNull().default(false),
     createdAt: createdAt(),
     updatedAt: updatedAt(),
@@ -655,6 +660,39 @@ export const activityLogs = pgTable(
       table.workspaceId,
       table.createdAt,
     ),
+    ...workspacePolicy(table.workspaceId),
+  ],
+).enableRLS();
+
+// Check-in audit logs untuk offline check-in support
+export const checkInLogs = pgTable(
+  "check_in_logs",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    guestId: uuid("guest_id")
+      .notNull()
+      .references(() => guests.id, { onDelete: "cascade" }),
+    workspaceId: uuid("workspace_id")
+      .notNull()
+      .references(() => weddingWorkspaces.id, { onDelete: "cascade" }),
+    action: text("action").notNull(),
+    performedBy: text("performed_by"),
+    deviceInfo: text("device_info"),
+    invitationCode: text("invitation_code").notNull(),
+    checkedInAt: timestamp("checked_in_at", { withTimezone: true, mode: "date" })
+      .notNull()
+      .defaultNow(),
+    syncedAt: timestamp("synced_at", { withTimezone: true, mode: "date" }),
+    syncStatus: text("sync_status").default("PENDING"),
+    conflictResolution: text("conflict_resolution"),
+    metadata: jsonb("metadata"),
+    createdAt: createdAt(),
+  },
+  (table) => [
+    index("check_in_logs_guest_idx").on(table.guestId),
+    index("check_in_logs_workspace_idx").on(table.workspaceId),
+    index("check_in_logs_sync_idx").on(table.syncStatus),
+    index("check_in_logs_action_idx").on(table.action),
     ...workspacePolicy(table.workspaceId),
   ],
 ).enableRLS();
@@ -873,6 +911,7 @@ export const vendorPayments = pgTable(
 ).enableRLS();
 
 // Documents (DOC-01, DOC-02, DOC-08)
+// Extended with checklist fields from nikah_berkas merge
 export const documents = pgTable(
   "documents",
   {
@@ -882,19 +921,29 @@ export const documents = pgTable(
       .references(() => weddingWorkspaces.id, { onDelete: "cascade" }),
     name: text("name").notNull(),
     category: text("category").notNull(),
-    filePath: text("file_path").notNull(),
-    fileSize: integer("file_size").notNull(),
-    mimeType: text("mime_type").notNull(),
+    filePath: text("file_path"),
+    fileSize: integer("file_size"),
+    mimeType: text("mime_type"),
     uploadedById: uuid("uploaded_by_id").references(() => users.id, {
       onDelete: "set null",
     }),
+    // Checklist fields (from nikah_berkas merge)
+    documentDescription: text("document_description"),
+    isRequired: boolean("is_required").notNull().default(false),
+    isCompleted: boolean("is_completed").notNull().default(false),
+    deadlineDate: date("deadline_date"),
+    completedAt: timestamp("completed_at", { withTimezone: true, mode: "date" }),
+    notes: text("notes"),
+    nikahType: text("nikah_type"),
     createdAt: createdAt(),
+    updatedAt: updatedAt(),
   },
   (table) => [
     index("documents_workspace_category_idx").on(
       table.workspaceId,
       table.category,
     ),
+    index("documents_nikah_type_idx").on(table.workspaceId, table.nikahType),
     check("documents_file_size_positive", sql`${table.fileSize} > 0`),
     ...workspacePolicy(table.workspaceId),
   ],
@@ -1714,6 +1763,7 @@ export const calendarSyncs = pgTable(
     calendarId: text("calendar_id").notNull(),
     accessToken: text("access_token").notNull(),
     refreshToken: text("refresh_token"),
+    tokenExpiresAt: timestamp("token_expires_at", { withTimezone: true, mode: "date" }),
     syncDirection: text("sync_direction").notNull().default("BIDIRECTIONAL"), // ONE_WAY, BIDIRECTIONAL
     isActive: boolean("is_active").notNull().default(true),
     lastSyncAt: timestamp("last_sync_at", { withTimezone: true, mode: "date" }),
@@ -1896,6 +1946,306 @@ export const announcementRelations = relations(announcements, ({ one }) => ({
   }),
 }));
 
+// WhatsApp RSVP Automation
+export const whatsappMessages = pgTable(
+  "whatsapp_messages",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    workspaceId: uuid("workspace_id")
+      .notNull()
+      .references(() => weddingWorkspaces.id, { onDelete: "cascade" }),
+    guestId: uuid("guest_id")
+      .notNull()
+      .references(() => guests.id, { onDelete: "cascade" }),
+    phoneNumber: text("phone_number").notNull(),
+    messageType: text("message_type").notNull(),
+    messageTemplate: text("message_template").notNull(),
+    status: text("status").notNull().default("PENDING"),
+    sentAt: timestamp("sent_at", { withTimezone: true, mode: "date" }),
+    deliveredAt: timestamp("delivered_at", { withTimezone: true, mode: "date" }),
+    readAt: timestamp("read_at", { withTimezone: true, mode: "date" }),
+    errorMessage: text("error_message"),
+    createdAt: createdAt(),
+    updatedAt: updatedAt(),
+  },
+  (table) => [
+    index("idx_whatsapp_messages_workspace").on(table.workspaceId),
+    index("idx_whatsapp_messages_guest").on(table.guestId),
+    index("idx_whatsapp_messages_status").on(table.status),
+    ...workspacePolicy(table.workspaceId),
+  ],
+).enableRLS();
+
+export const whatsappMessageRelations = relations(whatsappMessages, ({ one }) => ({
+  workspace: one(weddingWorkspaces, {
+    fields: [whatsappMessages.workspaceId],
+    references: [weddingWorkspaces.id],
+  }),
+  guest: one(guests, {
+    fields: [whatsappMessages.guestId],
+    references: [guests.id],
+  }),
+}));
+
+// Seating Planner
+export const seatingTables = pgTable(
+  "seating_tables",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    workspaceId: uuid("workspace_id")
+      .notNull()
+      .references(() => weddingWorkspaces.id, { onDelete: "cascade" }),
+    tableName: text("table_name").notNull(),
+    capacity: integer("capacity").notNull().default(10),
+    positionX: integer("position_x").notNull().default(0),
+    positionY: integer("position_y").notNull().default(0),
+    notes: text("notes"),
+    createdAt: createdAt(),
+    updatedAt: updatedAt(),
+  },
+  (table) => [
+    index("idx_seating_tables_workspace").on(table.workspaceId),
+    ...workspacePolicy(table.workspaceId),
+  ],
+).enableRLS();
+
+export const seatingTableRelations = relations(seatingTables, ({ one, many }) => ({
+  workspace: one(weddingWorkspaces, {
+    fields: [seatingTables.workspaceId],
+    references: [weddingWorkspaces.id],
+  }),
+  seatAssignments: many(seatAssignments),
+}));
+
+export const seatAssignments = pgTable(
+  "seat_assignments",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    workspaceId: uuid("workspace_id")
+      .notNull()
+      .references(() => weddingWorkspaces.id, { onDelete: "cascade" }),
+    tableId: uuid("table_id")
+      .notNull()
+      .references(() => seatingTables.id, { onDelete: "cascade" }),
+    guestId: uuid("guest_id")
+      .notNull()
+      .references(() => guests.id, { onDelete: "cascade" }),
+    seatNumber: integer("seat_number"),
+    createdAt: createdAt(),
+  },
+  (table) => [
+    index("idx_seat_assignments_workspace").on(table.workspaceId),
+    index("idx_seat_assignments_table").on(table.tableId),
+    ...workspacePolicy(table.workspaceId),
+  ],
+).enableRLS();
+
+export const seatAssignmentRelations = relations(seatAssignments, ({ one }) => ({
+  workspace: one(weddingWorkspaces, {
+    fields: [seatAssignments.workspaceId],
+    references: [weddingWorkspaces.id],
+  }),
+  table: one(seatingTables, {
+    fields: [seatAssignments.tableId],
+    references: [seatingTables.id],
+  }),
+  guest: one(guests, {
+    fields: [seatAssignments.guestId],
+    references: [guests.id],
+  }),
+}));
+
+// Wedding Day Command Center
+export const commandCenterTeam = pgTable(
+  "command_center_team",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    workspaceId: uuid("workspace_id")
+      .notNull()
+      .references(() => weddingWorkspaces.id, { onDelete: "cascade" }),
+    name: text("name").notNull(),
+    role: text("role").notNull(),
+    phoneNumber: text("phone_number"),
+    status: text("status").notNull().default("ON_TIME"),
+    notes: text("notes"),
+    createdAt: createdAt(),
+    updatedAt: updatedAt(),
+  },
+  (table) => [
+    index("idx_command_center_team_workspace").on(table.workspaceId),
+    ...workspacePolicy(table.workspaceId),
+  ],
+).enableRLS();
+
+export const commandCenterTeamRelations = relations(commandCenterTeam, ({ one }) => ({
+  workspace: one(weddingWorkspaces, {
+    fields: [commandCenterTeam.workspaceId],
+    references: [weddingWorkspaces.id],
+  }),
+}));
+
+export const commandCenterIncidents = pgTable(
+  "command_center_incidents",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    workspaceId: uuid("workspace_id")
+      .notNull()
+      .references(() => weddingWorkspaces.id, { onDelete: "cascade" }),
+    title: text("title").notNull(),
+    description: text("description"),
+    severity: text("severity").notNull().default("LOW"),
+    status: text("status").notNull().default("OPEN"),
+    reportedBy: text("reported_by"),
+    resolvedBy: text("resolved_by"),
+    resolvedAt: timestamp("resolved_at", { withTimezone: true, mode: "date" }),
+    createdAt: createdAt(),
+    updatedAt: updatedAt(),
+  },
+  (table) => [
+    index("idx_command_center_incidents_workspace").on(table.workspaceId),
+    ...workspacePolicy(table.workspaceId),
+  ],
+).enableRLS();
+
+export const commandCenterIncidentRelations = relations(commandCenterIncidents, ({ one }) => ({
+  workspace: one(weddingWorkspaces, {
+    fields: [commandCenterIncidents.workspaceId],
+    references: [weddingWorkspaces.id],
+  }),
+}));
+
+// Guest photos — tamu bisa upload foto di undangan public, admin approve/reject
+export const guestPhotos = pgTable(
+  "guest_photos",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    workspaceId: uuid("workspace_id")
+      .notNull()
+      .references(() => weddingWorkspaces.id, { onDelete: "cascade" }),
+    guestName: text("guest_name").notNull(),
+    guestPhone: text("guest_phone"),
+    photoUrl: text("photo_url").notNull(),
+    caption: text("caption"),
+    status: text("status").notNull().default("PENDING"),
+    createdAt: timestamp("created_at", { withTimezone: true, mode: "date" }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true, mode: "date" }).notNull().defaultNow(),
+  },
+  (table) => [
+    index("guest_photos_workspace_idx").on(table.workspaceId),
+    index("guest_photos_status_idx").on(table.status),
+  ],
+).enableRLS();
+
+export const guestPhotoRelations = relations(guestPhotos, ({ one }) => ({
+  workspace: one(weddingWorkspaces, {
+    fields: [guestPhotos.workspaceId],
+    references: [weddingWorkspaces.id],
+  }),
+}));
+
+// Vendor Inquiries — pesan ke vendor dari dashboard
+export const vendorInquiries = pgTable(
+  "vendor_inquiries",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    workspaceId: uuid("workspace_id")
+      .notNull()
+      .references(() => weddingWorkspaces.id, { onDelete: "cascade" }),
+    vendorId: uuid("vendor_id")
+      .notNull()
+      .references(() => curatedVendors.id, { onDelete: "cascade" }),
+    message: text("message").notNull(),
+    contactMethod: text("contact_method").notNull().default("EMAIL"),
+    status: text("status").notNull().default("SENT"),
+    sentAt: timestamp("sent_at", { withTimezone: true, mode: "date" }).notNull().defaultNow(),
+    repliedAt: timestamp("replied_at", { withTimezone: true, mode: "date" }),
+    createdAt: timestamp("created_at", { withTimezone: true, mode: "date" }).notNull().defaultNow(),
+  },
+  (table) => [
+    index("vendor_inquiries_workspace_idx").on(table.workspaceId),
+    index("vendor_inquiries_vendor_idx").on(table.vendorId),
+  ],
+).enableRLS();
+
+export const vendorInquiryRelations = relations(vendorInquiries, ({ one }) => ({
+  workspace: one(weddingWorkspaces, {
+    fields: [vendorInquiries.workspaceId],
+    references: [weddingWorkspaces.id],
+  }),
+  vendor: one(curatedVendors, {
+    fields: [vendorInquiries.vendorId],
+    references: [curatedVendors.id],
+  }),
+}));
+
+// Vendor Reviews — rating dan review setelah layanan
+export const vendorReviews = pgTable(
+  "vendor_reviews",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    workspaceId: uuid("workspace_id")
+      .notNull()
+      .references(() => weddingWorkspaces.id, { onDelete: "cascade" }),
+    vendorId: uuid("vendor_id")
+      .notNull()
+      .references(() => curatedVendors.id, { onDelete: "cascade" }),
+    rating: integer("rating").notNull(),
+    reviewText: text("review_text"),
+    createdAt: timestamp("created_at", { withTimezone: true, mode: "date" }).notNull().defaultNow(),
+  },
+  (table) => [
+    index("vendor_reviews_vendor_idx").on(table.vendorId),
+    check("vendor_reviews_rating_check", sql`rating >= 1 AND rating <= 5`),
+  ],
+).enableRLS();
+
+export const vendorReviewRelations = relations(vendorReviews, ({ one }) => ({
+  workspace: one(weddingWorkspaces, {
+    fields: [vendorReviews.workspaceId],
+    references: [weddingWorkspaces.id],
+  }),
+  vendor: one(curatedVendors, {
+    fields: [vendorReviews.vendorId],
+    references: [curatedVendors.id],
+  }),
+}));
+
+// Guest Thank You — ucapan terima kasih ke tamu setelah wedding
+export const guestThankYou = pgTable(
+  "guest_thank_you",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    workspaceId: uuid("workspace_id")
+      .notNull()
+      .references(() => weddingWorkspaces.id, { onDelete: "cascade" }),
+    guestId: uuid("guest_id")
+      .notNull()
+      .references(() => guests.id, { onDelete: "cascade" }),
+    messageTemplate: text("message_template").notNull(),
+    messagePersonalized: text("message_personalized"),
+    channel: text("channel").notNull().default("WHATSAPP"),
+    status: text("status").notNull().default("PENDING"),
+    sentAt: timestamp("sent_at", { withTimezone: true, mode: "date" }),
+    scheduledFor: timestamp("scheduled_for", { withTimezone: true, mode: "date" }),
+    createdAt: timestamp("created_at", { withTimezone: true, mode: "date" }).notNull().defaultNow(),
+  },
+  (table) => [
+    index("guest_thank_you_workspace_idx").on(table.workspaceId),
+    index("guest_thank_you_guest_idx").on(table.guestId),
+  ],
+).enableRLS();
+
+export const guestThankYouRelations = relations(guestThankYou, ({ one }) => ({
+  workspace: one(weddingWorkspaces, {
+    fields: [guestThankYou.workspaceId],
+    references: [weddingWorkspaces.id],
+  }),
+  guest: one(guests, {
+    fields: [guestThankYou.guestId],
+    references: [guests.id],
+  }),
+}));
+
 export const drizzleSchema = {
   users,
   userCredentials,
@@ -1983,4 +2333,25 @@ export const drizzleSchema = {
   systemSettingRelations,
   adminAuditLogRelations,
   announcementRelations,
+  // Competitive gap features
+  whatsappMessages,
+  whatsappMessageRelations,
+  seatingTables,
+  seatingTableRelations,
+  seatAssignments,
+  seatAssignmentRelations,
+  commandCenterTeam,
+  commandCenterTeamRelations,
+  commandCenterIncidents,
+  commandCenterIncidentRelations,
+  // P2 features
+  guestPhotos,
+  guestPhotoRelations,
+  // Remaining gaps
+  vendorInquiries,
+  vendorInquiryRelations,
+  vendorReviews,
+  vendorReviewRelations,
+  guestThankYou,
+  guestThankYouRelations,
 };

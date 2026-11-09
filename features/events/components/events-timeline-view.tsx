@@ -101,8 +101,8 @@ function getCeremonyColor(type: string | null) {
 }
 
 export function EventsTimelineView({ workspaceId, events, rundowns, initialDate }: EventsTimelineViewProps) {
-  const [selectedDate, setSelectedDate] = useState<string>("");
-  const [selectedCalendarDate, setSelectedCalendarDate] = useState<Date | null>(null);
+  const [userSelectedDate, setUserSelectedDate] = useState<string | null>(null);
+  const [userCalendarDate, setUserCalendarDate] = useState<Date | null>(null);
   const [selectedEventId, setSelectedEventId] = useState<string | null>(null);
   const [showAddEvent, setShowAddEvent] = useState(false);
   const [showAddRundown, setShowAddRundown] = useState(false);
@@ -129,6 +129,12 @@ export function EventsTimelineView({ workspaceId, events, rundowns, initialDate 
 
   const dates = useMemo(() => Array.from(dateMap.keys()).sort(), [dateMap]);
 
+  const selectedDate =
+    userSelectedDate ??
+    (initialDate && dateMap.has(initialDate) ? initialDate : (dates[0] ?? ""));
+  const selectedCalendarDate =
+    userCalendarDate ?? (selectedDate ? new Date(selectedDate) : null);
+
   // Calendar events: convert wedding events to CalendarEvent format
   const calendarEvents = useMemo<CalendarEvent[]>(() => {
     return events
@@ -141,22 +147,11 @@ export function EventsTimelineView({ workspaceId, events, rundowns, initialDate 
       }));
   }, [events]);
 
-  // Auto-select date from URL parameter or first date
-  useEffect(() => {
-    if (initialDate && dateMap.has(initialDate)) {
-      setSelectedDate(initialDate);
-      setSelectedCalendarDate(new Date(initialDate));
-    } else if (!selectedDate && dates.length > 0) {
-      setSelectedDate(dates[0]);
-      setSelectedCalendarDate(new Date(dates[0]));
-    }
-  }, [dates, initialDate, dateMap]);
-
   // Handle calendar date selection
   const handleCalendarSelect = (date: Date) => {
     const key = format(date, "yyyy-MM-dd");
-    setSelectedDate(key);
-    setSelectedCalendarDate(date);
+    setUserSelectedDate(key);
+    setUserCalendarDate(date);
     setSelectedEventId(null);
     setShowAddRundown(false);
   };
@@ -236,8 +231,8 @@ export function EventsTimelineView({ workspaceId, events, rundowns, initialDate 
                   type="button"
                   onClick={() => {
                     const key = getDateKey(event.eventDate);
-                    setSelectedDate(key);
-                    setSelectedCalendarDate(new Date(event.eventDate!));
+                    setUserSelectedDate(key);
+                    setUserCalendarDate(new Date(event.eventDate!));
                     setSelectedEventId(event.id === selectedEventId ? null : event.id);
                     setShowAddRundown(false);
                     // Scroll to rundown panel after a short delay to allow state update

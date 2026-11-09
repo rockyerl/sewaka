@@ -55,7 +55,7 @@ function TaskFormTab({ workspaceId, categories }: {
 
       <FormSelect
         label="Kategori persiapan"
-        name="task-category"
+        name="categoryId"
         icon={FolderOpen}
         placeholder="Tanpa kategori"
         value=""
@@ -68,7 +68,7 @@ function TaskFormTab({ workspaceId, categories }: {
 
       <FormSelect
         label="Prioritas"
-        name="task-priority"
+        name="priority"
         icon={Star}
         placeholder="Pilih prioritas"
         value="MEDIUM"

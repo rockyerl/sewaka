@@ -1,10 +1,10 @@
 "use server";
 
 import { eq, sql } from "drizzle-orm";
-import { getDb } from "@/lib/db";
 import { expenses, budgetCategories, budgets } from "@/lib/db/schema";
 import { auth } from "@/lib/actions/auth";
 import { requireFeature, SubscriptionLimitError } from "@/lib/utils/subscription-check";
+import { withWorkspace } from "@/lib/db/with-workspace";
 
 /**
  * Export budget report to CSV (BGT-13) — Premium feature
@@ -22,9 +22,10 @@ export async function exportBudgetReport(workspaceId: string): Promise<string> {
     if (err instanceof SubscriptionLimitError) {
       throw err;
     }
+    throw err;
   }
 
-  const db = getDb();
+  return withWorkspace({ workspaceId }, async (db) => {
 
   // Get budget overview
   const [budget] = await db
@@ -94,4 +95,5 @@ export async function exportBudgetReport(workspaceId: string): Promise<string> {
   }
 
   return lines.join("\n");
+  });
 }

@@ -1,7 +1,5 @@
-import { auth } from "@/lib/actions/auth";
+import { getCurrentUser } from "@/lib/auth-cache";
 import { WorkspacesPageContent } from "@/features/workspaces/components/workspaces-page-content";
-
-export const instant = false;
 
 export default async function WorkspacesPage({
   searchParams,
@@ -9,8 +7,8 @@ export default async function WorkspacesPage({
   searchParams?: Promise<{ workspaceId?: string }>;
 }) {
   const { getAllWorkspaces } = await import("@/lib/utils/workspace-cache");
-  const session = await auth();
-  const userId = session?.user?.id ?? "";
+  const sessionUser = await getCurrentUser();
+  const userId = sessionUser?.id ?? "";
   const workspaces = await getAllWorkspaces();
   const resolvedSearchParams = await (searchParams ?? Promise.resolve({}));
   const workspaceIdFromQuery = typeof resolvedSearchParams === "object" && resolvedSearchParams !== null

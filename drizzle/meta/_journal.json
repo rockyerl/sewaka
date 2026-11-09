@@ -120,6 +120,13 @@
       "when": 1793808001562,
       "tag": "0016_admin_feature_tables",
       "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "7",
+      "when": 1794145463430,
+      "tag": "0017_cute_tyrannus",
+      "breakpoints": true
     }
   ]
 }

@@ -12,6 +12,7 @@ import { auth } from "@/lib/actions/auth";
 import { getEnv } from "@/lib/utils/env";
 import { revalidatePath } from "next/cache";
 import { logger } from "@/lib/utils/logger";
+import { withWorkspace } from "@/lib/db/with-workspace";
 
 /**
  * Create subscription checkout (SUB-03)
@@ -37,12 +38,13 @@ export async function createSubscriptionCheckout(planId: string, workspaceId: st
     .where(eq(subscriptionPlans.id, planId))
     .limit(1);
 
-  if (!plan) {
+  if (!plan || plan.isActive !== "true") {
     throw new Error("Plan not found");
   }
 
+  return withWorkspace({ workspaceId, userId: session.user.id, allowedRoles: ["OWNER", "PARTNER"] }, async (tx) => {
   // Check if workspace already has active subscription
-  const [existing] = await db
+  const [existing] = await tx
     .select()
     .from(subscriptions)
     .where(and(eq(subscriptions.workspaceId, workspaceId), eq(subscriptions.status, "ACTIVE")))
@@ -52,20 +54,21 @@ export async function createSubscriptionCheckout(planId: string, workspaceId: st
     throw new Error("Workspace already has an active subscription");
   }
 
-  // Create pending subscription
-  const [newSubscription] = await db
-    .insert(subscriptions)
-    .values({
-      workspaceId,
-      planId,
-      status: "ACTIVE",
-      expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days
-    })
-    .returning();
+  const [existingAny] = await tx.select().from(subscriptions).where(eq(subscriptions.workspaceId, workspaceId)).limit(1);
+  if (existingAny) {
+    const [pending] = await tx.select().from(paymentTransactions)
+      .where(and(eq(paymentTransactions.subscriptionId, existingAny.id), eq(paymentTransactions.status, "PENDING"))).limit(1);
+    if (pending) throw new Error("Workspace already has a pending payment");
+  }
+
+  // Keep access inactive until the payment provider confirms settlement.
+  const [newSubscription] = existingAny
+    ? await tx.update(subscriptions).set({ planId, status: "EXPIRED", expiresAt: null }).where(eq(subscriptions.id, existingAny.id)).returning()
+    : await tx.insert(subscriptions).values({ workspaceId, planId, status: "EXPIRED" }).returning();
 
   // Create pending transaction
   const orderId = `SUB-${newSubscription.id.slice(0, 8)}-${Date.now()}`;
-  const [transaction] = await db
+  await tx
     .insert(paymentTransactions)
     .values({
       subscriptionId: newSubscription.id,
@@ -78,7 +81,7 @@ export async function createSubscriptionCheckout(planId: string, workspaceId: st
     .returning();
 
   // Create Midtrans transaction
-  const midtransResponse = await fetch("https://app.sandbox.midtrans.com/snap/v1/transactions", {
+  const midtransResponse = await fetch(`https://app.sandbox.midtrans.com/snap/v1/transactions`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -104,9 +107,7 @@ export async function createSubscriptionCheckout(planId: string, workspaceId: st
     }),
   });
 
-  if (!midtransResponse.ok) {
-    throw new Error("Failed to create payment");
-  }
+  if (!midtransResponse.ok) throw new Error("Failed to create payment");
 
   const midtransData = await midtransResponse.json();
 
@@ -115,6 +116,7 @@ export async function createSubscriptionCheckout(planId: string, workspaceId: st
     redirectUrl: midtransData.redirect_url,
     orderId,
   };
+  });
 }
 
 /**
@@ -161,6 +163,10 @@ export async function handlePaymentWebhook(body: any, signature: string) {
   if (!transaction) {
     return { success: false, error: "Transaction not found" };
   }
+  if (Number(grossAmount) !== Number(transaction.amount)) {
+    logger.error("Webhook amount mismatch", { orderId });
+    return { success: false, error: "Amount mismatch" };
+  }
 
   // Update transaction status based on Midtrans response
   let newStatus: "PENDING" | "COMPLETED" | "FAILED" | "REFUNDED" = transaction.status;
@@ -188,7 +194,7 @@ export async function handlePaymentWebhook(body: any, signature: string) {
   if (newStatus === "COMPLETED") {
     await db
       .update(subscriptions)
-      .set({ status: "ACTIVE" })
+      .set({ status: "ACTIVE", startedAt: new Date(), expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) })
       .where(eq(subscriptions.id, transaction.subscriptionId));
   } else if (newStatus === "FAILED" || newStatus === "REFUNDED") {
     await db
@@ -210,9 +216,8 @@ export async function cancelSubscriptionAction(workspaceId: string) {
     throw new Error("Unauthorized");
   }
 
-  const db = getDb();
-
-  const [subscription] = await db
+  await withWorkspace({ workspaceId, userId: session.user.id, allowedRoles: ["OWNER", "PARTNER"] }, async (tx) => {
+  const [subscription] = await tx
     .select()
     .from(subscriptions)
     .where(eq(subscriptions.workspaceId, workspaceId))
@@ -222,7 +227,7 @@ export async function cancelSubscriptionAction(workspaceId: string) {
     throw new Error("No active subscription found");
   }
 
-  await db
+  await tx
     .update(subscriptions)
     .set({
       status: "CANCELLED",
@@ -232,15 +237,14 @@ export async function cancelSubscriptionAction(workspaceId: string) {
 
   revalidatePath("/subscription");
   return { success: true };
+  });
 }
 
 /**
  * Get subscription status for a workspace
  */
 export async function getSubscriptionStatus(workspaceId: string) {
-  const db = getDb();
-
-  const [subscription] = await db
+  const [subscription] = await withWorkspace({ workspaceId }, async (tx) => tx
     .select({
       subscription: subscriptions,
       plan: subscriptionPlans,
@@ -248,7 +252,7 @@ export async function getSubscriptionStatus(workspaceId: string) {
     .from(subscriptions)
     .leftJoin(subscriptionPlans, eq(subscriptions.planId, subscriptionPlans.id))
     .where(eq(subscriptions.workspaceId, workspaceId))
-    .limit(1);
+    .limit(1));
 
   if (!subscription || !subscription.subscription) {
     return {

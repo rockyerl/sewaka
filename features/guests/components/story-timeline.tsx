@@ -1,6 +1,7 @@
 "use client";
 
 import { Calendar, Heart } from "lucide-react";
+import Image from "next/image";
 import { getBlobUrl } from "@/lib/utils/blob-url";
 
 interface TimelineMilestone {
@@ -48,11 +49,13 @@ export function StoryTimeline({ milestones }: StoryTimelineProps) {
               {/* Content */}
               <div className="flex-1 pb-2">
                 {milestone.photo_url && (
-                  <div className="mb-3 overflow-hidden rounded-xl border border-[#E6D5B8]/60">
-                    <img
+                  <div className="mb-3 relative overflow-hidden rounded-xl border border-[#E6D5B8]/60 aspect-video">
+                    <Image
                       src={getBlobUrl(milestone.photo_url)}
                       alt={milestone.title}
-                      className="w-full aspect-video object-cover"
+                      fill
+                      sizes="(max-width: 768px) 100vw, 66vw"
+                      className="object-cover"
                       loading="lazy"
                     />
                   </div>

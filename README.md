@@ -37,14 +37,20 @@ seserahan, rundown adat, dan ensiklopedia budaya.
 - **Vendor Portfolio** — gallery foto dan detail vendor
 - **Contract Management** — upload dan kelola kontrak vendor
 - **Curated Vendors** — direktori vendor adat terkurasi
+- **Vendor Inquiry** — kirim inquiry ke vendor via Email, Telepon, atau WhatsApp
+- **Vendor Review** — rating 1-5 bintang dengan review text
+- **Inquiry History** — track status inquiry (SENT, REPLIED, CLOSED)
 
 ### 👥 Guest Management
 - **Guest Database** — CRUD tamu dengan kategori dan RSVP
 - **Guest Import/Export** — import CSV dan export data tamu
 - **QR Code Generation** — generate QR code untuk setiap tamu
 - **Check-in Scanner** — scan QR code di hari H pernikahan
+- **Offline Check-in** — queue check-in saat offline, auto-sync saat online kembali
+- **Check-in Audit Log** — track semua check-in (online/offline/sync/conflict)
 - **Attendance Report** — laporan kehadiran dan RSVP summary
 - **Bulk WhatsApp Invite** — kirim undangan massal via WhatsApp (max 50/batch)
+- **WhatsApp RSVP Automation** — tracking message history, template personalisasi, reminder otomatis
 
 ### 💌 Digital Invitation (Premium)
 - **Cover Page Animation** — halaman "Buka Undangan" full-screen dengan nama tamu personal
@@ -57,11 +63,25 @@ seserahan, rundown adat, dan ensiklopedia budaya.
 - **Video Gallery** — embed YouTube video kenangan
 - **Live Streaming** — tautan live streaming untuk tamu yang tidak bisa hadir
 - **Share WhatsApp** — bagikan undangan via WhatsApp dengan pesan personal
-- **5 Tema Warna** — emas, burgundy, sage, rose, navy
+- **12+ Tema Warna** — emas, burgundy, sage, rose, navy, minimalist, floral, geometric, vintage, tropical, luxury, pastel
+- **Custom Email Invite** — kirim undangan via email dengan HTML template personal
+- **Guest Photo Upload** — tamu bisa upload foto di undangan dengan moderation admin
 - **Musik Latar** — audio player dengan auto-play setelah buka undangan
 - **RSVP & Ucapan** — tamu bisa konfirmasi kehadiran dan kirim doa restu
 - **QR Check-in** — tamu VIP dengan badge eksklusif dan QR code check-in
 - **Tradisi Adat** — section budaya Nusantara (keunggulan unik Sewaka!)
+- **Performance Optimized** ⚡ — bundle splitting, lazy loading, image optimization, caching
+- **SEO Ready** — Open Graph dynamic images, Twitter Cards, JSON-LD structured data
+
+### ⚡ Performance & SEO
+- **Bundle Optimization** — dynamic import qrcode library (~30KB reduction)
+- **Code Splitting** — lazy load HeroCarousel, StoryTimeline, LoveAnimation
+- **Image Optimization** — Next.js Image component dengan auto resize & format
+- **Caching Strategy** — 1 hour revalidate untuk invitation pages, immutable static assets
+- **Open Graph Images** — dynamic OG image generation per undangan
+- **Twitter Cards** — summary_large_image untuk social sharing
+- **JSON-LD Structured Data** — WeddingEvent schema untuk SEO
+- **Canonical URLs** — alternates canonical untuk setiap invitation page
 
 ### 📄 Documents & Gallery
 - **Document Upload** — upload dan kelola file dokumen (50MB max)
@@ -70,11 +90,67 @@ seserahan, rundown adat, dan ensiklopedia budaya.
 - **Document Sharing** — share dokumen via link dengan expiry
 
 ### 🎭 Cultural Features (Khas Sewaka!)
+- **Cultural Workflow Generator** ⭐ — auto-generate rundown, seserahan, checklist dari pilih tradisi (USP!)
+- **Task Source Tracking** — track asal tugas: MANUAL, CULTURAL_WORKFLOW, ENCYCLOPEDIA
+- **Encyclopedia CTA** — banner di Ensiklopedia Adat mengarah ke Workflow Generator
+- **Onboarding CTA** — button di onboarding wizard untuk langsung generate workflow
 - **Seserahan Tracker** — kelola seserahan dan mahar adat
 - **Cultural Rundown** — rundown acara pernikahan adat
 - **Wedding Day Rundown** — timeline visual hari H
 - **Cultural Encyclopedia** — ensiklopedia tradisi adat Nusantara
 - **Timeline View** — view timeline semua acara dan rundown
+
+### 🪑 Seating Planner
+- **Table Management** — CRUD meja dengan kapasitas dan posisi
+- **Seat Assignment** — assign tamu ke meja dengan seat number
+- **Capacity Tracking** — monitor occupied vs available seats
+- **Visual Layout** — table cards dengan posisi X/Y
+
+### 🚨 Wedding Day Command Center
+- **Team Management** — CRUD kru dan vendor dengan role, phone, status
+- **Incident Tracking** — laporkan dan track insiden dengan severity level
+
+### 📊 Dashboard Analytics
+- **RSVP Chart** — Progress bar dengan persentase Hadir, Tidak Hadir, Pending
+- **Budget Chart** — Progress bar per kategori dengan warna hijau/kuning/merah
+- **Attendance Chart** — Bar chart check-in tamu 7 hari terakhir
+- **Vendor Table** — Rekomendasi vendor kurasi dengan rating
+
+### 📋 Check-in Audit Logs
+- **Audit Log Table** — Monitor semua aktivitas check-in dengan filter
+- **Stats Cards** — Total logs, synced, pending, failed
+- **Export CSV** — Download audit logs ke file CSV
+
+### 💌 WhatsApp Reminder Cron
+- **Auto Reminder** — Kirim reminder WhatsApp 7 hari dan 1 hari sebelum wedding
+- **Cron Job** — Berjalan setiap jam via Vercel Cron
+
+### 📋 Berkas Nikah KUA/Catatan Sipil
+- **Checklist Adaptif** — Template checklist berdasarkan jenis nikah (SIPIL, AGAMA, KUA)
+- **Progress Tracking** — Progress bar dan status per dokumen
+- **File Upload** — Upload berkas per dokumen dengan deadline tracking
+
+### 💝 Guest Thank You Automation
+- **Template Pesan** — Template dengan placeholder {guestName} dan {coupleName}
+- **Batch Generate** — Generate pesan untuk semua tamu sekaligus
+- **WhatsApp Link** — Tombol "Buka WA" per tamu untuk kirim pesan langsung
+- **Status Tracking** — Monitor status (PENDING, SENT, FAILED) per pesan
+
+### 💳 Subscription & Payment
+- **Subscription Plans** — Free, Basic, Premium dengan fitur berbeda
+- **Midtrans Integration** — payment gateway untuk Indonesia
+- **Subscription History** — track pembayaran dan status langganan
+
+### 🏪 Vendor Marketplace
+- **Curated Directory** — direktori vendor adat terkurasi dengan filter
+- **Inquiry System** — kirim inquiry ke vendor via Email, Telepon, atau WhatsApp
+- **Review & Rating** — rating 1-5 bintang dengan review text
+- **Inquiry History** — track status inquiry (SENT, REPLIED, CLOSED)
+
+### 🎯 Final Integration
+- **Vendor Inquiry Integration** — tombol "Kirim Inquiry" dan "Review" di vendor card
+- **Guest Thank You WhatsApp** — generate WhatsApp URL scheme per tamu
+- **Guest Thank You Email** — support email via Resend API
 
 ### 💳 Subscription & Payment
 - **Subscription Plans** — Gratis, Premium, Enterprise

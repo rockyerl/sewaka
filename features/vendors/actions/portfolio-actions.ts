@@ -3,10 +3,9 @@ import { revalidatePath } from "next/cache";
 import { eq, and, asc } from "drizzle-orm";
 import { z } from "zod";
 
-import { getDb } from "@/lib/db";
 import { vendorPortfolioImages, vendors } from "@/lib/db/schema";
-import { uploadFile, deleteFile } from "@/lib/utils/storage";
-import { checkStorageLimit, SubscriptionLimitError } from "@/lib/utils/subscription-check";
+import { withWorkspace } from "@/lib/db/with-workspace";
+import { deleteFile } from "@/lib/utils/storage";
 
 export const addVendorPortfolioImageSchema = z.object({
   vendorId: z.string().uuid(),
@@ -26,64 +25,67 @@ export async function addVendorPortfolioImageAction(
 
   const input = addVendorPortfolioImageSchema.parse(data);
 
-  await getDb().insert(vendorPortfolioImages).values({
-    vendorId: input.vendorId,
-    workspaceId: input.workspaceId,
-    imageUrl: input.imageUrl,
-    caption: input.caption,
-    sortOrder: input.sortOrder ?? 0,
-  });
+  await withWorkspace(
+    { workspaceId: input.workspaceId, allowedRoles: ["OWNER", "PARTNER", "COORDINATOR"] },
+    async (tx) => {
+      const [vendor] = await tx.select({ id: vendors.id }).from(vendors).where(
+        and(eq(vendors.id, input.vendorId), eq(vendors.workspaceId, input.workspaceId)),
+      ).limit(1);
+      if (!vendor) throw new Error("Vendor tidak ditemukan.");
+      await tx.insert(vendorPortfolioImages).values({
+        vendorId: input.vendorId,
+        workspaceId: input.workspaceId,
+        imageUrl: input.imageUrl,
+        caption: input.caption,
+        sortOrder: input.sortOrder ?? 0,
+      });
+    },
+  );
 
   revalidatePath("/vendors");
 }
 
 export async function getVendorPortfolioAction(vendorId: string, workspaceId: string) {
-  const result = await getDb()
-    .select()
-    .from(vendorPortfolioImages)
-    .where(
-      and(
-        eq(vendorPortfolioImages.vendorId, vendorId),
-        eq(vendorPortfolioImages.workspaceId, workspaceId),
-      ),
-    )
-    .orderBy(asc(vendorPortfolioImages.sortOrder));
-
-  return result;
+  return withWorkspace({ workspaceId }, (tx) =>
+    tx.select().from(vendorPortfolioImages).where(
+      and(eq(vendorPortfolioImages.vendorId, vendorId), eq(vendorPortfolioImages.workspaceId, workspaceId)),
+    ).orderBy(asc(vendorPortfolioImages.sortOrder)),
+  );
 }
 
-export async function deleteVendorPortfolioImageAction(imageId: string) {
+export async function deleteVendorPortfolioImageAction(imageId: string, workspaceId: string) {
   const session = await auth();
   if (!session?.user?.id) {
     throw new Error("Silakan masuk terlebih dahulu.");
   }
 
-  const [image] = await getDb()
-    .select()
-    .from(vendorPortfolioImages)
-    .where(eq(vendorPortfolioImages.id, imageId))
-    .limit(1);
+  const [image] = await withWorkspace(
+    { workspaceId, allowedRoles: ["OWNER", "PARTNER", "COORDINATOR"] },
+    async (tx) => {
+      const [row] = await tx.select().from(vendorPortfolioImages).where(
+        and(eq(vendorPortfolioImages.id, imageId), eq(vendorPortfolioImages.workspaceId, workspaceId)),
+      ).limit(1);
+      if (row) await tx.delete(vendorPortfolioImages).where(
+        and(eq(vendorPortfolioImages.id, imageId), eq(vendorPortfolioImages.workspaceId, workspaceId)),
+      );
+      return [row] as const;
+    },
+  );
 
   // Delete from cloud storage
   if (image && image.imageUrl) {
     await deleteFile(image.imageUrl);
   }
 
-  await getDb().delete(vendorPortfolioImages).where(eq(vendorPortfolioImages.id, imageId));
   revalidatePath("/vendors");
 }
 
 export async function getVendorDetailAction(vendorId: string, workspaceId: string) {
-  const [vendor] = await getDb()
+  const [vendor] = await withWorkspace({ workspaceId }, (tx) => tx
     .select()
     .from(vendors)
-    .where(
-      and(
-        eq(vendors.id, vendorId),
-        eq(vendors.workspaceId, workspaceId),
-      ),
-    )
-    .limit(1);
+    .where(and(eq(vendors.id, vendorId), eq(vendors.workspaceId, workspaceId)))
+    .limit(1));
 
   return vendor ?? null;
 }

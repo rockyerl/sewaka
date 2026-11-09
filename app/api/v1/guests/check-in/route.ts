@@ -1,13 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { eq, and } from "drizzle-orm";
 import { getDb } from "@/lib/db";
-import { guests } from "@/lib/db/schema";
+import { guests, checkInLogs } from "@/lib/db/schema";
 import { rateLimit, getIpFromRequest } from "@/lib/utils/rate-limit";
 import { logger } from "@/lib/utils/logger";
 
 export async function POST(request: NextRequest) {
   const ip = getIpFromRequest(request);
-  const { isLimited, retryAfter } = rateLimit({
+  const { isLimited, retryAfter } = await rateLimit({
     key: `checkin:${ip}`,
     limit: 20,
     windowMs: 60_000,
@@ -54,12 +54,35 @@ export async function POST(request: NextRequest) {
 
     const foundGuest = guest[0];
 
-    // Check if already checked in
+    // Device info from request headers
+    const deviceInfo = request.headers.get("user-agent") || "unknown";
+    const performedBy = request.headers.get("x-performed-by") || "scanner";
+
+    // Check if already checked in (idempotent - return success instead of error)
     if (foundGuest.checkedIn) {
-      return NextResponse.json(
-        { error: "Tamu sudah check-in" },
-        { status: 400 }
-      );
+      // Log the attempt for audit trail
+      await db.insert(checkInLogs).values({
+        guestId: foundGuest.id,
+        workspaceId,
+        action: "CHECK_IN",
+        performedBy,
+        deviceInfo,
+        invitationCode,
+        checkedInAt: new Date(),
+        syncStatus: "SYNCED",
+        conflictResolution: `Already checked in at ${foundGuest.checkedInAt?.toISOString() || "unknown"}`,
+        metadata: { guestName: foundGuest.name },
+      });
+
+      return NextResponse.json({
+        success: true,
+        alreadyCheckedIn: true,
+        guest: {
+          id: foundGuest.id,
+          name: foundGuest.name,
+          checkedInAt: foundGuest.checkedInAt,
+        },
+      });
     }
 
     // Mark as checked in
@@ -68,8 +91,23 @@ export async function POST(request: NextRequest) {
       .set({
         checkedIn: true,
         checkedInAt: new Date(),
+        checkedInBy: performedBy,
+        checkedInDevice: deviceInfo,
       })
       .where(eq(guests.id, foundGuest.id));
+
+    // Log successful check-in
+    await db.insert(checkInLogs).values({
+      guestId: foundGuest.id,
+      workspaceId,
+      action: "CHECK_IN",
+      performedBy,
+      deviceInfo,
+      invitationCode,
+      checkedInAt: new Date(),
+      syncStatus: "SYNCED",
+      metadata: { guestName: foundGuest.name },
+    });
 
     return NextResponse.json({
       success: true,

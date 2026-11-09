@@ -1,7 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
 import { Heart } from "lucide-react";
+
+const emptySubscribe = () => () => {};
 
 /**
  * CountdownTimer — Timer hitung mundur client-side.
@@ -32,11 +34,10 @@ export function CountdownTimer({
   labels?: { days: string; hours: string; minutes: string; seconds: string };
   onExpired?: () => void;
 }) {
-  const [mounted, setMounted] = useState(false);
-  const [now, setNow] = useState(new Date());
+  const mounted = useSyncExternalStore(emptySubscribe, () => true, () => false);
+  const [now, setNow] = useState(() => new Date());
 
   useEffect(() => {
-    setMounted(true);
     const timer = setInterval(() => setNow(new Date()), 1000);
     return () => clearInterval(timer);
   }, []);

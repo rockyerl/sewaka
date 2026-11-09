@@ -61,14 +61,18 @@ export function SubscriptionCheckout({
 				);
 				script.onload = () => {
 					try {
-						// @ts-ignore - Midtrans Snap
-						window.snap.pay(data.snapToken, {
+						const snapWindow = window as unknown as {
+							snap: {
+								pay: (token: string, options: Record<string, unknown>) => void;
+							};
+						};
+						snapWindow.snap.pay(data.snapToken, {
 							onSuccess: () => window.location.reload(),
 							onPending: () => showToast("Pembayaran menunggu konfirmasi.", "warning"),
 							onError: () => showToast("Pembayaran gagal.", "error"),
 							onClose: () => setLoading(false),
 						});
-					} catch (e) {
+					} catch {
 						setError("Gagal membuka payment.");
 					}
 				};
@@ -77,8 +81,8 @@ export function SubscriptionCheckout({
 			} else if (data.redirectUrl) {
 				window.location.href = data.redirectUrl;
 			}
-		} catch (err: any) {
-			setError(err?.message || "Terjadi kesalahan.");
+		} catch (err) {
+			setError(err instanceof Error ? err.message : "Terjadi kesalahan.");
 		} finally {
 			setLoading(false);
 		}

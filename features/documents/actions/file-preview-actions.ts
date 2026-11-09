@@ -1,27 +1,19 @@
 "use server";
 
-import { eq } from "drizzle-orm";
-import { getDb } from "@/lib/db";
+import { and, eq } from "drizzle-orm";
 import { documents } from "@/lib/db/schema";
-import { auth } from "@/lib/actions/auth";
+import { withWorkspace } from "@/lib/db/with-workspace";
 
 /**
  * Get file preview URL (DOC-07)
  * Returns the file URL for preview
  */
-export async function getFilePreview(documentId: string) {
-  const session = await auth();
-  if (!session?.user?.id) {
-    throw new Error("Unauthorized");
-  }
-
-  const db = getDb();
-
-  const [document] = await db
-    .select()
-    .from(documents)
-    .where(eq(documents.id, documentId))
-    .limit(1);
+export async function getFilePreview(documentId: string, workspaceId: string) {
+  const [document] = await withWorkspace({ workspaceId }, (tx) =>
+    tx.select().from(documents).where(
+      and(eq(documents.id, documentId), eq(documents.workspaceId, workspaceId)),
+    ).limit(1),
+  );
 
   if (!document) {
     throw new Error("Document not found");
@@ -37,16 +29,16 @@ export async function getFilePreview(documentId: string) {
     "audio/mp3", "audio/wav", "audio/ogg"
   ];
 
-  const canPreview = previewableTypes.includes(document.mimeType);
+  const canPreview = document.mimeType ? previewableTypes.includes(document.mimeType) : false;
 
   return {
     id: document.id,
     fileName: document.name,
-    fileUrl: document.filePath,
-    fileType: document.mimeType,
-    fileSize: document.fileSize,
+    fileUrl: document.filePath ?? '',
+    fileType: document.mimeType ?? '',
+    fileSize: document.fileSize ?? 0,
     canPreview,
-    previewType: getPreviewType(document.mimeType),
+    previewType: document.mimeType ? getPreviewType(document.mimeType) : "none",
   };
 }
 
