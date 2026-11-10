@@ -40,6 +40,18 @@ const TRADITION_COLORS: Record<CulturalTradition, { bg: string; border: string; 
   SUNDA: { bg: "bg-[#F0F7F0]", border: "border-[#4A7C59]/60", text: "text-[#2D5A3D]" },
   MINANG: { bg: "bg-[#F5F0FA]", border: "border-[#7C4A7C]/60", text: "text-[#5A2D5A]" },
   NASIONAL: { bg: "bg-[#F0F4F8]", border: "border-[#4A6A8C]/60", text: "text-[#2D4A6A]" },
+  BETAWI: { bg: "bg-[#FFF5E6]", border: "border-[#C47A2E]/60", text: "text-[#7A4A1E]" },
+  BATAK_TOBA: { bg: "bg-[#FDE8E8]", border: "border-[#B83B3B]/60", text: "text-[#6B1E1E]" },
+  MANDAILING: { bg: "bg-[#FDE8F0]", border: "border-[#B83B6B]/60", text: "text-[#6B1E3D]" },
+  ACEH: { bg: "bg-[#E8F5FD]", border: "border-[#3B7BB8]/60", text: "text-[#1E4A6B]" },
+  MELAYU_RIAU: { bg: "bg-[#F5E6FF]", border: "border-[#8C4AB8]/60", text: "text-[#5A2D7A]" },
+  PALEMBANG: { bg: "bg-[#FFF8E1]", border: "border-[#C49A2E]/60", text: "text-[#7A6A1E]" },
+  LAMPUNG_PEPADUN: { bg: "bg-[#E6FFF5]", border: "border-[#2EB87A]/60", text: "text-[#1E6B4A]" },
+  BUGIS: { bg: "bg-[#FFE6F0]", border: "border-[#B82E6B]/60", text: "text-[#6B1E3D]" },
+  BALI: { bg: "bg-[#FFF0E6]", border: "border-[#B87A2E]/60", text: "text-[#6B4A1E]" },
+  BANJAR: { bg: "bg-[#E6F0FF]", border: "border-[#2E7AB8]/60", text: "text-[#1E4A6B]" },
+  SASAK: { bg: "bg-[#F0FFE6]", border: "border-[#7AB82E]/60", text: "text-[#4A6B1E]" },
+  DAYAK_NGAJU: { bg: "bg-[#FFE6E6]", border: "border-[#B82E2E]/60", text: "text-[#6B1E1E]" },
 };
 
 export function CulturalWorkflowGenerator({
