@@ -1,4 +1,4 @@
-import { CulturalTradition } from "./cultural-templates";
+import type { CulturalTradition } from "./cultural-templates";
 
 export interface UbarampeItem {
   name: string;
@@ -274,5 +274,629 @@ export const CULTURAL_ENCYCLOPEDIA: RitualArticle[] = [
     ],
     culturalAdvice:
       "Jangan terlalu terpaku pada kesempurnaan. Biarkan ada ruang untuk momen spontan dan kekeluargaan. Pernikahan yang paling berkesan adalah yang terasa autentik dan penuh cinta.",
+  },
+
+  // --- Artikel adat tambahan: gambaran umum, bukan satu-satunya pakem ---
+  {
+    "id": "betawi-persiapan",
+    "tradition": "BETAWI",
+    "title": "Ngelamar & Bawa Tande Putus",
+    "subtitle": "Kesepakatan keluarga dan persiapan prosesi",
+    "category": "PERSIAPAN",
+    "philosophy": "Kesepakatan keluarga tentang lamaran, tanggal dan bentuk hajatan.",
+    "stepByStep": [
+      "Konsultasi dengan kedua keluarga dan tokoh adat tentang urutan yang digunakan.",
+      "Laksanakan tahapan ngelamar & bawa tande putus sesuai kesepakatan dan persetujuan pasangan.",
+      "Catat kesepakatan, biaya, penanggung jawab, dan tahapan yang tidak dipakai.",
+      "Konfirmasi tanggal serta kebutuhan perlengkapan sebelum memasuki rangkaian hari H."
+    ],
+    "ubarampe": [
+      {
+        "name": "Pakaian dan hantaran lamaran",
+        "meaning": "Perlengkapan pendukung sesuai keputusan keluarga dan pemandu adat."
+      }
+    ],
+    "culturalAdvice": "Nama, urutan, syarat, dan biaya adat berbeda antarwilayah dan keluarga. Mohon validasi kepada tetua/pemandu adat setempat."
+  },
+  {
+    "id": "betawi-upacara",
+    "tradition": "BETAWI",
+    "title": "Penyerahan Roti Buaya dan Restu",
+    "subtitle": "Prosesi inti adat yang dapat disesuaikan",
+    "category": "UPACARA_ADAT",
+    "philosophy": "Palang Pintu memadukan pantun, seni bela diri, dan doa sebagai ungkapan penghormatan dan kesiapan berumah tangga.",
+    "stepByStep": [
+      "Pemandu adat memastikan kesiapan peserta dan kelengkapan perlengkapan.",
+      "Simbol Roti Buaya: Roti buaya kerap dimaknai sebagai kesetiaan pasangan.",
+      "Doa Keluarga: Penerimaan kedua keluarga dan permohonan restu.",
+      "Keluarga memberikan doa atau nasihat sesuai keyakinan dan kebiasaan setempat."
+    ],
+    "ubarampe": [
+      {
+        "name": "Roti buaya",
+        "meaning": "Sarana pendukung prosesi; arti dan penggunaannya perlu dikonfirmasi kepada pemimpin adat."
+      },
+      {
+        "name": "Mikrofon",
+        "meaning": "Sarana pendukung prosesi; arti dan penggunaannya perlu dikonfirmasi kepada pemimpin adat."
+      }
+    ],
+    "culturalAdvice": " Perkawinan sah secara agama/negara mengikuti ketentuan tersendiri; prosesi adat tidak otomatis menggantikannya."
+  },
+  {
+    "id": "batak-toba-persiapan",
+    "tradition": "BATAK_TOBA",
+    "title": "Marhusip dan Marhata Sinamot",
+    "subtitle": "Kesepakatan keluarga dan persiapan prosesi",
+    "category": "PERSIAPAN",
+    "philosophy": "Pembicaraan keluarga untuk kesepakatan sinamot, tata acara, dan peran marga.",
+    "stepByStep": [
+      "Konsultasi dengan kedua keluarga dan tokoh adat tentang urutan yang digunakan.",
+      "Laksanakan tahapan marhusip dan marhata sinamot sesuai kesepakatan dan persetujuan pasangan.",
+      "Catat kesepakatan, biaya, penanggung jawab, dan tahapan yang tidak dipakai.",
+      "Konfirmasi tanggal serta kebutuhan perlengkapan sebelum memasuki rangkaian hari H."
+    ],
+    "ubarampe": [
+      {
+        "name": "Catatan kesepakatan sinamot",
+        "meaning": "Perlengkapan pendukung sesuai keputusan keluarga dan pemandu adat."
+      },
+      {
+        "name": "Daftar keluarga",
+        "meaning": "Perlengkapan pendukung sesuai keputusan keluarga dan pemandu adat."
+      }
+    ],
+    "culturalAdvice": "Nama, urutan, syarat, dan biaya adat berbeda antarwilayah dan keluarga. Mohon validasi kepada tetua/pemandu adat setempat."
+  },
+  {
+    "id": "batak-toba-upacara",
+    "tradition": "BATAK_TOBA",
+    "title": "Ulaon Unjuk, Jambar, dan Mangulosi",
+    "subtitle": "Prosesi inti adat yang dapat disesuaikan",
+    "category": "UPACARA_ADAT",
+    "philosophy": "Pernikahan mengikat kedua keluarga besar dalam tata hubungan Dalihan Na Tolu; ulos menjadi lambang kehangatan, berkat, dan ikatan kekerabatan.",
+    "stepByStep": [
+      "Pemandu adat memastikan kesiapan peserta dan kelengkapan perlengkapan.",
+      "Pembagian Jambar: Penghormatan hubungan kekerabatan melalui pembagian bagian adat.",
+      "Mangulosi dan Tortor: Pemberian ulos dan nasihat keluarga; tortor mengiringi penghormatan.",
+      "Keluarga memberikan doa atau nasihat sesuai keyakinan dan kebiasaan setempat."
+    ],
+    "ubarampe": [
+      {
+        "name": "Perlengkapan jamuan adat",
+        "meaning": "Sarana pendukung prosesi; arti dan penggunaannya perlu dikonfirmasi kepada pemimpin adat."
+      },
+      {
+        "name": "Ulos sesuai peran",
+        "meaning": "Sarana pendukung prosesi; arti dan penggunaannya perlu dikonfirmasi kepada pemimpin adat."
+      },
+      {
+        "name": "Musik gondang",
+        "meaning": "Sarana pendukung prosesi; arti dan penggunaannya perlu dikonfirmasi kepada pemimpin adat."
+      }
+    ],
+    "culturalAdvice": "Waktu dapat jauh lebih panjang dari contoh; tetapkan siapa pemberi ulos. Perkawinan sah secara agama/negara mengikuti ketentuan tersendiri; prosesi adat tidak otomatis menggantikannya."
+  },
+  {
+    "id": "mandailing-persiapan",
+    "tradition": "MANDAILING",
+    "title": "Patobang Hata dan Manulak Sere",
+    "subtitle": "Kesepakatan keluarga dan persiapan prosesi",
+    "category": "PERSIAPAN",
+    "philosophy": "Keluarga menyepakati peminangan dan hantaran sesuai adat Mandailing.",
+    "stepByStep": [
+      "Konsultasi dengan kedua keluarga dan tokoh adat tentang urutan yang digunakan.",
+      "Laksanakan tahapan patobang hata dan manulak sere sesuai kesepakatan dan persetujuan pasangan.",
+      "Catat kesepakatan, biaya, penanggung jawab, dan tahapan yang tidak dipakai.",
+      "Konfirmasi tanggal serta kebutuhan perlengkapan sebelum memasuki rangkaian hari H."
+    ],
+    "ubarampe": [
+      {
+        "name": "Catatan kesepakatan",
+        "meaning": "Perlengkapan pendukung sesuai keputusan keluarga dan pemandu adat."
+      },
+      {
+        "name": "Perlengkapan hantaran",
+        "meaning": "Perlengkapan pendukung sesuai keputusan keluarga dan pemandu adat."
+      }
+    ],
+    "culturalAdvice": "Nama, urutan, syarat, dan biaya adat berbeda antarwilayah dan keluarga. Mohon validasi kepada tetua/pemandu adat setempat."
+  },
+  {
+    "id": "mandailing-upacara",
+    "tradition": "MANDAILING",
+    "title": "Mata Ni Horja, Markobar, dan Mangupa",
+    "subtitle": "Prosesi inti adat yang dapat disesuaikan",
+    "category": "UPACARA_ADAT",
+    "philosophy": "Musyawarah keluarga, tatanan Dalihan Na Tolu, dan petuah Mangupa menjadi landasan kesejahteraan serta tanggung jawab keluarga baru.",
+    "stepByStep": [
+      "Pemandu adat memastikan kesiapan peserta dan kelengkapan perlengkapan.",
+      "Markobar dan Tortor: Petuah serta tata hormat antar kelompok kekerabatan.",
+      "Mangupa: Pemberian pesan dan doa restu bagi pengantin.",
+      "Keluarga memberikan doa atau nasihat sesuai keyakinan dan kebiasaan setempat."
+    ],
+    "ubarampe": [
+      {
+        "name": "Mikrofon",
+        "meaning": "Sarana pendukung prosesi; arti dan penggunaannya perlu dikonfirmasi kepada pemimpin adat."
+      },
+      {
+        "name": "Pengiring gondang",
+        "meaning": "Sarana pendukung prosesi; arti dan penggunaannya perlu dikonfirmasi kepada pemimpin adat."
+      },
+      {
+        "name": "Perlengkapan mangupa disetujui tetua",
+        "meaning": "Sarana pendukung prosesi; arti dan penggunaannya perlu dikonfirmasi kepada pemimpin adat."
+      }
+    ],
+    "culturalAdvice": "Jadwal horja godang tradisional bisa multi-hari; ini versi ringkas. Perkawinan sah secara agama/negara mengikuti ketentuan tersendiri; prosesi adat tidak otomatis menggantikannya."
+  },
+  {
+    "id": "aceh-persiapan",
+    "tradition": "ACEH",
+    "title": "Jak Ba Ranup / Lamaran dan Boh Gaca",
+    "subtitle": "Kesepakatan keluarga dan persiapan prosesi",
+    "category": "PERSIAPAN",
+    "philosophy": "Koordinasikan tahap lamaran dan pemakaian inai jika dipilih keluarga.",
+    "stepByStep": [
+      "Konsultasi dengan kedua keluarga dan tokoh adat tentang urutan yang digunakan.",
+      "Laksanakan tahapan jak ba ranup / lamaran dan boh gaca sesuai kesepakatan dan persetujuan pasangan.",
+      "Catat kesepakatan, biaya, penanggung jawab, dan tahapan yang tidak dipakai.",
+      "Konfirmasi tanggal serta kebutuhan perlengkapan sebelum memasuki rangkaian hari H."
+    ],
+    "ubarampe": [
+      {
+        "name": "Sirih",
+        "meaning": "Perlengkapan pendukung sesuai keputusan keluarga dan pemandu adat."
+      },
+      {
+        "name": "Inai",
+        "meaning": "Perlengkapan pendukung sesuai keputusan keluarga dan pemandu adat."
+      }
+    ],
+    "culturalAdvice": "Nama, urutan, syarat, dan biaya adat berbeda antarwilayah dan keluarga. Mohon validasi kepada tetua/pemandu adat setempat."
+  },
+  {
+    "id": "aceh-upacara",
+    "tradition": "ACEH",
+    "title": "Peusijuek dan Persandingan",
+    "subtitle": "Prosesi inti adat yang dapat disesuaikan",
+    "category": "UPACARA_ADAT",
+    "philosophy": "Peusijuek adalah ungkapan syukur dan harapan keselamatan; tata cara perkawinan Aceh ditentukan oleh keluarga dan tradisi setempat.",
+    "stepByStep": [
+      "Pemandu adat memastikan kesiapan peserta dan kelengkapan perlengkapan.",
+      "Peusijuek: Percikan tepung tawar dan doa sebagai ungkapan syukur serta permohonan berkah.",
+      "Doa dan Nasihat: Keluarga memberikan restu kepada pasangan.",
+      "Keluarga memberikan doa atau nasihat sesuai keyakinan dan kebiasaan setempat."
+    ],
+    "ubarampe": [
+      {
+        "name": "Beras padi",
+        "meaning": "Sarana pendukung prosesi; arti dan penggunaannya perlu dikonfirmasi kepada pemimpin adat."
+      },
+      {
+        "name": "Air tepung tawar",
+        "meaning": "Sarana pendukung prosesi; arti dan penggunaannya perlu dikonfirmasi kepada pemimpin adat."
+      },
+      {
+        "name": "Daun peusijuek",
+        "meaning": "Sarana pendukung prosesi; arti dan penggunaannya perlu dikonfirmasi kepada pemimpin adat."
+      },
+      {
+        "name": "Bu leukat",
+        "meaning": "Sarana pendukung prosesi; arti dan penggunaannya perlu dikonfirmasi kepada pemimpin adat."
+      },
+      {
+        "name": "Mikrofon",
+        "meaning": "Sarana pendukung prosesi; arti dan penggunaannya perlu dikonfirmasi kepada pemimpin adat."
+      }
+    ],
+    "culturalAdvice": "Bahan peusijuek disiapkan oleh pemandu adat; urutan lokal bervariasi. Perkawinan sah secara agama/negara mengikuti ketentuan tersendiri; prosesi adat tidak otomatis menggantikannya."
+  },
+  {
+    "id": "melayu-riau-persiapan",
+    "tradition": "MELAYU_RIAU",
+    "title": "Merisik, Meminang dan Malam Berinai",
+    "subtitle": "Kesepakatan keluarga dan persiapan prosesi",
+    "category": "PERSIAPAN",
+    "philosophy": "Konfirmasi tahapan keluarga dan berinai sebelum hari H.",
+    "stepByStep": [
+      "Konsultasi dengan kedua keluarga dan tokoh adat tentang urutan yang digunakan.",
+      "Laksanakan tahapan merisik, meminang dan malam berinai sesuai kesepakatan dan persetujuan pasangan.",
+      "Catat kesepakatan, biaya, penanggung jawab, dan tahapan yang tidak dipakai.",
+      "Konfirmasi tanggal serta kebutuhan perlengkapan sebelum memasuki rangkaian hari H."
+    ],
+    "ubarampe": [
+      {
+        "name": "Tepak sirih",
+        "meaning": "Perlengkapan pendukung sesuai keputusan keluarga dan pemandu adat."
+      },
+      {
+        "name": "Inai",
+        "meaning": "Perlengkapan pendukung sesuai keputusan keluarga dan pemandu adat."
+      }
+    ],
+    "culturalAdvice": "Nama, urutan, syarat, dan biaya adat berbeda antarwilayah dan keluarga. Mohon validasi kepada tetua/pemandu adat setempat."
+  },
+  {
+    "id": "melayu-riau-upacara",
+    "tradition": "MELAYU_RIAU",
+    "title": "Tepuk Tepung Tawar dan Bersanding",
+    "subtitle": "Prosesi inti adat yang dapat disesuaikan",
+    "category": "UPACARA_ADAT",
+    "philosophy": "Adab, musyawarah, dan doa keluarga diwujudkan melalui merisik, meminang, berinai, bersanding, serta tepuk tepung tawar.",
+    "stepByStep": [
+      "Pemandu adat memastikan kesiapan peserta dan kelengkapan perlengkapan.",
+      "Tepuk Tepung Tawar: Doa dan ungkapan restu yang dipandu tetua.",
+      "Bersanding: Penerimaan pasangan oleh kedua keluarga.",
+      "Keluarga memberikan doa atau nasihat sesuai keyakinan dan kebiasaan setempat."
+    ],
+    "ubarampe": [
+      {
+        "name": "Air tepung tawar",
+        "meaning": "Sarana pendukung prosesi; arti dan penggunaannya perlu dikonfirmasi kepada pemimpin adat."
+      },
+      {
+        "name": "Daun percik",
+        "meaning": "Sarana pendukung prosesi; arti dan penggunaannya perlu dikonfirmasi kepada pemimpin adat."
+      },
+      {
+        "name": "Pelaminan",
+        "meaning": "Sarana pendukung prosesi; arti dan penggunaannya perlu dikonfirmasi kepada pemimpin adat."
+      }
+    ],
+    "culturalAdvice": " Perkawinan sah secara agama/negara mengikuti ketentuan tersendiri; prosesi adat tidak otomatis menggantikannya."
+  },
+  {
+    "id": "palembang-persiapan",
+    "tradition": "PALEMBANG",
+    "title": "Berasan, Mutus Kato dan Nganterke Belanjo",
+    "subtitle": "Kesepakatan keluarga dan persiapan prosesi",
+    "category": "PERSIAPAN",
+    "philosophy": "Tetapkan bentuk prosesi, waktu, dan hantaran dengan keluarga.",
+    "stepByStep": [
+      "Konsultasi dengan kedua keluarga dan tokoh adat tentang urutan yang digunakan.",
+      "Laksanakan tahapan berasan, mutus kato dan nganterke belanjo sesuai kesepakatan dan persetujuan pasangan.",
+      "Catat kesepakatan, biaya, penanggung jawab, dan tahapan yang tidak dipakai.",
+      "Konfirmasi tanggal serta kebutuhan perlengkapan sebelum memasuki rangkaian hari H."
+    ],
+    "ubarampe": [
+      {
+        "name": "Tenong",
+        "meaning": "Perlengkapan pendukung sesuai keputusan keluarga dan pemandu adat."
+      },
+      {
+        "name": "Daftar hantaran",
+        "meaning": "Perlengkapan pendukung sesuai keputusan keluarga dan pemandu adat."
+      }
+    ],
+    "culturalAdvice": "Nama, urutan, syarat, dan biaya adat berbeda antarwilayah dan keluarga. Mohon validasi kepada tetua/pemandu adat setempat."
+  },
+  {
+    "id": "palembang-upacara",
+    "tradition": "PALEMBANG",
+    "title": "Prosesi Munggah",
+    "subtitle": "Prosesi inti adat yang dapat disesuaikan",
+    "category": "UPACARA_ADAT",
+    "philosophy": "Musyawarah kedua keluarga dan puncak prosesi munggah melambangkan penghormatan serta penerimaan mempelai.",
+    "stepByStep": [
+      "Pemandu adat memastikan kesiapan peserta dan kelengkapan perlengkapan.",
+      "Munggah dan Pertemuan Pengantin: Puncak prosesi pertemuan dan penerimaan mempelai.",
+      "Nasihat dan Restu: Keluarga memberi petuah sesuai tradisi.",
+      "Keluarga memberikan doa atau nasihat sesuai keyakinan dan kebiasaan setempat."
+    ],
+    "ubarampe": [
+      {
+        "name": "Pelaminan",
+        "meaning": "Sarana pendukung prosesi; arti dan penggunaannya perlu dikonfirmasi kepada pemimpin adat."
+      },
+      {
+        "name": "Hantaran",
+        "meaning": "Sarana pendukung prosesi; arti dan penggunaannya perlu dikonfirmasi kepada pemimpin adat."
+      },
+      {
+        "name": "Mikrofon",
+        "meaning": "Sarana pendukung prosesi; arti dan penggunaannya perlu dikonfirmasi kepada pemimpin adat."
+      }
+    ],
+    "culturalAdvice": "Urutan munggah dan akad dapat berbeda; sepakati dengan sesepuh. Perkawinan sah secara agama/negara mengikuti ketentuan tersendiri; prosesi adat tidak otomatis menggantikannya."
+  },
+  {
+    "id": "lampung-pepadun-persiapan",
+    "tradition": "LAMPUNG_PEPADUN",
+    "title": "Musyawarah Begawi / Cakak Pepadun",
+    "subtitle": "Kesepakatan keluarga dan persiapan prosesi",
+    "category": "PERSIAPAN",
+    "philosophy": "Tentukan apakah rangkaian begawi dilaksanakan dan berapa hari sesuai keputusan penyimbang.",
+    "stepByStep": [
+      "Konsultasi dengan kedua keluarga dan tokoh adat tentang urutan yang digunakan.",
+      "Laksanakan tahapan musyawarah begawi / cakak pepadun sesuai kesepakatan dan persetujuan pasangan.",
+      "Catat kesepakatan, biaya, penanggung jawab, dan tahapan yang tidak dipakai.",
+      "Konfirmasi tanggal serta kebutuhan perlengkapan sebelum memasuki rangkaian hari H."
+    ],
+    "ubarampe": [
+      {
+        "name": "Agenda musyawarah",
+        "meaning": "Perlengkapan pendukung sesuai keputusan keluarga dan pemandu adat."
+      },
+      {
+        "name": "Daftar penyimbang",
+        "meaning": "Perlengkapan pendukung sesuai keputusan keluarga dan pemandu adat."
+      }
+    ],
+    "culturalAdvice": "Nama, urutan, syarat, dan biaya adat berbeda antarwilayah dan keluarga. Mohon validasi kepada tetua/pemandu adat setempat."
+  },
+  {
+    "id": "lampung-pepadun-upacara",
+    "tradition": "LAMPUNG_PEPADUN",
+    "title": "Begawi / Pengukuhan Gelar (Jika Dipilih)",
+    "subtitle": "Prosesi inti adat yang dapat disesuaikan",
+    "category": "UPACARA_ADAT",
+    "philosophy": "Begawi dan cakak Pepadun pada keluarga yang menjalankannya berhubungan dengan pengukuhan status adat; tidak berlaku sama untuk seluruh masyarakat Lampung.",
+    "stepByStep": [
+      "Pemandu adat memastikan kesiapan peserta dan kelengkapan perlengkapan.",
+      "Cangget dan Penghormatan Adat: Seni pertunjukan dan urutan penghormatan sesuai keputusan pemangku adat.",
+      "Pengumuman Gelar (Opsional): Pengukuhan hanya bila menjadi bagian begawi keluarga.",
+      "Keluarga memberikan doa atau nasihat sesuai keyakinan dan kebiasaan setempat."
+    ],
+    "ubarampe": [
+      {
+        "name": "Perlengkapan cangget",
+        "meaning": "Sarana pendukung prosesi; arti dan penggunaannya perlu dikonfirmasi kepada pemimpin adat."
+      },
+      {
+        "name": "Naskah gelar",
+        "meaning": "Sarana pendukung prosesi; arti dan penggunaannya perlu dikonfirmasi kepada pemimpin adat."
+      }
+    ],
+    "culturalAdvice": "Begawi lengkap dapat berlangsung beberapa hari; jangan otomatis memadatkan seluruh ritual. Perkawinan sah secara agama/negara mengikuti ketentuan tersendiri; prosesi adat tidak otomatis menggantikannya."
+  },
+  {
+    "id": "bugis-persiapan",
+    "tradition": "BUGIS",
+    "title": "Mappettu Ada dan Malam Mappacci",
+    "subtitle": "Kesepakatan keluarga dan persiapan prosesi",
+    "category": "PERSIAPAN",
+    "philosophy": "Tentukan kesepakatan sompa/mahar dan uang belanja lalu malam mappacci bila dipilih.",
+    "stepByStep": [
+      "Konsultasi dengan kedua keluarga dan tokoh adat tentang urutan yang digunakan.",
+      "Laksanakan tahapan mappettu ada dan malam mappacci sesuai kesepakatan dan persetujuan pasangan.",
+      "Catat kesepakatan, biaya, penanggung jawab, dan tahapan yang tidak dipakai.",
+      "Konfirmasi tanggal serta kebutuhan perlengkapan sebelum memasuki rangkaian hari H."
+    ],
+    "ubarampe": [
+      {
+        "name": "Perlengkapan mappacci",
+        "meaning": "Perlengkapan pendukung sesuai keputusan keluarga dan pemandu adat."
+      },
+      {
+        "name": "Catatan kesepakatan",
+        "meaning": "Perlengkapan pendukung sesuai keputusan keluarga dan pemandu adat."
+      }
+    ],
+    "culturalAdvice": "Nama, urutan, syarat, dan biaya adat berbeda antarwilayah dan keluarga. Mohon validasi kepada tetua/pemandu adat setempat."
+  },
+  {
+    "id": "bugis-upacara",
+    "tradition": "BUGIS",
+    "title": "Mappasikarawa dan Tudang Botting",
+    "subtitle": "Prosesi inti adat yang dapat disesuaikan",
+    "category": "UPACARA_ADAT",
+    "philosophy": "Musyawarah mappettu ada dan mappacci mengedepankan kesepakatan keluarga, kebersihan niat, serta doa sebelum memasuki perkawinan.",
+    "stepByStep": [
+      "Pemandu adat memastikan kesiapan peserta dan kelengkapan perlengkapan.",
+      "Mappasikarawa (Jika Dipilih): Pertemuan simbolis pasangan menurut panduan adat setempat.",
+      "Tudang Botting: Pengantin duduk bersanding menerima restu.",
+      "Keluarga memberikan doa atau nasihat sesuai keyakinan dan kebiasaan setempat."
+    ],
+    "ubarampe": [
+      {
+        "name": "Perlengkapan yang disepakati",
+        "meaning": "Sarana pendukung prosesi; arti dan penggunaannya perlu dikonfirmasi kepada pemimpin adat."
+      },
+      {
+        "name": "Pelaminan",
+        "meaning": "Sarana pendukung prosesi; arti dan penggunaannya perlu dikonfirmasi kepada pemimpin adat."
+      }
+    ],
+    "culturalAdvice": " Perkawinan sah secara agama/negara mengikuti ketentuan tersendiri; prosesi adat tidak otomatis menggantikannya."
+  },
+  {
+    "id": "bali-persiapan",
+    "tradition": "BALI",
+    "title": "Koordinasi Wiwaha dan Banten",
+    "subtitle": "Kesepakatan keluarga dan persiapan prosesi",
+    "category": "PERSIAPAN",
+    "philosophy": "Pastikan jenis upacara, hari baik, tempat suci, serta sarana banten oleh pemangku.",
+    "stepByStep": [
+      "Konsultasi dengan kedua keluarga dan tokoh adat tentang urutan yang digunakan.",
+      "Laksanakan tahapan koordinasi wiwaha dan banten sesuai kesepakatan dan persetujuan pasangan.",
+      "Catat kesepakatan, biaya, penanggung jawab, dan tahapan yang tidak dipakai.",
+      "Konfirmasi tanggal serta kebutuhan perlengkapan sebelum memasuki rangkaian hari H."
+    ],
+    "ubarampe": [
+      {
+        "name": "Daftar banten",
+        "meaning": "Perlengkapan pendukung sesuai keputusan keluarga dan pemandu adat."
+      },
+      {
+        "name": "Kesepakatan desa adat",
+        "meaning": "Perlengkapan pendukung sesuai keputusan keluarga dan pemandu adat."
+      }
+    ],
+    "culturalAdvice": "Nama, urutan, syarat, dan biaya adat berbeda antarwilayah dan keluarga. Mohon validasi kepada tetua/pemandu adat setempat."
+  },
+  {
+    "id": "bali-upacara",
+    "tradition": "BALI",
+    "title": "Natab Banten dan Doa Keluarga",
+    "subtitle": "Prosesi inti adat yang dapat disesuaikan",
+    "category": "UPACARA_ADAT",
+    "philosophy": "Mekala-kalaan dalam perkawinan Hindu Bali memaknai penyucian dan peralihan tanggung jawab rumah tangga; pelaksanaan harus dibimbing pemangku/sulinggih.",
+    "stepByStep": [
+      "Pemandu adat memastikan kesiapan peserta dan kelengkapan perlengkapan.",
+      "Doa dan Pesaksian: Kesaksian spiritual dan restu bagi pasangan sesuai tata upacara Hindu Bali.",
+      "Keluarga memberikan doa atau nasihat sesuai keyakinan dan kebiasaan setempat."
+    ],
+    "ubarampe": [
+      {
+        "name": "Banten sesuai pemangku",
+        "meaning": "Sarana pendukung prosesi; arti dan penggunaannya perlu dikonfirmasi kepada pemimpin adat."
+      },
+      {
+        "name": "Tirta",
+        "meaning": "Sarana pendukung prosesi; arti dan penggunaannya perlu dikonfirmasi kepada pemimpin adat."
+      }
+    ],
+    "culturalAdvice": " Perkawinan sah secara agama/negara mengikuti ketentuan tersendiri; prosesi adat tidak otomatis menggantikannya."
+  },
+  {
+    "id": "banjar-persiapan",
+    "tradition": "BANJAR",
+    "title": "Badatang, Maatar Jujuran dan Bapapai",
+    "subtitle": "Kesepakatan keluarga dan persiapan prosesi",
+    "category": "PERSIAPAN",
+    "philosophy": "Konfirmasi kesepakatan jujuran dan ritual mandi adat bila digunakan keluarga.",
+    "stepByStep": [
+      "Konsultasi dengan kedua keluarga dan tokoh adat tentang urutan yang digunakan.",
+      "Laksanakan tahapan badatang, maatar jujuran dan bapapai sesuai kesepakatan dan persetujuan pasangan.",
+      "Catat kesepakatan, biaya, penanggung jawab, dan tahapan yang tidak dipakai.",
+      "Konfirmasi tanggal serta kebutuhan perlengkapan sebelum memasuki rangkaian hari H."
+    ],
+    "ubarampe": [
+      {
+        "name": "Perlengkapan jujuran",
+        "meaning": "Perlengkapan pendukung sesuai keputusan keluarga dan pemandu adat."
+      },
+      {
+        "name": "Air ritual",
+        "meaning": "Perlengkapan pendukung sesuai keputusan keluarga dan pemandu adat."
+      }
+    ],
+    "culturalAdvice": "Nama, urutan, syarat, dan biaya adat berbeda antarwilayah dan keluarga. Mohon validasi kepada tetua/pemandu adat setempat."
+  },
+  {
+    "id": "banjar-upacara",
+    "tradition": "BANJAR",
+    "title": "Batatai dan Restu Keluarga",
+    "subtitle": "Prosesi inti adat yang dapat disesuaikan",
+    "category": "UPACARA_ADAT",
+    "philosophy": "Musyawarah jujuran, perawatan calon pengantin, dan batatai menggarisbawahi tanggung jawab serta kebersamaan dua keluarga.",
+    "stepByStep": [
+      "Pemandu adat memastikan kesiapan peserta dan kelengkapan perlengkapan.",
+      "Batatai: Kedua pengantin bersanding menerima sambutan.",
+      "Restu Keluarga: Saling memberi doa dan nasihat.",
+      "Keluarga memberikan doa atau nasihat sesuai keyakinan dan kebiasaan setempat."
+    ],
+    "ubarampe": [
+      {
+        "name": "Pelaminan",
+        "meaning": "Sarana pendukung prosesi; arti dan penggunaannya perlu dikonfirmasi kepada pemimpin adat."
+      },
+      {
+        "name": "Mikrofon",
+        "meaning": "Sarana pendukung prosesi; arti dan penggunaannya perlu dikonfirmasi kepada pemimpin adat."
+      }
+    ],
+    "culturalAdvice": " Perkawinan sah secara agama/negara mengikuti ketentuan tersendiri; prosesi adat tidak otomatis menggantikannya."
+  },
+  {
+    "id": "sasak-persiapan",
+    "tradition": "SASAK",
+    "title": "Selabar dan Sorong Serah Aji Krame",
+    "subtitle": "Kesepakatan keluarga dan persiapan prosesi",
+    "category": "PERSIAPAN",
+    "philosophy": "Tetapkan tata pemberitahuan keluarga dan kesepakatan nilai adat; pastikan persetujuan kedua calon.",
+    "stepByStep": [
+      "Konsultasi dengan kedua keluarga dan tokoh adat tentang urutan yang digunakan.",
+      "Laksanakan tahapan selabar dan sorong serah aji krame sesuai kesepakatan dan persetujuan pasangan.",
+      "Catat kesepakatan, biaya, penanggung jawab, dan tahapan yang tidak dipakai.",
+      "Konfirmasi tanggal serta kebutuhan perlengkapan sebelum memasuki rangkaian hari H."
+    ],
+    "ubarampe": [
+      {
+        "name": "Dokumen persetujuan",
+        "meaning": "Perlengkapan pendukung sesuai keputusan keluarga dan pemandu adat."
+      },
+      {
+        "name": "Perlengkapan sorong serah",
+        "meaning": "Perlengkapan pendukung sesuai keputusan keluarga dan pemandu adat."
+      }
+    ],
+    "culturalAdvice": "Nama, urutan, syarat, dan biaya adat berbeda antarwilayah dan keluarga. Mohon validasi kepada tetua/pemandu adat setempat."
+  },
+  {
+    "id": "sasak-upacara",
+    "tradition": "SASAK",
+    "title": "Sorong Serah Aji Krame",
+    "subtitle": "Prosesi inti adat yang dapat disesuaikan",
+    "category": "UPACARA_ADAT",
+    "philosophy": "Sorong serah menyatakan kesepakatan dan penghormatan adat, sedangkan nyongkolan memperkenalkan pasangan kepada masyarakat dan keluarga.",
+    "stepByStep": [
+      "Pemandu adat memastikan kesiapan peserta dan kelengkapan perlengkapan.",
+      "Sorong Serah: Penyampaian dan penerimaan kesepakatan adat kedua keluarga.",
+      "Keluarga memberikan doa atau nasihat sesuai keyakinan dan kebiasaan setempat."
+    ],
+    "ubarampe": [
+      {
+        "name": "Perlengkapan aji krame",
+        "meaning": "Sarana pendukung prosesi; arti dan penggunaannya perlu dikonfirmasi kepada pemimpin adat."
+      },
+      {
+        "name": "Naskah adat",
+        "meaning": "Sarana pendukung prosesi; arti dan penggunaannya perlu dikonfirmasi kepada pemimpin adat."
+      }
+    ],
+    "culturalAdvice": "Kadang dilakukan pada hari berbeda dari akad. Perkawinan sah secara agama/negara mengikuti ketentuan tersendiri; prosesi adat tidak otomatis menggantikannya."
+  },
+  {
+    "id": "dayak-ngaju-persiapan",
+    "tradition": "DAYAK_NGAJU",
+    "title": "Hakumbang Auh, Maja Misek, dan Jalan Hadat",
+    "subtitle": "Kesepakatan keluarga dan persiapan prosesi",
+    "category": "PERSIAPAN",
+    "philosophy": "Musyawarahkan tahapan adat, kesepakatan Jalan Hadat, dan agama masing-masing pasangan.",
+    "stepByStep": [
+      "Konsultasi dengan kedua keluarga dan tokoh adat tentang urutan yang digunakan.",
+      "Laksanakan tahapan hakumbang auh, maja misek, dan jalan hadat sesuai kesepakatan dan persetujuan pasangan.",
+      "Catat kesepakatan, biaya, penanggung jawab, dan tahapan yang tidak dipakai.",
+      "Konfirmasi tanggal serta kebutuhan perlengkapan sebelum memasuki rangkaian hari H."
+    ],
+    "ubarampe": [
+      {
+        "name": "Catatan Jalan Hadat",
+        "meaning": "Perlengkapan pendukung sesuai keputusan keluarga dan pemandu adat."
+      },
+      {
+        "name": "Daftar tetua",
+        "meaning": "Perlengkapan pendukung sesuai keputusan keluarga dan pemandu adat."
+      }
+    ],
+    "culturalAdvice": "Nama, urutan, syarat, dan biaya adat berbeda antarwilayah dan keluarga. Mohon validasi kepada tetua/pemandu adat setempat."
+  },
+  {
+    "id": "dayak-ngaju-upacara",
+    "tradition": "DAYAK_NGAJU",
+    "title": "Haluang Hapelek & Manyaki Panganten",
+    "subtitle": "Prosesi inti adat yang dapat disesuaikan",
+    "category": "UPACARA_ADAT",
+    "philosophy": "Pelek Rujin Pangawin dan Jalan Hadat memuat komitmen, hak, serta tanggung jawab kedua pihak dalam tata adat Dayak Ngaju.",
+    "stepByStep": [
+      "Pemandu adat memastikan kesiapan peserta dan kelengkapan perlengkapan.",
+      "Haluang Hapelek: Dialog adat terkait kesepakatan dan Jalan Hadat.",
+      "Manyaki Panganten (Jika Sesuai): Ritual yang dipimpin petugas adat dengan penghormatan terhadap keyakinan pasangan.",
+      "Keluarga memberikan doa atau nasihat sesuai keyakinan dan kebiasaan setempat."
+    ],
+    "ubarampe": [
+      {
+        "name": "Daftar Jalan Hadat",
+        "meaning": "Sarana pendukung prosesi; arti dan penggunaannya perlu dikonfirmasi kepada pemimpin adat."
+      },
+      {
+        "name": "Sarana adat dari pemimpin upacara",
+        "meaning": "Sarana pendukung prosesi; arti dan penggunaannya perlu dikonfirmasi kepada pemimpin adat."
+      }
+    ],
+    "culturalAdvice": "Prosesi adat sakral tidak boleh diasumsikan wajib bagi semua keluarga Ngaju. Perkawinan sah secara agama/negara mengikuti ketentuan tersendiri; prosesi adat tidak otomatis menggantikannya."
   },
 ];
