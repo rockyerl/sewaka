@@ -1,17 +1,20 @@
 "use client";
 
 import { useState, useTransition, useEffect } from "react";
+import Link from "next/link";
 import {
   ArrowRight,
   BookOpen,
   Check,
   ChevronDown,
   ChevronUp,
+  Gift,
   Info,
   ListPlus,
   Package,
   Search,
   Sparkles,
+  Wand2,
 } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
@@ -91,6 +94,31 @@ export function CulturalEncyclopediaView({
 
   return (
     <div className="space-y-6">
+      {/* Cultural Suite Navigation */}
+      <div className="flex flex-wrap items-center gap-2 border-b border-border/80 pb-3">
+        <Link
+          href="/cultural-workflow"
+          className="inline-flex items-center gap-2 rounded-xl border border-border/80 bg-background px-4 py-2 text-xs font-medium text-muted-foreground hover:bg-muted/40 hover:text-foreground transition-all"
+        >
+          <Wand2 className="size-3.5" />
+          <span>Generator Alur Adat</span>
+        </Link>
+        <Link
+          href="/seserahan"
+          className="inline-flex items-center gap-2 rounded-xl border border-border/80 bg-background px-4 py-2 text-xs font-medium text-muted-foreground hover:bg-muted/40 hover:text-foreground transition-all"
+        >
+          <Gift className="size-3.5" />
+          <span>Seserahan & Mahar</span>
+        </Link>
+        <Link
+          href="/encyclopedia"
+          className="inline-flex items-center gap-2 rounded-xl bg-[#5B132B] px-4 py-2 text-xs font-semibold text-[#D4AF37] shadow-xs"
+        >
+          <BookOpen className="size-3.5" />
+          <span>Ensiklopedia Tradisi</span>
+        </Link>
+      </div>
+
       {/* Banner */}
       <div className="relative overflow-hidden rounded-2xl border border-[#D4AF37]/50 bg-gradient-to-r from-[#FAF5EC] via-[#FDFBF7] to-white p-6 sm:p-8 shadow-xs">
         <div className="flex items-center gap-2">

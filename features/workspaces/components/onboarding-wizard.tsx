@@ -64,7 +64,7 @@ export function OnboardingWizard({ workspaceId }: { workspaceId: string }) {
     }
   };
 
-  const handleComplete = async () => {
+  const handleComplete = async (destination: "/dashboard" | "/cultural-workflow" = "/dashboard") => {
     setIsSubmitting(true);
     try {
       // Update workspace with onboarding data
@@ -95,7 +95,7 @@ export function OnboardingWizard({ workspaceId }: { workspaceId: string }) {
         });
       }
 
-      router.push("/dashboard");
+      router.push(destination);
       router.refresh();
     } catch (error) {
       console.error("Onboarding error:", error);
@@ -300,14 +300,16 @@ export function OnboardingWizard({ workspaceId }: { workspaceId: string }) {
               </div>
 
               {/* CTA - Generate Workflow Adat */}
-              <a
-                href="/cultural-workflow"
-                className="inline-flex items-center gap-2 rounded-xl border-2 border-[#D4AF37]/60 bg-gradient-to-r from-[#5B132B]/5 via-[#D4AF37]/10 to-[#5B132B]/5 px-6 py-3 text-sm font-medium text-[#5B132B] transition-all hover:border-[#D4AF37] hover:shadow-md"
+              <button
+                type="button"
+                onClick={() => handleComplete("/cultural-workflow")}
+                disabled={isSubmitting}
+                className="inline-flex items-center gap-2 rounded-xl border-2 border-[#D4AF37]/60 bg-gradient-to-r from-[#5B132B]/5 via-[#D4AF37]/10 to-[#5B132B]/5 px-6 py-3 text-sm font-medium text-[#5B132B] transition-all hover:border-[#D4AF37] hover:shadow-md cursor-pointer disabled:opacity-50"
               >
                 <Wand2 className="size-4 text-[#D4AF37]" />
-                Generate Workflow Adat Lengkap
+                {isSubmitting ? "Menyimpan profil..." : "Simpan & Buat Alur Adat Otomatis"}
                 <ArrowRight className="size-4" />
-              </a>
+              </button>
               <p className="text-[11px] text-muted-foreground">
                 Dapatkan rundown, seserahan, dan checklist tugas otomatis sesuai tradisi adat Anda.
               </p>
@@ -331,7 +333,7 @@ export function OnboardingWizard({ workspaceId }: { workspaceId: string }) {
               Lanjut <ArrowRight className="size-4" />
             </Button>
           ) : (
-            <Button onClick={handleComplete} disabled={isSubmitting} className="gap-2">
+            <Button onClick={() => handleComplete("/dashboard")} disabled={isSubmitting} className="gap-2">
               {isSubmitting ? "Menyimpan..." : "Mulai Persiapan"} <Sparkles className="size-4" />
             </Button>
           )}

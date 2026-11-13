@@ -22,6 +22,7 @@ import { getActiveAnnouncements } from "@/features/admin/hooks/announcement-quer
 import { getBudgetOverview } from "@/features/budget/hooks/budget-queries";
 import { WeddingCountdown } from "@/features/dashboard/components/wedding-countdown";
 import { QuickActions } from "@/features/dashboard/components/quick-actions";
+import { DownloadSummaryButton } from "@/features/dashboard/components/download-summary-button";
 import { getCurrentWorkspace } from "@/lib/utils/workspace-cache";
 import { listWorkspaceGuests } from "@/features/guests/hooks/guest-queries";
 import { listWorkspaceTasks } from "@/features/tasks/hooks/task-queries";
@@ -81,17 +82,22 @@ export async function DashboardPageContent({ workspaceId }: { workspaceId: strin
       )}
 
       <section className="mb-6" id="ringkasan">
-        <div>
-          <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-[#a08f74]">
-            {todayLabel}
-          </p>
-          <h1 className="font-serif text-3xl font-normal tracking-tight sm:text-[38px]">
-            Selamat datang, {greetingName}{" "}
-            <span className="align-top text-lg text-[#c5a849]">✦</span>
-          </h1>
-          <p className="mt-2 text-sm text-muted-foreground">
-            Satu per satu, kita siapkan hari yang akan selalu dikenang.
-          </p>
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-[#a08f74]">
+              {todayLabel}
+            </p>
+            <h1 className="font-serif text-3xl font-normal tracking-tight sm:text-[38px]">
+              Selamat datang, {greetingName}{" "}
+              <span className="align-top text-lg text-[#c5a849]">✦</span>
+            </h1>
+            <p className="mt-2 text-sm text-muted-foreground">
+              Satu per satu, kita siapkan hari yang akan selalu dikenang.
+            </p>
+          </div>
+          <div className="shrink-0">
+            <DownloadSummaryButton workspaceId={workspaceId} />
+          </div>
         </div>
       </section>
 
@@ -253,7 +259,7 @@ export async function DashboardPageContent({ workspaceId }: { workspaceId: strin
         </p>
         <a
           className="relative z-[1] inline-flex w-fit items-center gap-1.5 text-sm font-medium text-primary hover:underline"
-          href="/internals/special-thanks"
+          href="/encyclopedia"
         >
           Jelajahi cerita adat <ArrowRight className="size-4" />
         </a>

@@ -51,7 +51,7 @@ jobs:
           CRON_SECRET: ${{ secrets.CRON_SECRET }}
 
       - name: Run database migrations
-        run: node run-migrations.js
+        run: node scripts/run-migrations.js
         env:
           MIGRATION_DATABASE_URL: ${{ secrets.MIGRATION_DATABASE_URL }}
 

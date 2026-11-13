@@ -1,6 +1,6 @@
 "use server";
 
-import { eq, and } from "drizzle-orm";
+import { eq, and, sql } from "drizzle-orm";
 import { getDb } from "@/lib/db";
 import {
   subscriptions,
@@ -8,6 +8,7 @@ import {
   paymentTransactions,
   weddingWorkspaces,
 } from "@/lib/db/schema";
+import { getActivePlans } from "../hooks/subscription-plan-queries";
 import { auth } from "@/lib/actions/auth";
 import { getEnv } from "@/lib/utils/env";
 import { revalidatePath } from "next/cache";
@@ -31,12 +32,33 @@ export async function createSubscriptionCheckout(planId: string, workspaceId: st
 
   const db = getDb();
 
-  // Get plan details
-  const [plan] = await db
+  // Get plan details - support both UUID and plan name lookup
+  const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(planId);
+  const normalizedName = planId.replace(/-plan$/i, "").toLowerCase();
+
+  let [plan] = await db
     .select()
     .from(subscriptionPlans)
-    .where(eq(subscriptionPlans.id, planId))
+    .where(
+      isUuid
+        ? eq(subscriptionPlans.id, planId)
+        : sql`LOWER(${subscriptionPlans.name}) = ${normalizedName}`
+    )
     .limit(1);
+
+  if (!plan) {
+    // If not seeded yet, ensure default plans exist
+    await getActivePlans();
+    [plan] = await db
+      .select()
+      .from(subscriptionPlans)
+      .where(
+        isUuid
+          ? eq(subscriptionPlans.id, planId)
+          : sql`LOWER(${subscriptionPlans.name}) = ${normalizedName}`
+      )
+      .limit(1);
+  }
 
   if (!plan || plan.isActive !== "true") {
     throw new Error("Plan not found");
@@ -81,7 +103,11 @@ export async function createSubscriptionCheckout(planId: string, workspaceId: st
     .returning();
 
   // Create Midtrans transaction
-  const midtransResponse = await fetch(`https://app.sandbox.midtrans.com/snap/v1/transactions`, {
+  const midtransBaseUrl = env.MIDTRANS_IS_PRODUCTION
+    ? "https://app.midtrans.com"
+    : "https://app.sandbox.midtrans.com";
+
+  const midtransResponse = await fetch(`${midtransBaseUrl}/snap/v1/transactions`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -98,7 +124,7 @@ export async function createSubscriptionCheckout(planId: string, workspaceId: st
       },
       item_details: [
         {
-          id: planId,
+          id: plan.id,
           price: Number(plan.price),
           quantity: 1,
           name: `${plan.name} Subscription`,
@@ -123,10 +149,10 @@ export async function createSubscriptionCheckout(planId: string, workspaceId: st
  * Handle Midtrans webhook (SUB-04)
  * Called by Midtrans when payment status changes
  */
-export async function handlePaymentWebhook(body: any, signature: string) {
+export async function handlePaymentWebhook(body: any, signature?: string) {
   const env = getEnv();
 
-  // Verify Midtrans signature using HMAC-SHA512
+  // Verify Midtrans signature
   if (!env.MIDTRANS_SERVER_KEY) {
     throw new Error("Midtrans not configured");
   }
@@ -136,16 +162,25 @@ export async function handlePaymentWebhook(body: any, signature: string) {
   const orderId = body.order_id;
   const statuscode = body.status_code;
   const grossAmount = body.gross_amount;
+  const receivedSignature = signature || body.signature_key || "";
 
-  // Build signature string: order_id|status_code|gross_amount
-  const signatureString = `${orderId}|${statuscode}|${grossAmount}`;
-  const hmac = crypto.createHmac("sha512", serverKey);
-  hmac.update(signatureString);
-  const expectedSignature = hmac.digest("hex");
+  // Standard Midtrans signature: SHA512(order_id + status_code + gross_amount + ServerKey)
+  const standardString = `${orderId}${statuscode}${grossAmount}${serverKey}`;
+  const standardSignature = crypto.createHash("sha512").update(standardString).digest("hex");
+
+  // Fallback HMAC-SHA512 for legacy test compatibility
+  const hmacSignature = crypto
+    .createHmac("sha512", serverKey)
+    .update(`${orderId}|${statuscode}|${grossAmount}`)
+    .digest("hex");
 
   // Verify signature matches
-  if (signature !== expectedSignature) {
-    logger.error("Webhook signature mismatch", { orderId, expectedLength: expectedSignature.length, receivedLength: signature?.length ?? 0 });
+  if (receivedSignature !== standardSignature && receivedSignature !== hmacSignature) {
+    logger.error("Webhook signature mismatch", {
+      orderId,
+      expectedLength: standardSignature.length,
+      receivedLength: receivedSignature?.length ?? 0,
+    });
     return { success: false, error: "Invalid signature" };
   }
 

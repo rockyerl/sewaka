@@ -593,6 +593,8 @@ function Footer() {
           <div className="flex flex-col items-center gap-6 sm:flex-row sm:justify-between">
             <Link href="/"><Logo /></Link>
             <div className="flex flex-wrap items-center gap-6 text-sm text-[#1C1917]/60">
+              <Link href="/terms" className="transition hover:text-[#5B132B]">Syarat & Ketentuan</Link>
+              <Link href="/privacy" className="transition hover:text-[#5B132B]">Kebijakan Privasi</Link>
               <Link href="/internals/changelog" className="transition hover:text-[#5B132B]">Changelog</Link>
               <Link href="/internals/special-thanks" className="transition hover:text-[#5B132B]">Special Thanks</Link>
             </div>

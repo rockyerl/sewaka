@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { Mail, Phone, Plus, Trash2 } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
@@ -144,7 +145,12 @@ export function VendorsMyTab({
                         <TableCell className="px-4 text-sm text-muted-foreground">{rowNum}</TableCell>
                         <TableCell className="px-4">
                           <div className="flex flex-col">
-                            <span className="font-medium text-sm">{vendor.name}</span>
+                            <Link
+                              href={`/vendors/${vendor.id}`}
+                              className="font-medium text-sm text-foreground hover:text-[#5B132B] hover:underline"
+                            >
+                              {vendor.name}
+                            </Link>
                             {vendor.notes && (
                               <span className="max-w-[200px] truncate text-xs text-muted-foreground">{vendor.notes}</span>
                             )}

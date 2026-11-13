@@ -1235,7 +1235,7 @@ Sewaka — platform perencanaan pernikahan untuk adat Nusantara.
 | Komponen | Status |
 |----------|--------|
 | Database (28+ tabel) | ✅ Selesai |
-| Migrations (16 files) | ✅ Selesai |
+| Migrations (34 files) | ✅ Selesai |
 | RLS Policies | ✅ Selesai |
 | Cloud Storage (Vercel Blob) | ✅ Kode siap, perlu token |
 | Email (Resend) | ✅ Kode siap, perlu domain verification |

@@ -110,7 +110,7 @@ export function GuestListView({
   // WhatsApp generator state
   const [selectedWaGuest, setSelectedWaGuest] = useState<Guest | null>(null);
   const [waPhone, setWaPhone] = useState("");
-  const [waTemplate, setWaTemplate] = useState<"FORMAL" | "CASUAL" | "REMINDER">("FORMAL");
+  const [waTemplate, setWaTemplate] = useState<"FORMAL" | "CASUAL" | "REMINDER" | "THANK_YOU">("FORMAL");
   const [copiedWaMsg, setCopiedWaMsg] = useState(false);
   const [copiedWaLink, setCopiedWaLink] = useState(false);
   const [waQrUrl, setWaQrUrl] = useState<string | null>(null);
@@ -239,7 +239,7 @@ export function GuestListView({
 
   const generateWhatsAppMessage = (
     guestName: string,
-    template: "FORMAL" | "CASUAL" | "REMINDER",
+    template: "FORMAL" | "CASUAL" | "REMINDER" | "THANK_YOU",
   ) => {
     const link = getPersonalizedUrl(guestName);
     const locationText = workspace?.location ? `\n📍 Tempat: ${workspace.location}` : "";
@@ -271,6 +271,17 @@ export function GuestListView({
         `Kehadiran dan doa restumu sangat berarti bagi kami. Sampai bertemu di hari bahagia kami ya! 😊\n\n` +
         `Salam hangat,\n` +
         `*${coupleTitle}*`
+      );
+    }
+
+    if (template === "THANK_YOU") {
+      return (
+        `Yth. Bapak/Ibu/Saudara/i *${guestName}*,\n\n` +
+        `Alhamdulillah, dengan penuh rasa syukur dan sukacita yang mendalam, kami sekeluarga ingin mengucapkan terima kasih yang sebesar-besarnya atas kehadiran dan doa restu Bapak/Ibu/Saudara/i pada hari pernikahan kami:\n\n` +
+        `💍 *${coupleTitle}*\n\n` +
+        `Kehadiran serta doa tulus Bapak/Ibu/Saudara/i sungguh melengkapi kebahagiaan dan menyempurnakan hari istimewa kami. Semoga Allah SWT / Tuhan YME senantiasa melimpahkan berkah, kesehatan, dan kebahagiaan bagi kita semua. 🙏✨\n\n` +
+        `Salam takzim dan terima kasih kami,\n` +
+        `*${coupleTitle} & Keluarga*`
       );
     }
 
@@ -482,6 +493,15 @@ export function GuestListView({
   // Build action buttons for PageHeader
   const headerActions = (
     <div className="flex flex-wrap items-center gap-2">
+      <Link
+        href="/check-in"
+        className="inline-flex items-center gap-1.5 rounded-xl border border-[#D4AF37]/40 bg-[#FAF5EC]/60 px-3 py-2 text-xs font-medium text-[#5B132B] shadow-xs hover:bg-[#FAF5EC]"
+        title="Buka scanner check-in untuk resepsi hari H"
+      >
+        <Smartphone className="size-3.5 text-[#D4AF37]" />
+        <span>Scanner Hari H</span>
+      </Link>
+
       <Link
         href="/guests/attendance"
         className="inline-flex items-center gap-1.5 rounded-xl border border-[#D4AF37]/40 bg-[#FAF5EC]/60 px-3 py-2 text-xs font-medium text-[#5B132B] shadow-xs hover:bg-[#FAF5EC]"
@@ -1223,11 +1243,12 @@ export function GuestListView({
                 <label className="block font-medium text-foreground mb-1.5">
                   Pilih Format Pesan:
                 </label>
-                <div className="grid grid-cols-3 gap-2">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                   {[
                     { id: "FORMAL", label: "👑 Sopan Adat" },
                     { id: "CASUAL", label: "💬 Ramah Sahabat" },
                     { id: "REMINDER", label: "⏰ Pengingat RSVP" },
+                    { id: "THANK_YOU", label: "🙏 Terima Kasih" },
                   ].map((t) => (
                     <button
                       key={t.id}

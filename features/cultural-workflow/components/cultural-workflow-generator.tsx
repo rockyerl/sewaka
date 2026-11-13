@@ -126,6 +126,31 @@ export function CulturalWorkflowGenerator({
 
   return (
     <div className="space-y-8">
+      {/* Cultural Suite Navigation */}
+      <div className="flex flex-wrap items-center gap-2 border-b border-border/80 pb-3">
+        <Link
+          href="/cultural-workflow"
+          className="inline-flex items-center gap-2 rounded-xl bg-[#5B132B] px-4 py-2 text-xs font-semibold text-[#D4AF37] shadow-xs"
+        >
+          <Wand2 className="size-3.5" />
+          <span>Generator Alur Adat</span>
+        </Link>
+        <Link
+          href="/seserahan"
+          className="inline-flex items-center gap-2 rounded-xl border border-border/80 bg-background px-4 py-2 text-xs font-medium text-muted-foreground hover:bg-muted/40 hover:text-foreground transition-all"
+        >
+          <Gift className="size-3.5" />
+          <span>Seserahan & Mahar</span>
+        </Link>
+        <Link
+          href="/encyclopedia"
+          className="inline-flex items-center gap-2 rounded-xl border border-border/80 bg-background px-4 py-2 text-xs font-medium text-muted-foreground hover:bg-muted/40 hover:text-foreground transition-all"
+        >
+          <BookOpen className="size-3.5" />
+          <span>Ensiklopedia Tradisi</span>
+        </Link>
+      </div>
+
       {/* Hero Banner */}
       <div className="relative overflow-hidden rounded-2xl border border-[#D4AF37]/50 bg-gradient-to-r from-[#FAF5EC] via-[#FDFBF7] to-white p-6 sm:p-8 shadow-xs">
         <div className="flex items-center gap-2">
@@ -337,7 +362,7 @@ export function CulturalWorkflowGenerator({
                     Reset & Generate Ulang
                   </Button>
                   <Button asChild size="sm" className="rounded-xl bg-[#5B132B] text-xs text-white hover:bg-[#3D0B1C]">
-                    <Link href="/rundown">
+                    <Link href="/events">
                       Lihat Hasil
                       <ChevronRight className="ml-1 size-3" />
                     </Link>
@@ -372,7 +397,7 @@ export function CulturalWorkflowGenerator({
       {hasWorkflow && (
         <div className="grid gap-3 sm:grid-cols-3">
           <Button asChild variant="outline" className="rounded-xl h-auto p-4 flex flex-col items-start gap-2">
-            <Link href="/rundown" className="flex flex-col items-start gap-1">
+            <Link href="/events" className="flex flex-col items-start gap-1">
               <ListChecks className="size-5 text-[#5B132B]" />
               <div>
                 <p className="text-sm font-semibold text-[#1C1917]">Rundown Adat</p>

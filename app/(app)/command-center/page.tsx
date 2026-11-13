@@ -1,11 +1,5 @@
-import { CommandCenterPage } from "@/features/command-center/components/command-center-page";
+import { redirect } from "next/navigation";
 
-export const instant = false;
-
-export default async function CommandCenterRoute() {
-  const { getCurrentWorkspace } = await import("@/lib/utils/workspace-cache");
-  const workspace = await getCurrentWorkspace();
-  if (!workspace) return null;
-
-  return <CommandCenterPage workspaceId={workspace.id} />;
+export default function CommandCenterRedirect() {
+  redirect("/events");
 }

@@ -91,22 +91,13 @@ jobs:
       - name: Install Playwright browsers
         run: npx playwright install chromium --with-deps
 
-      - name: Start dev server
-        run: npm run dev &
-        env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
-          AUTH_SECRET: ${{ secrets.AUTH_SECRET }}
-          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
-          MAIL_FROM: ${{ secrets.MAIL_FROM }}
-
-      - name: Wait for dev server
-        run: sleep 10
-
       - name: Run E2E tests
         run: npx playwright test
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
           AUTH_SECRET: ${{ secrets.AUTH_SECRET }}
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+          MAIL_FROM: ${{ secrets.MAIL_FROM }}
 
       - name: Upload Playwright report
         uses: actions/upload-artifact@v4

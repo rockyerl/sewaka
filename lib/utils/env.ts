@@ -41,6 +41,10 @@ const environmentSchema = z.object({
     (value) => (value === "" ? undefined : value),
     z.string().min(1).optional(),
   ),
+  MIDTRANS_IS_PRODUCTION: z.preprocess(
+    (val) => val === "true" || val === true,
+    z.boolean(),
+  ).default(false),
   WHATSAPP_API_KEY: z.preprocess(
     (value) => (value === "" ? undefined : value),
     z.string().min(1).optional(),

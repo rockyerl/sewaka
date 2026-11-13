@@ -13,6 +13,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - 44+ action files, 22+ UI components, 28+ database tables
 
 ### Added
+- **12 Tradisi Budaya Baru**: Memperluas Cultural Workflow Generator dari 4 menjadi 16 tradisi adat Nusantara
+  - **Betawi** (Palang Pintu) — DKI Jakarta: pantun, silat, dan restu keluarga
+  - **Batak Toba** — Sumatera Utara: ulos, gondang, dan persatuan marga
+  - **Mandailing** (Horja) — Mandailing Natal: markobar, gondang, dan mangupa
+  - **Aceh** (Peusijuek) — Aceh: doa, seulanga, dan restu keluarga
+  - **Melayu Riau** — Riau dan Kepri: tepuk tepung tawar dan berbalas pantun
+  - **Palembang** (Aesan Gede) — Sumatera Selatan: songket dan keagungan munggah
+  - **Lampung Pepadun** — Lampung: siger, musyawarah, dan cangget
+  - **Bugis** (Mappacci) — Sulawesi Selatan: mappacci dan kehormatan keluarga
+  - **Bali Hindu** (Mekala-kalaan) — Bali: sekala-niskala dalam ikatan wiwaha
+  - **Banjar** (Bapapai/Badudus) — Kalimantan Selatan: jujuran, mandi adat, dan batatai
+  - **Sasak** (Sorong Serah & Nyongkolan) — Lombok, NTB: aji krame dan silaturahmi
+  - **Dayak Ngaju** — Kalimantan Tengah: jalan hadat dan penghormatan keluarga
+
+### Added
 - **Premium Invitation Features**: Complete suite of digital invitation enhancements inspired by Attari
   - **Cover Page Animation**: Full-screen "Buka Undangan" cover with guest name personalization and auto-play music
   - **Love Story Timeline**: Visual timeline with milestones (date, title, description, photo) replacing plain text story
@@ -26,7 +41,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - **Share WhatsApp**: Personalized WhatsApp share button with template messages
   - **Bulk WhatsApp Invite**: Mass invitation via WhatsApp from admin (max 50/batch, rate limited)
 - **Cultural Workflow Generator** (P1 — USP Fitur): Auto-generate lengkap dari pilih tradisi → rundown, seserahan, checklist
-  - **Tradition Selector**: Card picker 4 tradisi (Jawa, Sunda, Minang, Nasional) dengan preview
+  - **Tradition Selector**: Card picker 16 tradisi (Jawa, Sunda, Minang, Nasional, Betawi, Batak Toba, Mandailing, Aceh, Melayu Riau, Palembang, Lampung Pepadun, Bugis, Bali, Banjar, Sasak, Dayak Ngaju) dengan preview
   - **Auto Rundown**: Generate rundown adat lengkap dengan rituals, PIC, lokasi, attire dari template
   - **Auto Seserahan**: Generate daftar seserahan dari encyclopedia ubarampe per tradisi
   - **Auto Checklist**: Generate tasks dari checklist template per tradisi dengan milestone & priority

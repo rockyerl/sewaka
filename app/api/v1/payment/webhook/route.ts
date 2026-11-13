@@ -20,7 +20,7 @@ export async function POST(request: NextRequest) {
 
   try {
     const body = await request.json();
-    const signature = request.headers.get("x-signature") ?? "";
+    const signature = request.headers.get("x-signature") ?? body.signature_key ?? "";
 
     const result = await handlePaymentWebhook(body, signature);
 

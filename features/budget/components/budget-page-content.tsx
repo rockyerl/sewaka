@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { BarChart3, Calendar, FileText, Plus, Trash2, TrendingDown, TrendingUp, Wallet } from "lucide-react";
+import { BarChart3, Calendar, Download, FileText, Plus, Trash2, TrendingDown, TrendingUp, Wallet } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -9,8 +9,15 @@ import { formatCurrency } from "@/lib/utils/format-currency";
 import { formatDateIndonesia } from "@/components/ui/date-badge";
 
 import { addBudgetEntryAction, deleteBudgetEntryAction } from "@/features/budget/actions/budget-actions";
+import { exportBudgetReport } from "@/features/budget/actions/budget-export-actions";
 import { getBudgetOverview } from "@/features/budget/hooks/budget-queries";
 import { BudgetTabs } from "./budget-tabs";
+
+export async function exportBudgetReportAction(formData: FormData) {
+  "use server";
+  const workspaceId = formData.get("workspaceId") as string;
+  await exportBudgetReport(workspaceId);
+}
 
 export async function BudgetPageContent({ workspaceId }: { workspaceId: string }) {
   const budget = await getBudgetOverview(workspaceId);
@@ -28,13 +35,28 @@ export async function BudgetPageContent({ workspaceId }: { workspaceId: string }
         title="Kelola Anggaran"
         description="Atur batas anggaran dan pantau pengeluaran pernikahanmu."
         actions={
-          <Link
-            href="/budget/financial"
-            className="inline-flex items-center gap-1.5 rounded-xl border border-[#D4AF37]/40 bg-[#FAF5EC]/60 px-3 py-2 text-xs font-medium text-[#5B132B] shadow-xs hover:bg-[#FAF5EC]"
-          >
-            <BarChart3 className="size-3.5 text-[#D4AF37]" />
-            <span>Laporan Keuangan</span>
-          </Link>
+          <div className="flex flex-wrap items-center gap-2">
+            <form action={exportBudgetReportAction}>
+              <input type="hidden" name="workspaceId" value={workspaceId} />
+              <Button
+                type="submit"
+                variant="outline"
+                size="sm"
+                className="rounded-xl border-[#D4AF37]/60 text-xs text-[#5B132B] hover:bg-[#FAF5EC]"
+                title="Download laporan rincian pengeluaran ke CSV"
+              >
+                <Download className="size-3.5 mr-1.5 text-[#D4AF37]" />
+                Export CSV
+              </Button>
+            </form>
+            <Link
+              href="/budget/financial"
+              className="inline-flex items-center gap-1.5 rounded-xl border border-[#D4AF37]/40 bg-[#FAF5EC]/60 px-3 py-2 text-xs font-medium text-[#5B132B] shadow-xs hover:bg-[#FAF5EC]"
+            >
+              <BarChart3 className="size-3.5 text-[#D4AF37]" />
+              <span>Detail Laporan</span>
+            </Link>
+          </div>
         }
       />
 

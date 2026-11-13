@@ -1,4 +1,5 @@
-import { AlertTriangle, LogOut, Shield } from "lucide-react";
+import Link from "next/link";
+import { AlertTriangle, Crown, Heart, LogOut, Shield } from "lucide-react";
 
 import { ConfirmSubmitButton } from "@/components/forms/confirm-submit-button";
 import { Card } from "@/components/ui/card";
@@ -24,6 +25,31 @@ export async function SettingsPageContent({
 }) {
   return (
     <>
+      {/* Settings Navigation Tabs */}
+      <div className="mb-6 flex flex-wrap items-center gap-2 border-b border-border/80 pb-3">
+        <Link
+          href="/settings"
+          className="inline-flex items-center gap-2 rounded-xl bg-[#5B132B] px-4 py-2 text-xs font-semibold text-[#D4AF37] shadow-xs"
+        >
+          <Shield className="size-3.5" />
+          <span>Akun Saya</span>
+        </Link>
+        <Link
+          href="/workspaces"
+          className="inline-flex items-center gap-2 rounded-xl border border-border/80 bg-background px-4 py-2 text-xs font-medium text-muted-foreground hover:bg-muted/40 hover:text-foreground transition-all"
+        >
+          <Heart className="size-3.5" />
+          <span>Workspace & Tim</span>
+        </Link>
+        <Link
+          href="/subscription"
+          className="inline-flex items-center gap-2 rounded-xl border border-border/80 bg-background px-4 py-2 text-xs font-medium text-muted-foreground hover:bg-muted/40 hover:text-foreground transition-all"
+        >
+          <Crown className="size-3.5" />
+          <span>Paket Langganan</span>
+        </Link>
+      </div>
+
       <PageHeader
         eyebrow="PENGATURAN AKUN"
         title="Akun Saya"

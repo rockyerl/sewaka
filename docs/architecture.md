@@ -459,7 +459,7 @@ RootLayout (app/layout.tsx)
 │  │  ├── Encyclopedia (app/(app)/encyclopedia/)
 │  │  ├── Cultural Workflow (app/(app)/cultural-workflow/)
 │  │  │  └── CulturalWorkflowGenerator (client)
-│  │  │      ├── TraditionSelector — card picker 4 tradisi
+│  │  │      ├── TraditionSelector — card picker 16 tradisi
 │  │  ├── Encyclopedia (app/(app)/encyclopedia/)
 │  │  │  └── CulturalEncyclopediaView (client)
 │  │  │      ├── CTA Banner — link ke Workflow Generator (conditional)

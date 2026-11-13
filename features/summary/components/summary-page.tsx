@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { Download, FileText, CheckCircle2, AlertCircle } from "lucide-react";
+import Link from "next/link";
+import { Download, FileText, CheckCircle2, AlertCircle, ArrowLeft } from "lucide-react";
 import { PageHeader } from "@/components/shared/page-components";
 import { SectionCard } from "@/components/shared/page-components";
 import { Button } from "@/components/ui/button";
@@ -80,7 +81,13 @@ export function SummaryPage({ workspaceId }: { workspaceId: string }) {
         </div>
       </SectionCard>
 
-      <div className="flex items-center justify-end gap-3 pt-4">
+      <div className="flex items-center justify-between gap-3 pt-4">
+        <Button asChild variant="outline" className="rounded-xl text-xs">
+          <Link href="/dashboard">
+            <ArrowLeft className="size-3.5 mr-1" />
+            Kembali ke Ringkasan
+          </Link>
+        </Button>
         <Button
           onClick={handleGenerate}
           disabled={isPending}

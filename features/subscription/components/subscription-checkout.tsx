@@ -9,6 +9,7 @@ import { showToast } from "@/components/ui/toast";
 interface SubscriptionCheckoutProps {
 	workspaceId: string;
 	planName: string;
+	planId?: string;
 	cta: string;
 	ctaVariant: "default" | "outline";
 }
@@ -16,6 +17,7 @@ interface SubscriptionCheckoutProps {
 export function SubscriptionCheckout({
 	workspaceId,
 	planName,
+	planId: explicitPlanId,
 	cta,
 	ctaVariant,
 }: SubscriptionCheckoutProps) {
@@ -36,13 +38,13 @@ export function SubscriptionCheckout({
 				Premium: "premium-plan",
 				Enterprise: "enterprise-plan",
 			};
-			const planId = planIdMap[planName];
-			if (!planId) return;
+			const targetPlanId = explicitPlanId || planIdMap[planName] || planName.toLowerCase();
+			if (!targetPlanId) return;
 
 			const res = await fetch("/api/v1/subscription/checkout", {
 				method: "POST",
 				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify({ planId, workspaceId }),
+				body: JSON.stringify({ planId: targetPlanId, workspaceId }),
 			});
 
 			const data = await res.json();
@@ -53,8 +55,11 @@ export function SubscriptionCheckout({
 			}
 
 			if (data.snapToken) {
+				const isProd = process.env.NEXT_PUBLIC_MIDTRANS_IS_PRODUCTION === "true";
 				const script = document.createElement("script");
-				script.src = "https://app.sandbox.midtrans.com/snap/snap.js";
+				script.src = isProd
+					? "https://app.midtrans.com/snap/snap.js"
+					: "https://app.sandbox.midtrans.com/snap/snap.js";
 				script.setAttribute(
 					"data-client-key",
 					process.env.NEXT_PUBLIC_MIDTRANS_CLIENT_KEY || "",

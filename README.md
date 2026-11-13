@@ -181,7 +181,7 @@ seserahan, rundown adat, dan ensiklopedia budaya.
 |----------|-----------|
 | **Framework** | Next.js 16.4.5 (App Router, Turbopack) |
 | **UI** | React 19, Tailwind CSS v4, shadcn/ui (Radix) |
-| **Database** | PostgreSQL 16+ dengan Row-Level Security |
+| **Database** | PostgreSQL 17 dengan Row-Level Security |
 | **ORM** | Drizzle ORM + Drizzle Kit |
 | **Auth** | Auth.js (NextAuth) v5 dengan Google OAuth + Email/Password |
 | **Validation** | Zod v4 |
@@ -201,7 +201,7 @@ seserahan, rundown adat, dan ensiklopedia budaya.
 ### Prasyarat
 
 - Node.js 20+
-- PostgreSQL 16+
+- PostgreSQL 17+
 - Docker & Docker Compose (untuk development lokal)
 
 ### Setup Lokal
@@ -328,7 +328,7 @@ com.sewaka-web/
 │   ├── 0000_*.sql          # Initial migration
 │   ├── 0001_*.sql          # Auth.js adapter
 │   ├── ...                 # Sequential migrations
-│   └── 0015_*.sql          # Latest migration
+│   └── 0033_*.sql          # Latest migration
 ├── lib/                    # Shared utilities
 │   ├── email.ts            # Email utility (Resend)
 │   ├── email-templates.ts  # Email HTML templates
@@ -430,7 +430,7 @@ Cron job untuk notification scheduler sudah dikonfigurasi di `vercel.json`:
 | **Action Files** | 44+ |
 | **Components** | 30+ |
 | **Database Tables** | 28+ |
-| **Migrations** | 16 files (0000-0015) |
+| **Migrations** | 34 files (0000-0033) |
 | **Tests** | 23+ test cases (5 unit + 18 E2E) |
 
 ## 📄 Dokumentasi
@@ -439,7 +439,7 @@ Cron job untuk notification scheduler sudah dikonfigurasi di `vercel.json`:
 - **[Architecture](docs/architecture.md)** — Arsitektur aplikasi
 - **[Feature Specifications](docs/specification.md)** — Detail setiap fitur
 - **[Brand Guidelines](docs/sewaka_brand_guidelines.md)** — Panduan brand Sewaka
-- **[PRD](docs/Wedora_Product_Requirements_Document.md)** — Product Requirements Document
+- **[PRD](docs/Sewaka_Product_Requirements_Document.md)** — Product Requirements Document
 - **[Deployment Guide](docs/DEPLOYMENT.md)** — Panduan deploy ke Vercel production
 - **[Post-Launch Guide](docs/POST-LAUNCH.md)** — Monitoring, maintenance, dan troubleshooting
 - **[CI/CD Pipeline](docs/CICD.md)** — GitHub Actions workflows dan setup

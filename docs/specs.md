@@ -39,7 +39,7 @@ perencanaan pernikahan untuk adat Nusantara.
 
 | Komponen | Teknologi | Versi |
 |----------|-----------|-------|
-| RDBMS | PostgreSQL | 16+ |
+| RDBMS | PostgreSQL | 17 |
 | Connection Pool | pg | 8.23.1 |
 | Row-Level Security | PostgreSQL RLS | native |
 | Local Dev DB | Docker PostgreSQL | docker-compose |
@@ -158,7 +158,7 @@ Client components menerima data sebagai props dan memanggil server actions untuk
 ### Overview
 
 - **Total tabel:** 28+
-- **Migrations:** 16 files (0000–0015)
+- **Migrations:** 34 files (0000–0033)
 - **ORM:** Drizzle ORM dengan PostgreSQL
 - **Security:** Row-Level Security (RLS) pada semua tabel workspace
 
